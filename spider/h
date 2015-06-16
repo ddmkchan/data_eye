@@ -1,0 +1,33 @@
+<html>
+ <head></head>
+ <body>
+  <div data-widget="album-datarender" data-shownum="7"> 
+   <ul style="display: block;" data-private-display="" class="clearfix" data-datarender-elem="cont" id="albumjuji-showall-wrap" data-elem-shownum="20" data-elem-totalnum="15">
+    <li class="album_item album_item_half"> <a class="data-shortcutlist-wrap" href="http://www.iqiyi.com/v_19rrhj2170.html" title="奥莉秀萌版李小龙" target="_blank" rseat="ly-list-text-0-0923">2014-07-11期 奥莉秀萌版李小龙</a> </li> 
+    <li class="album_item album_item_half"> <a class="data-shortcutlist-wrap" href="http://www.iqiyi.com/v_19rrhk5c5w.html" title="大结局 Neinei秒变知心姐姐" target="_blank" rseat="ly-list-text-1-0923">2014-07-10期 大结局 Neinei秒变知心姐姐</a> </li> 
+    <li class="album_item album_item_half"> <a class="data-shortcutlist-wrap" href="http://www.iqiyi.com/v_19rrhklk00.html" title="星爸萌娃的爆笑合集" target="_blank" rseat="ly-list-text-2-0923">2014-07-04期 星爸萌娃的爆笑合集</a> </li> 
+    <li class="album_item album_item_half"> <a class="data-shortcutlist-wrap" href="http://www.iqiyi.com/v_19rrhke2eg.html" title="四组家庭首聚 威廉飞身救奥莉" target="_blank" rseat="ly-list-text-3-0923">2014-07-03期 四组家庭首聚 威廉飞身救奥莉</a> </li> 
+    <li class="album_item album_item_half"> <a class="data-shortcutlist-wrap" href="http://www.iqiyi.com/v_19rrhlw23k.html" title="neinei客串梦露" target="_blank" rseat="ly-list-text-4-0923">2014-06-26期 neinei客串梦露</a> </li> 
+    <li class="album_item album_item_half"> <a class="data-shortcutlist-wrap" href="http://www.iqiyi.com/v_19rrhwaods.html" title="奥莉甜心合体 林依轮儿子曝光 " target="_blank" rseat="ly-list-text-5-0923">2014-06-19期 奥莉甜心合体 林依轮儿子曝光 </a> </li> 
+    <li class="album_item album_item_half"> <a class="data-shortcutlist-wrap" href="http://www.iqiyi.com/v_19rrhwrpw8.html" title="neinei贪玩弃吴尊" target="_blank" rseat="ly-list-text-6-0923">2014-06-12期 neinei贪玩弃吴尊</a> </li> 
+    <li class="album_item album_item_half"> <a class="data-shortcutlist-wrap" href="http://www.iqiyi.com/v_19rrhylksw.html" title="威廉弟弟乡下喂猪" target="_blank" rseat="ly-list-text-7-0923">2014-06-05期 威廉弟弟乡下喂猪</a> </li> 
+    <li class="album_item album_item_half"> <a class="data-shortcutlist-wrap" href="http://www.iqiyi.com/v_19rrhzmwk4.html" title="未播出花絮 奥莉威廉共享美食" target="_blank" rseat="ly-list-text-8-0923">2014-06-04期 未播出花絮 奥莉威廉共享美食</a> </li> 
+    <li class="album_item album_item_half"> <a class="data-shortcutlist-wrap" href="http://www.iqiyi.com/v_19rri0aods.html" title="吴尊NeiNei拍亲子婚纱照" target="_blank" rseat="ly-list-text-9-0923">2014-05-29期 吴尊NeiNei拍亲子婚纱照</a> </li> 
+    <li class="album_item album_item_half"> <a class="data-shortcutlist-wrap" href="http://www.iqiyi.com/v_19rrhsckk0.html" title="奥莉威廉甜蜜同游动物园" target="_blank" rseat="ly-list-text-10-0923">2014-05-22期 奥莉威廉甜蜜同游动物园</a> </li> 
+    <li class="album_item album_item_half"> <a class="data-shortcutlist-wrap" href="http://www.iqiyi.com/v_19rrhsoh9w.html" title="甜馨亮相生日会" target="_blank" rseat="ly-list-text-11-0923">2014-05-15期 甜馨亮相生日会</a> </li> 
+    <li class="album_item album_item_half"> <a class="data-shortcutlist-wrap" href="http://www.iqiyi.com/v_19rrht8tso.html" title="neinei遭遇怪蜀黍" target="_blank" rseat="ly-list-text-12-0923">2014-05-08期 neinei遭遇怪蜀黍</a> </li> 
+    <li class="album_item album_item_half"> <a class="data-shortcutlist-wrap" href="http://www.iqiyi.com/v_19rrhtyvyo.html" title="吴尊公布女婿标准" target="_blank" rseat="ly-list-text-13-0923">2014-05-01期 吴尊公布女婿标准</a> </li> 
+    <li class="album_item album_item_half"> <a class="data-shortcutlist-wrap" href="http://www.iqiyi.com/v_19rrhulsf4.html" title="吴尊带女犯糊涂" target="_blank" rseat="ly-list-text-14-0923">2014-04-24期 吴尊带女犯糊涂</a> </li>
+   </ul> 
+   <div data-private-display="block" data-datarender-elem="load" style="display: none;"> 
+    <img src="http://www.qiyipic.com/common/images/load.gif" /> 正在加载...
+   </div> 
+   <div class="tc f14 c999" data-datarender-elem="error" style="display: none;">
+     该专辑目前暂无内容，请持续关注更新
+   </div> 
+   <textarea data-datarender-elem="tpl" style="display: none;"> {{ each data as item index}} &lt;li class=&quot;album_item album_item_half&quot;&gt; &lt;a class=&quot;data-shortcutlist-wrap&quot; href=&quot;{{item.vUrl}}&quot; title=&quot;{{item.shortTitle}}&quot; target=&quot;_blank&quot; rseat=&quot;ly-list-text-{{index}}-0923&quot;&gt;{{item.tvYear}}期 {{if item.shortTitle}}{{item.shortTitle}}{{else}}{{item.videoName}}{{/if}}&lt;/a&gt; {{if item.isYugao}}&lt;i class=&quot;icon-yugao-new&quot;&gt;&lt;/i&gt;{{/if}}{{if item.isNew}}&lt;i class=&quot;icon-juji-new&quot;&gt;&lt;/i&gt;{{/if}} &lt;/li&gt; {{/each}} </textarea> 
+  </div> 
+  <!-- 分页 --> 
+  <div class="mod-page dn" id="album_paging" data-elem-page="page" rseat="pinglun2"></div> 
+ </body>
+</html>
