@@ -97,7 +97,7 @@ def get_kbqm_comments():
 
 if __name__ == '__main__':
 	#get_iqiyi_comments(20, 500, IQIYI_SORT_TYPE[1], babaqunar_tv_id[1])
-	#print get_iqiyi_comments(1157463, 1, 100, 255909600)
+	#print get_iqiyi_comments(1155064, 1, 100, 218444100)
 	#get_letv_comments(20, 1, 22463310)
 	#get_kbqm_comments()
 	main()
