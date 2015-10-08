@@ -95,8 +95,8 @@ def get_xiaomi():
 #		print re.split('\_|\.', href)
 
 
-_category_list_360 = [19, 20, 51, 52, 53, 54, 101587, 102238, 100451]
-#_category_list_360 = [11, 12, 14, 15,16, 17,18, 102228, 102230, 102231, 102232, 102233, 102239]
+#_category_list_360 = [19, 20, 51, 52, 53, 54, 101587, 102238, 100451]
+_category_list_360 = [11, 12, 14, 15,16, 17,18, 102228, 102230, 102231, 102232, 102233, 102239]
 
 def get_360_list(cid, page):
 	rs = []
@@ -118,24 +118,24 @@ def get_360_tags(sid):
 def get_360_main():
 	count = 0
 	for c in _category_list_360:
-		category = gameid2category.get(str(c))
-		#category = id2category.get(str(c))
+		#category = gameid2category.get(str(c))
+		category = id2category.get(str(c))
 		for i in xrange(1, 51):
 			icon_list = get_360_list(c, i)
 			#print category, ",".join([i[0] for i in icon_list])
 			for icon in icon_list:
-				#print "%s\t%s\t%s" % (icon[1], icon[0].encode('utf-8'), category)
-				tags = get_360_tags(icon[1])
-				#print icon[0], icon[1], tags
-				count += 1
-				#ins = db_conn.query(APPLIST2).filter(APPLIST2.sid==int(icon[1])).first()
-				#if not ins:
-				item = APPLIST2(**{'sid': int(icon[1]), 'app_name': icon[0], 'tags': tags, 'category':category})
-				db_conn.merge(item)
-				if count % 1000 == 0:
-					print "%s commit" % count
-					db_conn.commit()
-	db_conn.commit()
+				print "%s\t%s\t%s" % (icon[1], icon[0].encode('utf-8'), category)
+#				tags = get_360_tags(icon[1])
+#				#print icon[0], icon[1], tags
+#				count += 1
+#				#ins = db_conn.query(APPLIST2).filter(APPLIST2.sid==int(icon[1])).first()
+#				#if not ins:
+#				item = APPLIST2(**{'sid': int(icon[1]), 'app_name': icon[0], 'tags': tags, 'category':category})
+#				db_conn.merge(item)
+#				if count % 1000 == 0:
+#					print "%s commit" % count
+#					db_conn.commit()
+#	db_conn.commit()
 
 id2category = {
 "11"	 :"系统安全", 
@@ -185,12 +185,8 @@ def get_ip_info():
 		segs = i.text.split(": ")[1].split("==>>")
 		
 
-with open('/home/cyp/17_ip/ip_wifi.log') as f:
-	lines = f.readlines()
-	
-
 if __name__ == '__main__':
 	#get_360_tags(1838349)
-	#get_360_main()
+	get_360_main()
 	#match()
-	get_ip_info()
+	#get_ip_info()

@@ -30,10 +30,10 @@ date_diff <- c()
 total <- c()
 for (i in 1:clusters) {
 	c <- d[which(d$cl.cluster==i),]
-	paytimes_d30 <- append(paytimes_d30, round(mean(c$paytimes_d30), digits=0))
-	payamount_d30 <- append(payamount_d30, round(mean(c$payamount_d30), digits=2))
-	playtimes_d30 <- append(playtimes_d30, round(mean(c$playtimes_d30), digits=2))
-	date_diff <- append(date_diff, round(mean(c$date_diff), digits=2))
+	paytimes_d30 <- append(paytimes_d30, round(median(c$paytimes_d30), digits=0))
+	payamount_d30 <- append(payamount_d30, round(median(c$payamount_d30), digits=2))
+	playtimes_d30 <- append(playtimes_d30, round(median(c$playtimes_d30), digits=2))
+	date_diff <- append(date_diff, round(median(c$date_diff), digits=2))
 	total <- append(total, mytable[i])
 	print(paste("cluster ", i, " size ", nrow(c)))
 	print(summary(c))}

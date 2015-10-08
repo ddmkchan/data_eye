@@ -1,44 +1,86 @@
-#!usr/bin/env python
+#!usr/bGin/env python
 #-*- coding:utf-8 -*-
 
+import urllib
+import os
+import socket
 import sys
 sys.path.append('/home/cyp/Utils/common')
 from define import *
 from model import *
-import re
+from bs4 import BeautifulSoup
 import traceback
-import json
+from get_logger import *
+mylogger = get_logger('hot_game')
 
 db_conn = new_session()
+import xlsxwriter
 
-import mmseg
 
-mmseg.Dictionary.load_dictionaries()
-mmseg.Dictionary.load_words('word.dict')
+def to_excel():
+	workbook = xlsxwriter.Workbook('demo.xlsx')
+	#worksheet = workbook.add_worksheet(u"百度游戏")
+	#bold = workbook.add_format({'bold': True})
+	#worksheet.write(0, 0, u'排名', bold)
+	#worksheet.write(0, 1, u'游戏名', bold)
+	#worksheet.set_column(0, 1, 20)
+	#worksheet.write(0, 2, u'ICON', bold)
+	#_row = 1
+	mydict = {}
+	id2source = {
+				"0": u"百度游戏",
+				"1": u"小米游戏",
+				"2": u"360游戏",
+				"3": u"9游游戏",
+				"4": u"appannie游戏",
+				}
+	for ret in db_conn.query(HotGames).filter(HotGames.create_date=="2015-09-02").filter(HotGames.source==3):
+	#for ret in db_conn.query(HotGames).filter(HotGames.create_date=="2015-09-02"):
+		source = id2source.get(str(ret.source))
+		if source in mydict:
+			mydict[source].append((ret.rank, ret.name, ret.source))
+		else:
+			mydict[source] = [(ret.rank, ret.name, ret.source)]
+	for source_name, d in mydict.iteritems():
+		print source_name, len(d)
+		worksheet = workbook.add_worksheet(source_name)
+		bold = workbook.add_format({'bold': True})
+		worksheet.write(0, 0, u'排名', bold)
+		worksheet.write(0, 1, u'游戏名', bold)
+		worksheet.set_column(0, 1, 20)
+		worksheet.write(0, 2, u'ICON', bold)
+		_row = 1
+	#for ret in db_conn.query(HotGames).filter(HotGames.create_date=="2015-09-02").filter(HotGames.source==0):
+		#worksheet.set_row(_row, 50)
+		for ret in d:
+			try:
+				rank, name, source = ret
+				worksheet.write(_row, 0, rank)
+				worksheet.write(_row, 1, name)
+				pic_name = u"/home/cyp/data_eye/spider/pics/%s_%s" % (name, source)
+				#pic_name = u"/home/cyp/data_eye/spider/pics/%s_%s" % (name.encode('utf-8'), str(source))
+				if source_name == u"360游戏":
+					worksheet.insert_image('C%s' % str(_row+1),  pic_name, {'x_scale': 1, 'y_scale': 1})
+				else:
+					worksheet.insert_image(_row, 2,  pic_name, {'x_offset': 40, 'y_offset': 40})
+					#worksheet.insert_image('C%s' % str(_row+1),  pic_name, {'x_scale': 0.4, 'y_scale': 0.3})
+				worksheet.set_row(_row, 80)
+				_row += 6
+			except Exception,e:
+				print name, "\n",traceback.format_exc()
+	workbook.close()
 
-def get_word_dict():
-	with open('custom.dict') as f:
-		return [line.rstrip() for line in f.readlines()]
-
-def main():
-	tv = '爸爸去哪儿,爸爸回来了,虎妈猫爸,嘿老头,待嫁老爸,酷爸俏妈'
-	for name in tv.split(','):
-		print name
-		mydict = {}
-		for ret in db_conn.query(LETV_TV_COMMENTS).filter(LETV_TV_COMMENTS.tv_name==name).all():
-			for w in mmseg.Algorithm(ret.comment.encode('utf-8').lower()):
-				w = w.text.decode('utf-8')
-				if len(w) >= 2:
-					mydict[w] = mydict[w]+1 if w in mydict else 1
-		_s = sorted(mydict.iteritems(), key=lambda d:d[1], reverse=True)
-		for i in _s[:100]:
-			if i[0].encode('utf-8') in get_word_dict():
-				print "%s\t%s" % (i[0], i[1])
+def check_and_convert():
+	from PIL import Image
+	for f in os.listdir("/home/cyp/data_eye/spider/pics"):
+		im = Image.open("/home/cyp/data_eye/spider/pics/%s" % f)
+		if im.format == "GIF":
+			print f
+			os.rename("/home/cyp/data_eye/spider/pics/%s" % f, "/home/cyp/data_eye/spider/pics/%s_old" % f) 
+			im.save("/home/cyp/data_eye/spider/pics/%s.png" % f)
+			os.rename("/home/cyp/data_eye/spider/pics/%s.png" % f, "/home/cyp/data_eye/spider/pics/%s" % f) 
 
 if __name__ == '__main__':
-	#for i in mmseg.Algorithm('森碟嗯哼奥莉kimi暂存以备天天提交的变更'):
-	#		print i
-
-	#for w in get_word_dict():
-	#	print "%s %s" %(len(w.decode('utf-8')), w)
-	main()
+	#download_pic()
+	to_excel()
+	#check_and_convert()
