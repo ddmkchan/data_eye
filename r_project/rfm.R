@@ -2,17 +2,17 @@
 
 clusters <- 8
 #tt <- read.delim("/home/cyp/data_eye/r_project/test_set", header=TRUE)
-tt <- read.delim("/home/cyp/data_eye/r_project/uid_rfm_payment_d30", header=TRUE)
+tt <- read.delim("/home/cyp/data_eye/r_project/uid_payment_d30", header=TRUE)
 #is_new <- tt$duration_d30==tt$duation
 #first_pay <- tt$payamount_d30==tt$payamount
-d <- data.frame(tt[, c(2,12,13)], row.names=tt$uid)
+d <- data.frame(tt[, c(4,5,6)], row.names=tt$uid)
 #标准化处理
 
 kc <- kmeans(scale(d), clusters, iter.max = 20)
 rs <- data.frame(kc$cluster)
 mytable <- with(rs, table(rs$kc.cluster))
 mytable
-d <- cbind(d, tt[,10:11])
+d <- cbind(d, tt[,2:3])
 d$duration_d30 <- round(d$duration_d30/60, digits = 2)
 d <- cbind(d, rs)
 #聚类结果可视化 
@@ -30,10 +30,6 @@ M <- c()
 total <- c()
 for (i in 1:clusters) {
 	cls <- d[which(d$kc.cluster==i),]
-	#if (median(cls$logintimes_d30) >= 450) {
-	#	print("median logintimes_d30")
-	#	print(cls$logintimes_d30)
-	#	}
 	paytimes_d30 <- append(paytimes_d30, round(median(cls$paytimes_d30), digits=0))
 	payamount_d30 <- append(payamount_d30, round(median(cls$payamount_d30), digits=2))
 	date_diff <- append(date_diff, round(median(cls$date_diff), digits=2))
@@ -49,6 +45,8 @@ for (i in 1:clusters) {
 print(median(d$date_diff))
 print(median(d$paytimes_d30))
 print(median(d$payamount_d30))
+print(median(d$logintimes_d30))
+print(median(d$duration_d30))
 out <- data.frame(date_diff, paytimes_d30, payamount_d30, R, F, M, logintimes_d30, duration_d30, total)
 print(out)
 write.table(out, "rfm.txt", sep="\t")
