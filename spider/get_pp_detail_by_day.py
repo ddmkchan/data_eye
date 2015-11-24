@@ -30,66 +30,61 @@ def get_9game_detail():
 	mylogger.info("get 9game detail start ...")
 	count = 0
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==0).filter(KC_LIST.kc_date>=u'2015-10-01'):
-		dt = unicode(datetime.date.today())
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
-
-			try:
-				response = s.get(ret.url, timeout=10)
-			except Exception,e:
-				response = T(404)
-				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
-			if response.status_code == 200:
+		try:
+			response = s.get(ret.url, timeout=10)
+		except Exception,e:
+			response = T(404)
+			mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
+		if response.status_code == 200:
+			soup = BeautifulSoup(response.text)
+			spec_pic = soup.find('div', class_='spec-pic')
+			imgs 	= u''
+			rating 	= u''
+			game_type = u''
+			comments_num = u''
+			topic_num_day = u''
+			topic_num_total = u''
+			dt = unicode(datetime.date.today())
+			if spec_pic is not None:
+				#for pic in spec_pic.find_all('span', class_='img'):
+				#	print pic
+				imgs = u','.join([pic.find('img').get('src') for pic in spec_pic.find_all('span', class_='img')])
+			tips = soup.find('div', class_='tips')
+			summary = tips.text.strip() if tips is not None else u''
+			bbs = soup.find('li', class_='bbs')
+			if bbs is not None:
+				if bbs.find('a') is not None:
+					info = get_9game_info_from_bbs(bbs.find('a').get('href'))
+					if info is not None:
+						topic_num_day, topic_num_total = info
+			scores = soup.find('div', class_='view-scroe1')
+			if scores is not None:
+				rating =  scores.find('div', class_='big-s').text
+			p_des = soup.find('div', class_='p-des')
+			if p_des is not None:
+				if p_des.find('p') is not None:
+					content = re.sub(u'\r| |\xa0', u'', p_des.find('p').text)
+					for seg in content.split('\n'):
+						if u'类型' in seg:
+							if  len(seg.split(u':')) == 2:
+								game_type = seg.split(u':')[1].strip()
+						elif u'评论' in seg:
+							m = re.search('\d+', seg)
+							comments_num = m.group() if m is not None else u''
+			ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+			if not ins:
 				count += 1
-				soup = BeautifulSoup(response.text)
-				spec_pic = soup.find('div', class_='spec-pic')
-				imgs 	= u''
-				rating 	= u''
-				game_type = u''
-				comments_num = u''
-				topic_num_day = u''
-				topic_num_total = u''
-				if spec_pic is not None:
-					imgs = u','.join([pic.find('img').get('src') for pic in spec_pic.find_all('span', class_='img')])
-				tips = soup.find('div', class_='tips')
-				summary = tips.text.strip() if tips is not None else u''
-				bbs = soup.find('li', class_='bbs')
-				if bbs is not None:
-					if bbs.find('a') is not None:
-						info = get_9game_info_from_bbs(bbs.find('a').get('href'))
-						if info is not None:
-							topic_num_day, topic_num_total = info
-				scores = soup.find('div', class_='view-scroe1')
-				if scores is not None:
-					rating =  scores.find('div', class_='big-s').text
-				p_des = soup.find('div', class_='p-des')
-				if p_des is not None:
-					if p_des.find('p') is not None:
-						content = re.sub(u'\r| |\xa0', u'', p_des.find('p').text)
-						for seg in content.split('\n'):
-							if u'类型' in seg:
-								if  len(seg.split(u':')) == 2:
-									game_type = seg.split(u':')[1].strip()
-							elif u'评论' in seg:
-								m = re.search('\d+', seg)
-								comments_num = m.group() if m is not None else u''
-
 				item = GameDetailByDay(**{'kc_id': ret.id,
-												'dt' : dt,
-												'imgs' : imgs,
-												'summary' : summary,
-												'game_type' : game_type,
-												'topic_num_day' : topic_num_day,
-												'topic_num_total' : topic_num_total,
-												'rating' : rating ,
-												'comment_num' : comments_num,
-												})
+											'dt' : dt,
+											'imgs' : imgs,
+											'summary' : summary,
+											'game_type' : game_type,
+											'topic_num_day' : topic_num_day,
+											'topic_num_total' : topic_num_total,
+											'rating' : rating ,
+											'comment_num' : comments_num,
+											})
 				db_conn.merge(item)
-				if count % 100 == 0:
-					sleep(3)
-					mylogger.info("9game detail commit %s" % count)
-					db_conn.commit()
-
 	mylogger.info("get 9game detail %s" % count)
 	db_conn.commit()
 
@@ -112,66 +107,60 @@ def get_18183_detail():
 	mylogger.info("get 18183 detail start ...")
 	count = 0 
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.kc_date>=u'2015-10-01').filter(KC_LIST.url!=u'').filter(KC_LIST.source==2):
-		dt = unicode(datetime.date.today())
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
-			try:
-				response = s.get(ret.url, timeout=10)
-				count += 1
-				topic_num_total = u''
-				game_type = u''
-				pkg_size = u''
-				summary = u''
-				imgs = u''
-				r = response.text.encode('ISO-8859-1').decode('utf-8')
-				soup = BeautifulSoup(r)
-				for li1 in soup.find_all('li', class_='li1'):
-					codes = li1.find_all('code')
-					spans = li1.find_all('span')
-					for i in xrange(len(codes)):
-						if codes[i].text == u'类型：':
-							game_type = spans[i].text.strip()
-						if codes[i].text == u'关注：':
-							try:
-								rs = requests.get(spans[i].find('script').get('src'))
-								if rs.status_code == 200:
-									m = re.search('\d+', rs.text)
-									if m is not None:
-										topic_num_total = m.group()
-							except Exception,e:
-								mylogger.error("18183 topic page error and sleep 3s %s" % (traceback.format_exc()))
-								sleep(3)
-				dwnli = soup.find('li', class_='dwnli')
-				if dwnli is not None:
+		try:
+			response = s.get(ret.url, timeout=10)
+		except Exception,e:
+			response = T(404)
+			mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
+		if response.status_code == 200:
+			topic_num_total = u''
+			game_type = u''
+			pkg_size = u''
+			summary = u''
+			imgs = u''
+			dt = unicode(datetime.date.today())
+			r = response.text.encode('ISO-8859-1').decode('utf-8')
+			soup = BeautifulSoup(r)
+			for li1 in soup.find_all('li', class_='li1'):
+				codes = li1.find_all('code')
+				spans = li1.find_all('span')
+				for i in xrange(len(codes)):
+					if codes[i].text == u'类型：':
+						game_type = spans[i].text.strip()
+					if codes[i].text == u'关注：':
+						rs = requests.get(spans[i].find('script').get('src'))
+						if rs.status_code == 200:
+							m = re.search('\d+', rs.text)
+							if m is not None:
+								topic_num_total = m.group()
+			dwnli = soup.find('li', class_='dwnli')
+			if dwnli is not None:
+				if dwnli.find('p') is not None:
 					if dwnli.find('p') is not None:
-						if dwnli.find('p') is not None:
-							pkg_size = dwnli.find('p').text.split(u'：')[1]
-				jianjie_txt = soup.find('div', class_='jianjie_txt')
-				if jianjie_txt is not None:
-					summary = jianjie_txt.text.strip()
-				tabcen_ul = soup.find('ul', class_='tabcen_ul')
-				if tabcen_ul is not None:
-					icons = []
-					for ss_body in tabcen_ul.find_all('li', class_='ss_body'):
-						if ss_body.find('img') is not None:
-							icons.append(ss_body.find('img').get('src'))
-					if icons:
-						imgs = u",".join(icons)
+						pkg_size = dwnli.find('p').text.split(u'：')[1]
+			jianjie_txt = soup.find('div', class_='jianjie_txt')
+			if jianjie_txt is not None:
+				summary = jianjie_txt.text.strip()
+			tabcen_ul = soup.find('ul', class_='tabcen_ul')
+			if tabcen_ul is not None:
+				icons = []
+				for ss_body in tabcen_ul.find_all('li', class_='ss_body'):
+					if ss_body.find('img') is not None:
+						icons.append(ss_body.find('img').get('src'))
+				if icons:
+					imgs = u",".join(icons)
+			ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+			if not ins:
+				count += 1
 				item = GameDetailByDay(**{'kc_id': ret.id,
-												'dt' : dt,
-												'imgs' : imgs,
-												'summary' : summary,
-												'pkg_size' : pkg_size,
-												'game_type' : game_type,
-												'topic_num_total' : topic_num_total,
-												})
+											'dt' : dt,
+											'imgs' : imgs,
+											'summary' : summary,
+											'pkg_size' : pkg_size,
+											'game_type' : game_type,
+											'topic_num_total' : topic_num_total,
+											})
 				db_conn.merge(item)
-				if count % 100 == 0:
-					sleep(3)
-					mylogger.info("18183 detail commit %s" % count)
-					db_conn.commit()
-			except Exception,e:
-				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get 18183 detail %s" % count)
 	db_conn.commit()
 
@@ -180,56 +169,59 @@ def get_360_web_detail():
 	mylogger.info("get 360 detail start ...")
 	count = 0
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.kc_date>=u'2015-10-01').filter(KC_LIST.source==22).filter(KC_LIST.url!=''):
-		dt = unicode(datetime.date.today())
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
-			try:
-				response = s.get(ret.url, timeout=10)
-			except Exception,e:
-				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
-				response = T(404)
-			if response.status_code == 200:
+		try:
+			response = s.get(ret.url, timeout=10)
+		except Exception,e:
+			mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
+			response = T(404)
+		if response.status_code == 200:
+			soup = BeautifulSoup(response.text)
+		#app_name = soup.find('h2', id='app-name')
+		#if app_name is not None:
+		#	name = app_name.find('span').get('title')
+			imgs = u''
+			rating = u''
+			summary = u''
+			comment_num = u''
+			download_num = u''
+			pkg_size = u''
+			dt = unicode(datetime.date.today())
+			pf = soup.find('div', class_='pf')
+			if pf is not None:
+				for li in pf.find_all('span'):
+					if u'分' in li.text:
+						if re.search('\d+', li.text) is not None:
+							rating = re.search('\d+', li.text).group()
+					elif u'评价' in li.text:
+						if re.search('\d+', li.text) is not None:
+							comment_num = re.search('\d+', li.text).group()
+					elif u'下载' in li.text:
+						if re.search('\d+', li.text) is not None:
+							download_num = re.search('\d+', li.text).group()
+					elif u'M' in li.text:
+						pkg_size = li.text
+			breif = soup.find('div', class_='breif')
+			if breif is not None:
+				summary = breif.text
+			viewport = soup.find('div', class_='viewport')
+			icons = []
+			if viewport is not None:
+				for icon in viewport.find_all('img'):
+					icons.append(icon.get('src'))
+			if icons:
+				imgs = u','.join(icons)
+			ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+			if not ins:
 				count += 1
-				soup = BeautifulSoup(response.text)
-				imgs = u''
-				rating = u''
-				summary = u''
-				comment_num = u''
-				download_num = u''
-				pkg_size = u''
-				pf = soup.find('div', class_='pf')
-				if pf is not None:
-					for li in pf.find_all('span'):
-						if u'分' in li.text:
-							if re.search('\d+', li.text) is not None:
-								rating = re.search('\d+', li.text).group()
-						elif u'评价' in li.text:
-							if re.search('\d+', li.text) is not None:
-								comment_num = re.search('\d+', li.text).group()
-						elif u'下载' in li.text:
-							if re.search('\d+', li.text) is not None:
-								download_num = re.search('\d+', li.text).group()
-						elif u'M' in li.text:
-							pkg_size = li.text
-				breif = soup.find('div', class_='breif')
-				if breif is not None:
-					summary = breif.text
-				viewport = soup.find('div', class_='viewport')
-				icons = []
-				if viewport is not None:
-					for icon in viewport.find_all('img'):
-						icons.append(icon.get('src'))
-				if icons:
-					imgs = u','.join(icons)
 				item = GameDetailByDay(**{'kc_id': ret.id,
-												'dt' : dt,
-												'imgs' : imgs,
-												'summary' : summary,
-												'pkg_size' : pkg_size,
-												'rating' : rating,
-												'comment_num' : comment_num,
-												'download_num' : download_num,
-												})
+											'dt' : dt,
+											'imgs' : imgs,
+											'summary' : summary,
+											'pkg_size' : pkg_size,
+											'rating' : rating,
+											'comment_num' : comment_num,
+											'download_num' : download_num,
+											})
 				db_conn.merge(item)
 				if count % 500 == 0:
 					mylogger.info("360 detail %s commit" % count)
@@ -241,32 +233,35 @@ def get_appicsh_detail():
 	mylogger.info("get appicsh detail start ...")
 	count = 0
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.source==3).filter(KC_LIST.url!=u''):
-		dt = unicode(datetime.date.today())
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
-			try:
-				response = s.get(ret.url, timeout=10)
-				d = response.json()
-				if d['obj'] is not None and d['obj']['appInfo'] is not None:
+		try:
+			response = s.get(ret.url, timeout=10)
+		except Exception,e:
+			mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
+			response = T(404)
+		if response.status_code == 200:
+			d = response.json()
+			dt = unicode(datetime.date.today())
+			if d['obj'] is not None:
+				if d['obj']['appInfo'] is not None:
 					appinfo = d['obj']['appInfo']
-					count += 1
-					publishtime = appinfo.get('apkPublishTime', u"")
-					update_time = unicode(datetime.date.fromtimestamp(publishtime)) if publishtime else u""
+					ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+					if not ins:
+						count += 1
+						publishtime = appinfo.get('apkPublishTime', u"")
+						update_time = unicode(datetime.date.fromtimestamp(publishtime)) if publishtime else u""
 
-					item = GameDetailByDay(**{'kc_id': ret.id,
-												'dt' : dt,
-												'imgs' : u','.join([i for i in appinfo['screenshots']]),
-												'summary' : appinfo.get('description', u''),
-												'pkg_size' : appinfo.get('fileSize', u''),
-												'version' : appinfo.get('versionName', u''),
-												'rating' : appinfo.get('averageRating', u''),
-												'download_num' : appinfo.get('appDownCount', u''),
-												'author' : appinfo.get('authorName', u''),
-												'update_time' : update_time
-												})
-					db_conn.merge(item)
-			except Exception,e:
-				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
+						item = GameDetailByDay(**{'kc_id': ret.id,
+													'dt' : dt,
+													'imgs' : u','.join([i for i in appinfo['screenshots']]),
+													'summary' : appinfo.get('description', u''),
+													'pkg_size' : appinfo.get('fileSize', u''),
+													'version' : appinfo.get('versionName', u''),
+													'rating' : appinfo.get('averageRating', u''),
+													'download_num' : appinfo.get('appDownCount', u''),
+													'author' : appinfo.get('authorName', u''),
+													'update_time' : update_time
+													})
+						db_conn.merge(item)
 	mylogger.info("get appicsh detail %s" % count)
 	db_conn.commit()
 			
@@ -379,35 +374,39 @@ def get_open_play_detail():
 	count = 0
 	mylogger.info("get open play detail start ...")
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==7):
-		dt = unicode(datetime.date.today())
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
-			_url = u'http://open.play.cn/api/v2/mobile/game_detail.json?game_id=%s' % ret.title2
-			try:
-				response = s.get(_url, timeout=10)
-				d = response.json()
-				if d.get('text', u'') == u'success':
+		_url = u'http://open.play.cn/api/v2/mobile/game_detail.json?game_id=%s' % ret.title2
+		try:
+			response = s.get(_url, timeout=10)
+		except Exception,e:
+			mylogger.error("%s\t%s" % (_url.encode('utf-8'), traceback.format_exc()))
+			response = T(404)
+		if response.status_code == 200:
+			d = response.json()
+			if d['text'] == u'success':
+				g = d['ext']['game_detail']
+				#for k,v in d['ext']['game_detail'].iteritems():
+				#	print k, v
+				dt = unicode(datetime.date.today())
+				ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+				if not ins:
 					count += 1 
-					g = d['ext']['game_detail']
 					topic_num_total = u''
 					ref_vote_info = d['ext']['ref_vote_info']
 					if ref_vote_info['vote_state'] == 1:
 						topic_num_total = ref_vote_info['vote_up_count'] + ref_vote_info['vote_dn_count']
 					item = GameDetailByDay(**{
-												'kc_id': ret.id,
-												'summary' : g.get('game_introduction', u''),
-												'author' : g.get('cp_name', u''),
-												'game_type' : g.get('game_class', u''),
-												'version' : g.get('version', u''),
-												'download_num' : g.get('game_download_count', u''),
-												'pkg_size' : g.get('game_size' u''),
-												'dt' : dt,
-												'imgs' : u','.join(g['game_view_images']),
-												'topic_num_total' : topic_num_total,
-													})
+											'kc_id': ret.id,
+											'summary' : g.get('game_introduction', u''),
+											'author' : g.get('cp_name', u''),
+											'game_type' : g.get('game_class', u''),
+											'version' : g.get('version', u''),
+											'download_num' : g.get('game_download_count', u''),
+											'pkg_size' : g.get('game_size' u''),
+											'dt' : dt,
+											'imgs' : u','.join(g['game_view_images']),
+											'topic_num_total' : topic_num_total,
+												})
 					db_conn.merge(item)
-			except Exception,e:
-				mylogger.error("%s\t%s" % (_url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get open play detail %s" % count)
 	db_conn.commit()
 
@@ -415,33 +414,36 @@ def get_vivo_detail():
 	count = 0
 	mylogger.info("get vivo detail start ...")
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==8):
-		dt = unicode(datetime.date.today())
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
-			try:
-				response = s.get(ret.url, timeout=10)
-				d = response.json()
-				if d is not None and 'result' in d and d['result']:
-					g = d.get('game')
-					if g is not None:
-						count += 1 
-						item = GameDetailByDay(**{
-												'kc_id': ret.id,
-												'summary' : g.get('desc', u''),
-												'rating' : g.get('comment', u''),
-												'author' : g.get('gameDeveloper', u''),
-												'game_type' : g.get('type', u''),
-												'version' : g.get('versonName', u''),
-												'download_num' : g.get('download', u''),
-												'comment_num' : g.get('commentNum', u''),
-												'pkg_size' : g.get('size' u''),
-												'dt' : dt,
-												'update_time' : g.get('date', u''),
-												'imgs' : u','.join(g['screenshot'].split(u'###')),
-													})
-						db_conn.merge(item)
-			except Exception,e:
-				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
+		try:
+			response = s.get(ret.url, timeout=10)
+		except Exception,e:
+			mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
+			response = T(404)
+		if response.status_code == 200:
+			d = response.json()
+			if d is not None and 'result' in d and d['result']:
+				dt = unicode(datetime.date.today())
+				g = d['game']
+				ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+				if not ins:
+					count += 1 
+					item = GameDetailByDay(**{
+											'kc_id': ret.id,
+											'summary' : g.get('desc', u''),
+											'rating' : g.get('comment', u''),
+											'author' : g.get('gameDeveloper', u''),
+											'game_type' : g.get('type', u''),
+											'version' : g.get('versonName', u''),
+											'download_num' : g.get('download', u''),
+											'comment_num' : g.get('commentNum', u''),
+											'pkg_size' : g.get('size' u''),
+											'dt' : dt,
+											'update_time' : g.get('date', u''),
+											'imgs' : u','.join(g['screenshot'].split(u'###')),
+												})
+					db_conn.merge(item)
+				else:
+					ins.author = g.get('gameDeveloper', u'')
 	mylogger.info("get vivo play detail %s" % count)
 	db_conn.commit()
 
@@ -450,11 +452,11 @@ def get_coolpad_detail():
 	count = 0
 	mylogger.info("get coolpad detail start ...")
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==9):
-		dt = unicode(datetime.date.today())
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
-			g =  get_coolpad_detail_by_id(ret.title2)
-			if g is not None:
+		g =  get_coolpad_detail_by_id(ret.title2)
+		if g is not None:
+			dt = unicode(datetime.date.today())
+			ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+			if not ins:
 				count += 1 
 				imgs = u''
 				if g['pics'] is not None and g['pics']['picurl'] is not None:
@@ -503,29 +505,31 @@ def get_gionee_detail():
 	count = 0
 	mylogger.info("get gionee detail start ...")
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==10):
-		dt = unicode(datetime.date.today())
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
-			_url = u"http://game.gionee.com/Api/Local_Gameinfo/getDetails?gameId=%s" % ret.title2
-			try:
-				response = s.get(_url, timeout=10)
-				d = response.json()
-				if 'success' in d and d['success']:
-					g = d['data']
+		_url = u"http://game.gionee.com/Api/Local_Gameinfo/getDetails?gameId=%s" % ret.title2
+		try:
+			response = s.get(_url, timeout=10)
+		except Exception,e:
+			response = T(404)
+			mylogger.error("%s\t%s" % (_url.encode('utf-8'), traceback.format_exc()))
+		if response.status_code == 200:
+			d = response.json()
+			if 'success' in d and d['success']:
+				dt = unicode(datetime.date.today())
+				g = d['data']
+				ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+				if not ins:
 					count += 1 
 					item = GameDetailByDay(**{
-												'kc_id': ret.id,
-												'rating' : g.get('score', u''),
-												'author' : g.get('publisher', u''),
-												'game_type' : g.get('category', u''),
-												'version' : g.get('versionName', u''),
-												'pkg_size' : g.get('fileSize' u''),
-												'dt' : dt,
-												'imgs' : u','.join(g['bannerList']['fullPicture']),
-													})
+											'kc_id': ret.id,
+											'rating' : g.get('score', u''),
+											'author' : g.get('publisher', u''),
+											'game_type' : g.get('category', u''),
+											'version' : g.get('versionName', u''),
+											'pkg_size' : g.get('fileSize' u''),
+											'dt' : dt,
+											'imgs' : u','.join(g['bannerList']['fullPicture']),
+												})
 					db_conn.merge(item)
-			except Exception,e:
-				mylogger.error("%s\t%s" % (_url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get gionee play detail %s" % count)
 	db_conn.commit()
 
@@ -535,30 +539,32 @@ def get_leveno_detail():
 	count = 0
 	mylogger.info("get lenovo detail start ...")
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==11):
-		dt = unicode(datetime.date.today())
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
-			_url = u"http://yx.lenovomm.com/business/app!getAppDetail5.action?dpi=480&height=1920&dev=ph&width=1080&cpu=armeabi-v7a&pn=%s&uid=72DB07100FC223A2EDE82F4A44AE96B4&os=4.4.4&perf=hp&model=MI 4LTE&type=0&density=xx&mac=7A031DAB40535B3F5E204582EB961FC5" % ret.title2
-			try:
-				response = s.get(_url, timeout=10)
-				d = response.json()
-				if 'app' in d:
-					g = d['app']
+		_url = u"http://yx.lenovomm.com/business/app!getAppDetail5.action?dpi=480&height=1920&dev=ph&width=1080&cpu=armeabi-v7a&pn=%s&uid=72DB07100FC223A2EDE82F4A44AE96B4&os=4.4.4&perf=hp&model=MI 4LTE&type=0&density=xx&mac=7A031DAB40535B3F5E204582EB961FC5" % ret.title2
+		try:
+			response = s.get(_url, timeout=10)
+		except Exception,e:
+			response = T(404)
+			mylogger.error("%s\t%s" % (_url.encode('utf-8'), traceback.format_exc()))
+		if response.status_code == 200:
+			d = response.json()
+			if 'app' in d:
+				dt = unicode(datetime.date.today())
+				g = d['app']
+				ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+				if not ins:
 					count += 1 
 					item = GameDetailByDay(**{
-												'kc_id': ret.id,
-												'rating' : g.get('averageStar', u''),
-												'game_type' : g.get('categoryName', u''),
-												'version' : g.get('version', u''),
-												'pkg_size' : g.get('size' u''),
-												'dt' : dt,
-												'download_num' : g.get('downloadCount', u''),
-												'summary' : g.get('description', u''),
-												'imgs' : g['snapList'],
-													})
+											'kc_id': ret.id,
+											'rating' : g.get('averageStar', u''),
+											'game_type' : g.get('categoryName', u''),
+											'version' : g.get('version', u''),
+											'pkg_size' : g.get('size' u''),
+											'dt' : dt,
+											'download_num' : g.get('downloadCount', u''),
+											'summary' : g.get('description', u''),
+											'imgs' : g['snapList'],
+												})
 					db_conn.merge(item)
-			except Exception,e:
-				mylogger.error("%s\t%s" % (_url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get lenovo detail %s" % count)
 	db_conn.commit()
 
@@ -567,28 +573,27 @@ def get_iqiyi_detail():
 	count = 0
 	mylogger.info("get iqiyi detail start ...")
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==12):
-		dt = unicode(datetime.date.today())
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
-			d =  get_iqiyi_detail_by_id(ret.title2)
-			try:
-				if d is not None:
-					g = d['app']
-					count += 1 
-					item = GameDetailByDay(**{
-												'kc_id': ret.id,
-												'summary' : g.get('desc', u''),
-												'game_type' : g.get('cate_name', u''),
-												'version' : g.get('version', u''),
-												'download_num' : g.get('cnt', u''),
-												'author' : g.get('author', u''),
-												'pkg_size' : g.get('l_size' u''),
-												'dt' : dt,
-												'imgs' : u",".join([i.get('full_img', u'') for i in d['medias']]),
-													})
-					db_conn.merge(item)
-			except Exception,e:
-				mylogger.error("%s\t%s" % (ret.title2.encode('utf-8'), traceback.format_exc()))
+		d =  get_iqiyi_detail_by_id(ret.title2)
+		if d is not None:
+			g = d['app']
+			dt = unicode(datetime.date.today())
+			ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+			if not ins:
+				count += 1 
+				item = GameDetailByDay(**{
+											'kc_id': ret.id,
+											'summary' : g.get('desc', u''),
+											'game_type' : g.get('cate_name', u''),
+											'version' : g.get('version', u''),
+											'download_num' : g.get('cnt', u''),
+											'author' : g.get('author', u''),
+											'pkg_size' : g.get('l_size' u''),
+											'dt' : dt,
+											'imgs' : u",".join([i.get('full_img', u'') for i in d['medias']]),
+												})
+				db_conn.merge(item)
+			else:
+				ins.author = g.get('author', u'')
 	mylogger.info("get iqiyi detail %s" % count)
 	db_conn.commit()
 
@@ -609,14 +614,18 @@ def get_sogou_detail():
 	count = 0
 	mylogger.info("get sogou detail start ...")
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==14):
-		dt = unicode(datetime.date.today())
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
-			_url = u"http://mobile.zhushou.sogou.com/m/appDetail.html?id=%s" % ret.title2
-			try:
-				response = s.get(_url, timeout=10)
-				d = response.json()
-				g = d['ainfo']
+		_url = u"http://mobile.zhushou.sogou.com/m/appDetail.html?id=%s" % ret.title2
+		try:
+			response = s.get(_url, timeout=10)
+		except Exception,e:
+			response = T(404)
+			mylogger.error("%s\t%s" % (_url.encode('utf-8'), traceback.format_exc()))
+		if response.status_code == 200:
+			d = response.json()
+			g = d['ainfo']
+			dt = unicode(datetime.date.today())
+			ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+			if not ins:
 				count += 1 
 				item = GameDetailByDay(**{
 											'kc_id': ret.id,
@@ -631,8 +640,6 @@ def get_sogou_detail():
 											'imgs' : u",".join([i.get('url', u'') for i in d['images']]),
 												})
 				db_conn.merge(item)
-			except Exception,e:
-				mylogger.error("%s\t%s" % (_url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get sogou detail %s" % count)
 	db_conn.commit()
 
@@ -641,30 +648,32 @@ def get_dangle_detail():
 	count = 0
 	mylogger.info("get dangle detail start ...")
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==15):
-		dt = unicode(datetime.date.today())
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
-			g =  get_dangle_detail_by_id(ret.title2)
-			if g is not None:
-					count += 1 
-					packageTOs = {}
-					if 'packageTOs' in g:
-						packageTOs = g['packageTOs'][0] if g['packageTOs'] else {}
-					item = GameDetailByDay(**{
-												'kc_id': ret.id,
-												'summary' : g.get('description', u''),
-												'game_type' : g.get('categoryName', u''),
-												'version' : packageTOs.get('versionName', u''),
-												'rating' : g.get('score', u''),
-												'comment_num' : g.get('commentCnt', u''),
-												'topic_num_total' : g.get('grade', {}).get('personCnt', u''),
-												'download_num' : g.get('appInstalledCount', u''),
-												'author' : g.get('author', u''),
-												'pkg_size' : packageTOs.get('fileSize', u''),
-												'dt' : dt,
-												'imgs' : u','.join(g['snapshotUrls']),
-													})
-					db_conn.merge(item)
+		g =  get_dangle_detail_by_id(ret.title2)
+		if g is not None:
+			dt = unicode(datetime.date.today())
+			ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+			if not ins:
+				count += 1 
+				packageTOs = {}
+				if 'packageTOs' in g:
+					packageTOs = g['packageTOs'][0] if g['packageTOs'] else {}
+				else:
+					print ret.title2
+				item = GameDetailByDay(**{
+											'kc_id': ret.id,
+											'summary' : g.get('description', u''),
+											'game_type' : g.get('categoryName', u''),
+											'version' : packageTOs.get('versionName', u''),
+											'rating' : g.get('score', u''),
+											'comment_num' : g.get('commentCnt', u''),
+											'topic_num_total' : g.get('grade', {}).get('personCnt', u''),
+											'download_num' : g.get('appInstalledCount', u''),
+											'author' : g.get('author', u''),
+											'pkg_size' : packageTOs.get('fileSize', u''),
+											'dt' : dt,
+											'imgs' : u','.join(g['snapshotUrls']),
+												})
+				db_conn.merge(item)
 	mylogger.info("get dangle detail %s" % count)
 	db_conn.commit()
 
@@ -700,35 +709,32 @@ def get_dangle_detail_by_id(gid):
 	}}
 	r = requests.post(url, headers=headers)
 	if r.status_code == 200:
-		try:
-			d = r.json()
-			return d
-		except Exception,e:
-			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
+		d = r.json()
+		return d
 	return None
 
 def get_muzhiwan_detail():
 	count = 0
 	mylogger.info("get muzhiwan detail start ...")
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==17):
-		dt = unicode(datetime.date.today())
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
-			g = get_muzhiwan_detail_by_id(ret.url)
-			if g:
-				m = re.search(u'(\d+)个', g.get(u'评论数', u''))
-				comment_num = m.group(1) if m is not None else u''
+		g = get_muzhiwan_detail_by_id(ret.url)
+		if g:
+			dt = unicode(datetime.date.today())
+			m = re.search(u'(\d+)个', g.get(u'评论数', u''))
+			comment_num = m.group(1) if m is not None else u''
+			ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+			if not ins:
 				count += 1 
 				item = GameDetailByDay(**{
-												'kc_id': ret.id,
-												'summary' : g.get('description', u''),
-												'version' : g.get(u'版本', u''),
-												'game_type' : g.get(u'分类', u''),
-												'comment_num' : comment_num,
-												'pkg_size' : g.get(u'大小' u''),
-												'dt' : dt,
-												'imgs' : u','.join(g.get('imgs', [])),
-													})
+											'kc_id': ret.id,
+											'summary' : g.get('description', u''),
+											'version' : g.get(u'版本', u''),
+											'game_type' : g.get(u'分类', u''),
+											'comment_num' : comment_num,
+											'pkg_size' : g.get(u'大小' u''),
+											'dt' : dt,
+											'imgs' : u','.join(g.get('imgs', [])),
+												})
 				db_conn.merge(item)
 	mylogger.info("get muzhiwan detail %s" % count)
 	db_conn.commit()
@@ -738,6 +744,10 @@ def get_muzhiwan_detail_by_id(url):
 	mydict = {}
 	try:
 		response = s.get(url, timeout=10)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
+		response = T(404)
+	if response.status_code == 200:
 		soup = BeautifulSoup(response.text)
 		info = soup.find('div', class_='detail_info')
 		if info is not None:
@@ -751,8 +761,6 @@ def get_muzhiwan_detail_by_id(url):
 		summary = soup.find('p', itemprop="description")
 		if summary is not None:
 			mydict['description'] = summary.text
-	except Exception,e:
-		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	return mydict
 
 
@@ -760,11 +768,11 @@ def get_huawei_detail():
 	count = 0
 	mylogger.info("get huawei detail start ...")
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==18):
-		dt = unicode(datetime.date.today())
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
-			g = get_huawei_detail_by_id(ret.url)
-			if g:
+		g = get_huawei_detail_by_id(ret.url)
+		if g:
+			dt = unicode(datetime.date.today())
+			ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+			if not ins:
 				count += 1 
 				item = GameDetailByDay(**{
 											'kc_id': ret.id,
@@ -789,6 +797,11 @@ def get_huawei_detail_by_id(url):
 	mydict = {}
 	try:
 		response = s.get(url, timeout=15)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
+		time.sleep(5)
+		response = T(404)
+	if response.status_code == 200:
 		soup = BeautifulSoup(response.text)
 		for d in soup.find_all('li', class_='ul-li-detail'):
 			if u'开发者：' in d.text:
@@ -820,20 +833,19 @@ def get_huawei_detail_by_id(url):
 				m = re.search('\d+', comment.text)
 				if m is not None:
 					mydict['comment_num'] = m.group()
-	except Exception,e:
-		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
-		sleep(5)
 	return mydict
 
 def get_kuaiyong_detail():
 	count = 0
 	mylogger.info("get kuaiyong detail start ...")
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==19):
-		dt = unicode(datetime.date.today())
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
-			g = get_kuaiyong_detail_by_id(ret.url)
-			if g:
+		g = get_kuaiyong_detail_by_id(ret.url)
+		#for k, v in g.iteritems():
+		#	print k, v
+		if g:
+			dt = unicode(datetime.date.today())
+			ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+			if not ins:
 				count += 1 
 				item = GameDetailByDay(**{
 											'kc_id': ret.id,
@@ -857,6 +869,10 @@ def get_kuaiyong_detail_by_id(URL):
 	mydict = {}
 	try:
 		response = s.get(URL, timeout=10)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+		response = T(404)
+	if response.status_code == 200:
 		soup = BeautifulSoup(response.text)
 		base_right = soup.find('div', class_='base-right')
 		mydict = {}
@@ -883,38 +899,42 @@ def get_kuaiyong_detail_by_id(URL):
 		detail_content = soup.find('div', class_='detail-content-inner')
 		if detail_content is not None:
 			mydict['description'] = detail_content.text
-	except Exception,e:
-		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+		#comment_span = soup.find('div', class_='comments')
+		#if comment_span is not None:
+	#		print comment_span.text, '*****'
 	return mydict
 
 
-def get_anzhi_detail():
+def get_kuaiyong_detail():
 	count = 0
 	mylogger.info("get kuaiyong detail start ...")
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==19):
-		count += 1 
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
-			g = get_anzhi_detail_by_id(ret.url)
-			if g:
-				dt = unicode(datetime.date.today())
-			item = GameDetailByDay(**{
-									'kc_id': ret.id,
-									'summary' : g.get('description', u''),
-									'version' : g.get(u'版　　本', u''),
-									'game_type' : g.get(u'类　　别', u''),
-									'pkg_size' : g.get(u'大　　小', u''),
-									'download_num' : g.get(u'下载', u''),
-									'dt' : dt,
-									'rating' : g.get('rating', u''),
-									'imgs' : u','.join(g.get('imgs', [])),
-										})
-			db_conn.merge(item)
-			if count % 100 == 0:
-				mylogger.info("kuaiyong detail commit %s" % count)
-				db_conn.commit()
+		g = get_kuaiyong_detail_by_id(ret.url)
+		#for k, v in g.iteritems():
+		#	print k, v
+		if g:
+			dt = unicode(datetime.date.today())
+			ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+			if not ins:
+				count += 1 
+				item = GameDetailByDay(**{
+											'kc_id': ret.id,
+											'summary' : g.get('description', u''),
+											'version' : g.get(u'版　　本', u''),
+											'game_type' : g.get(u'类　　别', u''),
+											'pkg_size' : g.get(u'大　　小', u''),
+											'download_num' : g.get(u'下载', u''),
+											'dt' : dt,
+											'rating' : g.get('rating', u''),
+											'imgs' : u','.join(g.get('imgs', [])),
+												})
+				db_conn.merge(item)
+				if count % 100 == 0:
+					mylogger.info("kuaiyong detail commit %s" % count)
+					db_conn.commit()
 	mylogger.info("get kuaiyong detail %s" % count)
 	db_conn.commit()
+
 
 
 def get_anzhi_detail_by_id(URL):
@@ -954,19 +974,20 @@ def get_wandoujia_detail():
 	count = 0
 	mylogger.info("get wandoujia detail start ...")
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==23):
-		dt = unicode(datetime.date.today())
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
-			g = get_wandoujia_detail_by_id(ret.url)
-			if g is not None:
+		g = get_wandoujia_detail_by_id(ret.url)
+		#for k, v in g.iteritems():
+		#	print k, v
+		if g is not None:
+			dt = unicode(datetime.date.today())
+			categories = g.get('categories', [])
+			game_type = u",".join([c['name'] for c in categories if c['level']==2])
+			apk = {}
+			apk_list = g.get('apk', [])
+			if len(apk_list) >= 1:
+				apk = apk_list[0]
+			ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+			if not ins:
 				count += 1 
-				categories = g.get('categories', [])
-				game_type = u",".join([c['name'] for c in categories if c['level']==2])
-				apk = {}
-				apk_list = g.get('apk', [])
-				if len(apk_list) >= 1:
-					apk = apk_list[0]
-				developer = g.get('developer', {})
 				item = GameDetailByDay(**{
 											'kc_id': ret.id,
 											'summary' : g.get('description', u''),
@@ -975,7 +996,7 @@ def get_wandoujia_detail():
 											'pkg_size' : apk.get('size', u''),
 											'comment_num' : g.get('commentsCount', u''),
 											'download_num' : g.get('downloadCount', u''),
-											'author' : developer.get('name', u''),
+											'author' : g['developer'].get('name', u''),
 											'dt' : dt,
 											'imgs' : u','.join(g.get('screenshots',{}).get('normal', [])),
 												})
@@ -983,6 +1004,9 @@ def get_wandoujia_detail():
 				if count % 100 == 0:
 					mylogger.info("wandoujia detail commit %s" % count)
 					db_conn.commit()
+			else:
+				ins.pkg_size = apk.get('size', u'')
+				ins.version = apk.get('versionName', u'')
 	mylogger.info("get wandoujia detail %s" % count)
 	db_conn.commit()
 
@@ -990,41 +1014,41 @@ def get_wandoujia_detail():
 def get_wandoujia_detail_by_id(url):
 	try:
 		r = requests.get(url, timeout=10)
-		if r.status_code == 200:
-			d = r.json()
-			entity = d['entity']
-			if entity:
-				detail = entity[0].get('detail', {})['appDetail']
-				return detail
 	except Exception,e:
+		r = T(404)
 		mylogger.error("### %s ### %s" % (url.encode('utf-8'), traceback.format_exc()))
+	if r.status_code == 200:
+		d = r.json()
+		entity = d['entity']
+		if entity:
+			detail = entity[0].get('detail', {})['appDetail']
+			return detail
 	return None
 
 
 def get_pp_detail():
 	count = 0
 	mylogger.info("get pp detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==24).limit(1):
-		g = get_pp_detail_by_id(ret.title2)
-		if g is not None:	
-			dt = unicode(datetime.date.today())
-			comments_info = get_pp_comments_by_id(ret.title2)
-			ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-			if not ins:
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==24):
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+		if not ins:
+			g = get_pp_detail_by_id(ret.title2)
+			if g is not None:	
+				comments_info = get_pp_comments_by_id(ret.title2)
 				count += 1 
-				developer = g.get('developer', {})
 				item = GameDetailByDay(**{
 											'kc_id': ret.id,
 											'summary' : g.get('content', u''),
-											'version' : apk.get('ver', u''),
+											'version' : g.get('ver', u''),
 											'game_type' : g.get('catName', u''),
-											'pkg_size' : apk.get('fileSize', u''),
+											'pkg_size' : g.get('fileSize', u''),
 											'comment_num' : comments_info.get('commentCount', u''),
 											'download_num' : g.get('downCount', u''),
 											'topic_num_total' : g.get('collectCount', u''),
 											'rating' : g.get('allVerStar', u''),
 											'dt' : dt,
-											'imgs' : u','.join(g.get('ipadImgs', [])),
+											'imgs' : g.get('ipadImgs', u''),
 												})
 				db_conn.merge(item)
 				if count % 50 == 0:
@@ -1041,11 +1065,9 @@ def get_pp_detail_by_id(gid):
 	try:
 		d = {"site":1, "id": gid}
 		r = requests.post('http://pppc2.25pp.com/pp_api/ios_appdetail.php', data=d)
+		return r.json()
 	except Exception,e:
 		mylogger.error("get %s detail \t%s" % (gid.encode('utf-8'), traceback.format_exc()))
-		r = T(404)
-	if r.status_code == 200:
-		return r.json()
 	return None
 
 def get_pp_comments_by_id(gid):
@@ -1059,51 +1081,10 @@ def get_pp_comments_by_id(gid):
 		return r.json()
 	return {}
 
-def get_meizu_detail_by_id(gid):
-	URL = "http://api-game.meizu.com/games/public/detail/%s" % gid
-	try:
-		response = s.get(URL, timeout=10)
-	except Exception,e:
-		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
-		response = T(404)
-	if response.status_code == 200:
-		j = response.json()
-		if 'value' in j:
-			return j['value']
-	return None
-
-
-def get_meizu_detail():
-	count = 0
-	mylogger.info("get meizu detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==25):
-		dt = unicode(datetime.date.today())
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
-			g = get_meizu_detail_by_id(ret.title2)
-			if g is not None:	
-				count += 1 
-				item = GameDetailByDay(**{
-									'kc_id': ret.id,
-									'summary' : g.get('description', u''),
-									'version' : g.get('version_name', u''),
-									'game_type' : g.get('category_name', u''),
-									'pkg_size' : g.get('size', u''),
-									'comment_num' : g.get('evaluate_count', u''),
-									'download_num' : g.get('download_count', u''),
-									'author' : g.get('publisher', u''),
-									'rating' : g.get('avg_score', u''),
-									'dt' : dt,
-									'imgs' : u','.join([i.get('image') for i in g.get('images', [])]),
-										})
-				db_conn.merge(item)
-	mylogger.info("get meizu detail %s" % count)
-	db_conn.commit()
-
 def main():
+	get_open_play_detail()
 	get_xiaomi_new_detail()
 	get_xiaomi_rpg_detail()
-	get_open_play_detail()
 	get_9game_detail()
 	get_18183_detail()
 	get_appicsh_detail()
@@ -1115,10 +1096,8 @@ def main():
 	get_sogou_detail()
 	get_dangle_detail()
 	get_muzhiwan_detail()
-	get_meizu_detail()
-	get_kuaiyong_detail()
 	get_huawei_detail()
 	get_wandoujia_detail()
 
 if __name__ == '__main__':
-	main()
+	get_pp_detail()
