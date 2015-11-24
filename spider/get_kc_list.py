@@ -44,6 +44,10 @@ source_map = {
 			"itools": 20,
 			"anzhi": 21,
 			"360zhushou_web": 22,#360助手web
+			"wandoujia": 23,
+			"pp": 24,
+			"meizu": 25,
+			"xyzs": 26,
 				}
 
 class T:
@@ -296,11 +300,15 @@ def get_360zhushou_kc():
 					title = title_h3.text
 					meta = item.find('div', class_="app-meta text-over")
 					if meta is not None:
-						game_type, size = meta.text.split(u' ')
+						#m = re.search(u'\d+\.*\d*M', meta.text)
+						#size = m.group() if m is not None else u''
+						m2 = re.search(u'[\u4e00-\u9fa5\s]+', meta.text)
+						game_type = m2.group() if m2 is not None else u''
+						#print m2.group(), '-----', m.group()
+						#game_type, size = meta.text.split(u' ')
 					meta2 = item.find('div', class_="app-meta2 text-over")
 					if meta2 is not None:
 						spans = meta2.find_all('span')
-
 						if len(spans) == 2:
 							dt, status = [i.text for i in spans]
 							kc_date, time = dt.split(u' ')
@@ -318,8 +326,6 @@ def get_360zhushou_kc():
 											"source" : source_map.get('360zhushou'),
 										})
 						db_conn.merge(item)
-					else:
-						ins.img = img
 	mylogger.info("get %s records from 360 zhushou" % count)
 	db_conn.commit()
 
@@ -714,7 +720,7 @@ def get_wandoujia_kc():
 		r = requests.get(url, timeout=10)
 	except Exception,e:
 		r = T(404)
-		mylogger.error("### % ### %s" % (url.encode('utf-8'), traceback.format_exc()))
+		mylogger.error("### %s ### %s" % (url.encode('utf-8'), traceback.format_exc()))
 	if r.status_code == 200:
 		d = r.json()
 		for ret in d['entity']:
@@ -727,19 +733,19 @@ def get_wandoujia_kc():
 					detail = get_wandoujia_detail(detail_url)	
 					if detail is not None:
 						game_type, popular, kc_date = detail
-						print title, game_type, kc_date
+						#print title, game_type, kc_date
 						if kc_date:
-								ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.title2==game_id).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('youku')).first()
+								ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('wandoujia')).first()
 								if ins is None:
 									count += 1
 									item = KC_LIST(**{
 													"title": title,
-													"title2": game_id,
+													"url": detail_url,
 													"game_type": game_type,
 													"kc_date": kc_date,
 													"popular": popular,
 													"img": img,
-													"source": source_map.get('youku')
+													"source": source_map.get('wandoujia')
 													})
 									db_conn.merge(item)
 	mylogger.info("get %s records from wandoujia" % count)
@@ -750,7 +756,7 @@ def get_wandoujia_detail(url):
 		r = requests.get(url, timeout=10)
 	except Exception,e:
 		r = T(404)
-		mylogger.error("### % ### %s" % (url.encode('utf-8'), traceback.format_exc()))
+		mylogger.error("### %s ### %s" % (url.encode('utf-8'), traceback.format_exc()))
 	if r.status_code == 200:
 		d = r.json()
 		entity = d['entity']
@@ -1232,6 +1238,161 @@ def get_360_web_kc(page):
 	db_conn.commit()
 				
 
+def get_pp_kc(page):
+	count = 0
+	headers = {'tunnel-command':4261421088}
+	try:
+		j = {"dcType":0, "resType":2, "listType":0, "catId":0, "clFlag":1, "perCount":32, "page": page}
+		r = requests.post('http://jsondata.25pp.com/index.html', data=json.dumps(j), headers=headers)
+	except Exception,e:
+		mylogger.error("get pp kc list\t%s" % (traceback.format_exc()))
+		r = T(404)
+	if r.status_code == 200:
+		content = re.sub(u'\ufeff', u'', r.text)
+		d = json.loads(content)
+		for g in d['content']:
+			gid = g.get('id', u'')
+			if gid:
+				detail = get_pp_detail_by_id(gid)
+				title = g.get('title', u'')
+				updatetime = g.get('updatetime', u'')
+				kc_date = unicode(datetime.date.fromtimestamp(updatetime))
+				ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.source==source_map.get('pp')).filter(KC_LIST.kc_date==kc_date).first()
+				if not ins:
+					count += 1
+					item = KC_LIST(**{
+									'kc_date':kc_date,
+									'title':title,
+									'game_type': detail.get('catName', u''),
+									'title2': gid,
+									'img': g.get('thumb', u''),
+									'source':source_map.get('pp'),
+									'popular' : g.get('downloads', u'')
+										})
+					db_conn.merge(item)
+	mylogger.info("get %s records from pp %s" % (count, page))
+	db_conn.commit()
+
+
+def get_pp_detail_by_id(gid):
+	try:
+		d = {"site":1, "id": gid}
+		r = requests.post('http://pppc2.25pp.com/pp_api/ios_appdetail.php', data=d)
+	except Exception,e:
+		mylogger.error("get %s detail \t%s" % (gid, traceback.format_exc()))
+		r = T(404)
+	if r.status_code == 200:
+		return r.json()
+	return {}
+
+def get_meizu_kc():
+	count = 0
+	URL = "http://api-game.meizu.com/games/public/new/layout?start=0&max=50"
+	try:
+		response = s.get(URL, timeout=10)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+		response = T(404)
+	if response.status_code == 200:
+		j = response.json() 
+		if j.get('code', 9527) == 200:
+			blocks = j['value']['blocks']
+			if blocks:
+				for re in blocks[0]['data']:
+					title = re.get('name', u'')
+					gid = re.get('id', 0)
+					detail = get_meizu_detail_by_id(gid)
+					if title and gid and detail is not None:
+						version_time = detail.get('version_time', u'')
+						if version_time:
+							kc_date = unicode(datetime.date.fromtimestamp(int(unicode(version_time)[:10])))
+							ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.source==source_map.get('meizu')).filter(KC_LIST.kc_date==kc_date).first()
+							if not ins:
+								count += 1
+								item = KC_LIST(**{
+											'kc_date': kc_date,
+											'title': re.get('name', u''),
+											'game_type': re.get('category_name', u''),
+											'title2': gid,
+											'img': re.get('icon', u''),
+											'source': source_map.get('meizu'),
+											'popular' : re.get('download_count', u'')
+												})
+								db_conn.merge(item)
+	mylogger.info("get %s records from meizu " % (count))
+	db_conn.commit()
+		
+
+def get_meizu_detail_by_id(gid):
+	URL = "http://api-game.meizu.com/games/public/detail/%s" % gid
+	try:
+		response = s.get(URL, timeout=10)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+		response = T(404)
+	if response.status_code == 200:
+		j = response.json()
+		if 'value' in j:
+			return j['value']
+	return None
+
+
+def get_xyzs_kc(page):
+	count = 0
+	URL = "http://interface.xyzs.com/v2/ios/c01/game/latest?p=%s&ps=20" % page
+	try:
+		response = s.get(URL, timeout=10)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+		response = T(404)
+	if response.status_code == 200:
+		j = response.json() 
+		if j.get('code', 9527) == 200:
+			if 'data' in j:
+				for re in j['data'].get('result', []):
+					#for k, v in re.iteritems():
+					#	print k, v
+					title = re.get('title', u'')
+					addtime = re.get('addtime', u'')
+					gid = re.get('itunesid', 0)
+					detail = get_xyzs_detail_by_id(gid)
+					if addtime and title:
+						game_type = detail.get('apptypesno', u'') if detail is not None else u''
+						kc_date = unicode(datetime.date.fromtimestamp(int(addtime)))
+						print kc_date, title, game_type
+#						ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.source==source_map.get('xyzs')).filter(KC_LIST.kc_date==kc_date).first()
+#						if not ins:
+#							count += 1
+#							item = KC_LIST(**{
+#											'kc_date': kc_date,
+#											'title': re.get('title', u''),
+#											'game_type': game_type,
+#											'title2': gid,
+#											'img': re.get('icon', u''),
+#											'source': source_map.get('xyzs'),
+#											'popular' : re.get('downloadnum', u'')
+#												})
+#							db_conn.merge(item)
+#	mylogger.info("get %s records from xyzs " % (count))
+#	db_conn.commit()
+		
+
+
+def get_xyzs_detail_by_id(gid):
+	URL = "http://interface.xyzs.com/v2/ios/c01/app"
+	d = {'itunesid': gid}
+	try:
+		response = s.get(URL, params=d, timeout=10)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+		response = T(404)
+	if response.status_code == 200:
+		j = response.json()
+		if 'data' in j:
+			return j['data'].get('app')
+	return None
+
+
 def main():
 	mylogger.info("gogo")
 	get_18183_kc()
@@ -1254,33 +1415,15 @@ def main():
 	get_kuaiyong_kc(1)
 	get_360_web_kc(1)
 	#get_anzhi_kc(1)
+	get_wandoujia_kc()
 	get_9game_today_kc()
-
-def move_9game_data():
-	for ret in db_conn.query(KC):
-		item = KC_LIST(**{
-							'kc_date':ret.kc_date,
-							'time':	ret.time,
-							'title': ret.title,
-							'title2': ret.title2,
-							'img':	ret.img,
-							'url':	ret.url,
-							'device': ret.img,
-							'status': ret.status,
-							'game_type': ret.game_type,
-							'popular': ret.popular,
-							'create_date': ret.create_date,
-							'last_update': ret.last_update,
-							'source': source_map.get('9game'),
-								})
-		db_conn.merge(item)
-	db_conn.commit()
+	get_pp_kc(1)
+	get_meizu_kc()
 
 if __name__ == '__main__':
-	#main()
-	get_wandoujia_kc()
-	#get_wandoujia_detail('http://apis.wandoujia.com/five/v2/games/com.netease.wyzh.wdj?pos=m%2Fspecial%2Fsmart438')
+	main()
 	#get_i4_kc()
 	#get_itools_kc()
-	#for i in xrange(1, 21):
+	#for i in xrange(6, 11):
 	#	get_anzhi_kc(i)
+	#get_xyzs_kc(1)
