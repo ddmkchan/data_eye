@@ -20,6 +20,8 @@ db_conn = new_session()
 s = requests.session()
 mylogger = get_logger('get_game_detail')
 
+headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'}
+
 class T:
 	
 	def __init__(self, status_code):
@@ -558,6 +560,7 @@ def get_leveno_detail():
 													})
 					db_conn.merge(item)
 			except Exception,e:
+				sleep(1.23)
 				mylogger.error("%s\t%s" % (_url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get lenovo detail %s" % count)
 	db_conn.commit()
@@ -855,6 +858,7 @@ def get_kuaiyong_detail():
 
 def get_kuaiyong_detail_by_id(URL):
 	mydict = {}
+	retry_times = 0
 	try:
 		response = s.get(URL, timeout=10)
 		soup = BeautifulSoup(response.text)
@@ -884,6 +888,7 @@ def get_kuaiyong_detail_by_id(URL):
 		if detail_content is not None:
 			mydict['description'] = detail_content.text
 	except Exception,e:
+		#sleep(3.21)
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
 	return mydict
 
@@ -1100,25 +1105,40 @@ def get_meizu_detail():
 	mylogger.info("get meizu detail %s" % count)
 	db_conn.commit()
 
+def get_proxies():
+	return [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in db_conn.query(ProxyList)]
+
+def check_proxy(proxy):
+	start = time.time()
+	try:
+		r = requests.get("http://www.sogou.com/", headers=headers)
+		#r = requests.get("http://www.douban.com/", headers=headers, proxies = proxy)
+		if r.status_code == 200:
+			end = time.time()
+			print proxy, end - start
+	except Exception,e:
+		mylogger.error("%s" % (traceback.format_exc()))
+		
 def main():
-	get_xiaomi_new_detail()
-	get_xiaomi_rpg_detail()
-	get_open_play_detail()
-	get_9game_detail()
-	get_18183_detail()
-	get_appicsh_detail()
-	get_vivo_detail()
-	get_coolpad_detail()
-	get_gionee_detail()
-	get_leveno_detail()
-	get_iqiyi_detail()
-	get_sogou_detail()
-	get_dangle_detail()
-	get_muzhiwan_detail()
-	get_meizu_detail()
-	get_kuaiyong_detail()
+	#get_xiaomi_new_detail()
+	#get_xiaomi_rpg_detail()
+	#get_open_play_detail()
+	#get_9game_detail()
+	#get_18183_detail()
+	#get_appicsh_detail()
+	#get_vivo_detail()
+	#get_coolpad_detail()
+	#get_gionee_detail()
+	#get_leveno_detail()
+	#get_iqiyi_detail()
+	#get_sogou_detail()
+	#get_dangle_detail()
+	#get_muzhiwan_detail()
+	#get_meizu_detail()
 	get_huawei_detail()
 	get_wandoujia_detail()
+	sleep(10)
+	get_kuaiyong_detail()
 
 if __name__ == '__main__':
 	main()

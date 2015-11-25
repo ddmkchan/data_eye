@@ -95,7 +95,7 @@ def check_proxy(proxy):
 		
 
 if __name__ == '__main__':
-	#get_xici_nn_proxy_list(1)
-	#get_kd_proxy_list(1)
-	for p in get_proxies():
-		check_proxy(p)
+	get_xici_nn_proxy_list(1)
+	get_kd_proxy_list(1)
+	#for p in get_proxies():
+	#	check_proxy(p)

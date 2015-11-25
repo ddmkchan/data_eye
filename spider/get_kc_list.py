@@ -67,7 +67,7 @@ def get_9game_today_kc():
 		#	db_conn.commit()
 		soup = BeautifulSoup(r.text)
 		todayopen = soup.find("div", id="todayOpen").find("span")
-		kc_date 	= u"" if todayopen is None else u"2015-%s" %  todayopen.text[1:-1]
+		publish_date 	= u"" if todayopen is None else u"2015-%s" %  todayopen.text[1:-1]
 		time 		= u""
 		title 		= u""
 		title2 		= u""
@@ -108,7 +108,7 @@ def get_9game_today_kc():
 							#print re.split(u"：| ", time)[1], status, game_type
 						
 					if title != "" and status !="":
-						ins = db_conn.query(KC_LIST).filter(KC_LIST.source==source_map.get('9game')).filter(KC_LIST.title==title).filter(KC_LIST.status==status).filter(KC_LIST.kc_date==kc_date).first()
+						ins = db_conn.query(KC_LIST).filter(KC_LIST.source==source_map.get('9game')).filter(KC_LIST.title==title).filter(KC_LIST.status==status).filter(KC_LIST.publish_date==publish_date).first()
 						if not ins:
 							item = KC_LIST(**{
 								"time"		: re.split(u"：| ", time)[1],
@@ -121,7 +121,7 @@ def get_9game_today_kc():
 								"game_type" 	: game_type, 	
 								"popular" 	: popular,
 								"source" 	: source_map.get('9game'),
-								"kc_date" 	: unicode(datetime.date.today()) 	
+								"publish_date" 	: unicode(datetime.date.today()) 	
 									})
 							db_conn.merge(item)
 				except Exception,e:
@@ -145,12 +145,12 @@ def get_18183_kc():
 	if response.status_code == 200:
 		r = response.text.encode('ISO-8859-1').decode(requests.utils.get_encodings_from_content(response.text)[0])
 		soup = BeautifulSoup(r)
-		kc_dates = soup.find("ul", class_="tab_menu").find_all("li")
+		publish_dates = soup.find("ul", class_="tab_menu").find_all("li")
 		tabs = soup.find_all("div", class_="tab_main")
 		count = 0
 		for j in xrange(len(tabs)):
-			if kc_dates[j].find("a").text == u"今日": 
-				kc_date = u"2015-%s" % kc_dates[j].find("a").text if kc_dates[j].find("a").text!=u"今日" else datetime.date.today().strftime("%Y-%m-%d") 
+			if publish_dates[j].find("a").text == u"今日": 
+				publish_date = u"2015-%s" % publish_dates[j].find("a").text if publish_dates[j].find("a").text!=u"今日" else datetime.date.today().strftime("%Y-%m-%d") 
 				tab = tabs[j]
 				kc_div = tab.find_all("div")
 				for i in xrange(0, len(kc_div), 2):
@@ -166,7 +166,7 @@ def get_18183_kc():
 							devices = [i.get("class")[0] for i in t.find("div", class_="pt").find("div", class_="xy fl").find_all("span") if i.get("class") is not None]
 							status = t.find("div", class_="pt m6").find("code").text
 						#print title, status
-							ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.status==status).filter(KC_LIST.source==source_map.get('18183')).first()
+							ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.status==status).filter(KC_LIST.source==source_map.get('18183')).first()
 							if not ins:
 								item = KC_LIST(**{
 										"title"		: 	title,
@@ -175,7 +175,7 @@ def get_18183_kc():
 										"time" 		:	time,
 										"device" 	:	",".join(devices),
 										"status"	:	status,
-										"kc_date"	:	kc_date,
+										"publish_date"	:	publish_date,
 										"source"	:	source_map.get('18183')
 											})
 								db_conn.merge(item)
@@ -199,13 +199,13 @@ def get_360_kc():
 			if table is not None:
 				pass
 			else:
-				kc_date = u""
+				publish_date = u""
 				date_h3 = content.find("h3")
 				if date_h3 is not None:
-					kc_date = date_h3.text[5:-1]
-					kc_date = re.sub(u"月", u"-", kc_date)
-					kc_date = re.sub(u"日", u"", kc_date)
-					kc_date = u"2015-%s" % kc_date
+					publish_date = date_h3.text[5:-1]
+					publish_date = re.sub(u"月", u"-", publish_date)
+					publish_date = re.sub(u"日", u"", publish_date)
+					publish_date = u"2015-%s" % publish_date
 				tablists = content.find("table",  class_="tablists").find_all("tr")
 				if tablists is not None:
 					for tr in tablists[1:]:
@@ -222,11 +222,11 @@ def get_360_kc():
 							status = tds[1].text
 							game_type = tds[3].text
 						#print title, url, status, game_type
-							ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.status==status).filter(KC_LIST.source==source_map.get('u360')).first()
+							ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.status==status).filter(KC_LIST.source==source_map.get('u360')).first()
 							if not ins:
 								count += 1								
 								item = KC_LIST(**{
-											"kc_date": kc_date,
+											"publish_date": publish_date,
 											"time": time,
 											"title": title,
 											"url": url,
@@ -253,16 +253,16 @@ def get_appicsh_kc():
 				game_type = game.get('categoryName', u"")
 				img = game.get('iconUrl', u"")
 				publishtime = game.get('apkPublishTime', u"")
-				kc_date = unicode(datetime.date.fromtimestamp(publishtime)) if publishtime else u""
-				#print title, kc_date, img
-				if title and kc_date :
-					ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('appicsh')).first()
+				publish_date = unicode(datetime.date.fromtimestamp(publishtime)) if publishtime else u""
+				#print title, publish_date, img
+				if title and publish_date :
+					ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('appicsh')).first()
 					if ins is None:
 						count += 1
 						item = KC_LIST(**{
 									"title": title,
 									"game_type": game_type,
-									"kc_date": kc_date,
+									"publish_date": publish_date,
 									"img": img,
 									"source": source_map.get('appicsh')
 									})
@@ -287,7 +287,7 @@ def get_360zhushou_kc():
 				title = u""
 				game_type = u""
 				size = u""
-				kc_date = u""
+				publish_date = u""
 				status = u""
 				time = u""
 				img = u""
@@ -311,15 +311,15 @@ def get_360zhushou_kc():
 						spans = meta2.find_all('span')
 						if len(spans) == 2:
 							dt, status = [i.text for i in spans]
-							kc_date, time = dt.split(u' ')
-				if title and kc_date:
-					ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('360zhushou')).first()
+							publish_date, time = dt.split(u' ')
+				if title and publish_date:
+					ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('360zhushou')).first()
 					if ins is None:
 						count += 1
 						item = KC_LIST(**{
 											"title" : title,
 											"game_type" : game_type,
-											"kc_date" : kc_date,
+											"publish_date" : publish_date,
 											"time" : time,
 											"img" : img,
 											"status" : status,
@@ -343,18 +343,18 @@ def get_xiaomi_new_kc(page):
 				popular = g.get('downloadCount', u'')
 				game_type = g.get('className', u'')
 				pubTime = g.get('pubTime', u'')
-				kc_date = u""
+				publish_date = u""
 				if pubTime:
 					t = unicode(pubTime)[:10]
-					kc_date = unicode(datetime.date.fromtimestamp(int(t)))
-				if title and kc_date :
-					ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('xiaomi_new')).first()
+					publish_date = unicode(datetime.date.fromtimestamp(int(t)))
+				if title and publish_date :
+					ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('xiaomi_new')).first()
 					if ins is None:
 						count += 1
 						item = KC_LIST(**{
 									"title": title,
 									"game_type": game_type,
-									"kc_date": kc_date,
+									"publish_date": publish_date,
 									"img": img,
 									"game_id": g.get('gameId', u''),
 									"pkg_name": g.get('packageName', u''),
@@ -384,20 +384,20 @@ def get_xiaomi_rpg_kc(page):
 				summary = g.get('summary', u'')
 				pubTime = g.get('pubTime', u'')
 				status = u""
-				kc_date = u""
+				publish_date = u""
 				if pubTime:
 					t = unicode(pubTime)[:10]
-					kc_date = unicode(datetime.date.fromtimestamp(int(t)))
+					publish_date = unicode(datetime.date.fromtimestamp(int(t)))
 				if summary:
 					dt, status = summary.split(u'|')
-				if title and kc_date :
-					ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('xiaomi_rpg')).first()
+				if title and publish_date :
+					ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('xiaomi_rpg')).first()
 					if ins is None:
 						count += 1
 						item = KC_LIST(**{
 									"title": title,
 									"game_type": game_type,
-									"kc_date": kc_date,
+									"publish_date": publish_date,
 									"game_id": g.get('gameId', u''),
 									"pkg_name": g.get('packageName', u''),
 									"img": img,
@@ -425,21 +425,21 @@ def get_open_play_kc():
 				img = g.get('game_icon', u'')
 				popular = g.get('game_download_count', u'')
 				game_type = g.get('class_name', u'')
-				kc_date = u""
+				publish_date = u""
 				game_id = g.get('game_id', u'')
 				if game_id and title:
 					online_time = g.get('last_online_time', u'')
 					if online_time:
 						dt, time = online_time.split(u' ')
-						kc_date = dt
-					ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.title2==game_id).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('open_play')).first()
+						publish_date = dt
+					ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.title2==game_id).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('open_play')).first()
 					if ins is None:
 						count+=1
 						item = KC_LIST(**{
 									"title": title,
 									"title2": game_id,
 									"game_type": game_type,
-									"kc_date": kc_date,
+									"publish_date": publish_date,
 									"img": img,
 									"popular": popular,
 									"source": source_map.get('open_play')
@@ -471,15 +471,15 @@ def get_vivo_kc(page):
 				mylogger.error("%s" % (traceback.format_exc()))
 			if _date:
 				detail_url = "http://info.gamecenter.vivo.com.cn/clientRequest/gameDetail?id=%s&adrVerName=4.4.4&appVersion=37" % (ret.get('id'))
-				kc_date = datetime.datetime.strptime(_date, '%Y-%m-%d')
-				ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.kc_date==unicode(kc_date.date())).filter(KC_LIST.source==source_map.get('vivo')).first()
+				publish_date = datetime.datetime.strptime(_date, '%Y-%m-%d')
+				ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==unicode(publish_date.date())).filter(KC_LIST.source==source_map.get('vivo')).first()
 				if ins is None:
 					count+=1
 					item = KC_LIST(**{
 							"title": title,
 							"title2": ret.get('id', u''),
 							"game_type": game_type,
-							"kc_date": unicode(kc_date.date()),
+							"publish_date": unicode(publish_date.date()),
 							"img": img,
 							"url": detail_url,
 							"popular": popular,
@@ -521,24 +521,24 @@ def get_coolpad_kc():
 			popular = k.get('downloadtimes', u'')
 			resid = k.get('@rid', u'')
 			if resid:
-				kc_date = get_coolpad_pubtime_by_id(resid)
-				if kc_date:
-					ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.title2==resid).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('coolpad')).first()
+				publish_date = get_coolpad_pubtime_by_id(resid)
+				if publish_date:
+					ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.title2==resid).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('coolpad')).first()
 					if ins is None:
 						count += 1
 						item = KC_LIST(**{
 									"title": title,
 									"title2": resid,
 									"game_type": game_type,
-									"kc_date": kc_date,
+									"publish_date": publish_date,
 									"img": img,
 									"popular": popular,
 									"source": source_map.get('coolpad')
 									})
 						db_conn.merge(item)
 					#else:
-					#	print title, kc_date
-					#	ins.kc_date = kc_date
+					#	print title, publish_date
+					#	ins.publish_date = publish_date
 					#	ins.last_update = datetime.datetime.now()
 	mylogger.info("get %s records from coolpad" % count)
 	db_conn.commit()
@@ -577,20 +577,20 @@ def get_gionee_kc(page):
 			game_type = ret.get('category', u'')
 			dt = ret.get('date', u'')
 			m = re.search(u'(\d+)月(\d+)日', dt)
-			kc_date = u''
+			publish_date = u''
 			try:
-				kc_date = u"%s-%s-%s" % (datetime.date.today().year, m.group(1), m.group(2))
+				publish_date = u"%s-%s-%s" % (datetime.date.today().year, m.group(1), m.group(2))
 			except Exception, e:
 				mylogger.error("### %s ###\t%s" % (dt.encode('utf-8'), traceback.format_exc()))
-			if kc_date:
-				ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.title2==gameid).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('gionee')).first()
+			if publish_date:
+				ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.title2==gameid).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('gionee')).first()
 				if ins is None:
 					count += 1
 					item = KC_LIST(**{
 									"title": title,
 									"title2": gameid,
 									"game_type": game_type,
-									"kc_date": kc_date,
+									"publish_date": publish_date,
 									"img": img,
 									"source": source_map.get('gionee')
 									})
@@ -611,16 +611,16 @@ def get_lenovo_kc():
 			publishDate= ret.get('publishDate', u'')
 			popular = ret.get('downloadCount', u'')
 			if publishDate:
-				kc_date = datetime.date.fromtimestamp(int(unicode(publishDate)[:-3]))
-				#print title, game_type, kc_date, popular
-				ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('lenovo')).first()
+				publish_date = datetime.date.fromtimestamp(int(unicode(publishDate)[:-3]))
+				#print title, game_type, publish_date, popular
+				ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('lenovo')).first()
 				if ins is None:
 					count += 1
 					item = KC_LIST(**{
 									"title": title,
 									"title2": ret.get('packageName', u''),
 									"game_type": game_type,
-									"kc_date": unicode(kc_date),
+									"publish_date": unicode(publish_date),
 									"popular": popular,
 									"img": img,
 									"source": source_map.get('lenovo')
@@ -647,17 +647,17 @@ def get_iqiyi_kc(page):
 				qipu_id = ret.get('qipu_id', u'')
 				popular = ret.get('cnt', u'')
 				if qipu_id:
-					kc_date = get_iqiyi_pubtime_by_id(qipu_id)
-					#print title, game_type, kc_date
-					if kc_date:
-						ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.title2==qipu_id).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('iqiyi')).first()
+					publish_date = get_iqiyi_pubtime_by_id(qipu_id)
+					#print title, game_type, publish_date
+					if publish_date:
+						ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.title2==qipu_id).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('iqiyi')).first()
 						if ins is None:
 							count += 1
 							item = KC_LIST(**{
 											"title": title,
 											"title2": qipu_id,
 											"game_type": game_type,
-											"kc_date": kc_date,
+											"publish_date": publish_date,
 											"popular": popular,
 											"img": img,
 											"source": source_map.get('iqiyi')
@@ -677,8 +677,8 @@ def get_iqiyi_pubtime_by_id(qipu_id):
 			dt = d['app']['date']
 			m = re.search(u'(\d+)年(\d+)月(\d+)日', dt)
 			try:
-				kc_date = u"%s-%s-%s" % (m.group(1), m.group(2), m.group(3))
-				return kc_date
+				publish_date = u"%s-%s-%s" % (m.group(1), m.group(2), m.group(3))
+				return publish_date
 			except Exception, e:
 				mylogger.error("### %s ###\t%s" % (dt.encode('utf-8'), traceback.format_exc()))
 	return u''	
@@ -690,21 +690,21 @@ def get_youku_kc():
 	if r.status_code == 200:
 		d = r.json()
 		for ret in d['games']:
-			kc_date = ret.get('apk_update_time', u'')
+			publish_date = ret.get('apk_update_time', u'')
 			popular = ret.get('total_downloads', u'')
 			title = ret.get('appname', u'')
 			game_type = ret.get('type', u'')
 			img = ret.get('logo', u'')
 			game_id = ret.get('id', u'')
-			if kc_date:
-				ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.title2==game_id).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('youku')).first()
+			if publish_date:
+				ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.title2==game_id).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('youku')).first()
 				if ins is None:
 					count += 1
 					item = KC_LIST(**{
 									"title": title,
 									"title2": game_id,
 									"game_type": game_type,
-									"kc_date": kc_date,
+									"publish_date": publish_date,
 									"popular": popular,
 									"img": img,
 									"source": source_map.get('youku')
@@ -732,17 +732,17 @@ def get_wandoujia_kc():
 				if detail_url:
 					detail = get_wandoujia_detail(detail_url)	
 					if detail is not None:
-						game_type, popular, kc_date = detail
-						#print title, game_type, kc_date
-						if kc_date:
-								ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('wandoujia')).first()
+						game_type, popular, publish_date = detail
+						#print title, game_type, publish_date
+						if publish_date:
+								ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('wandoujia')).first()
 								if ins is None:
 									count += 1
 									item = KC_LIST(**{
 													"title": title,
 													"url": detail_url,
 													"game_type": game_type,
-													"kc_date": kc_date,
+													"publish_date": publish_date,
 													"popular": popular,
 													"img": img,
 													"source": source_map.get('wandoujia')
@@ -767,8 +767,8 @@ def get_wandoujia_detail(url):
 				game_type = u",".join([c['name'] for c in categories if c['level']==1])
 				popular = detail.get('downloadCount', u'')
 				publishtime = detail.get('updatedDate', u'')
-				kc_date = unicode(datetime.date.fromtimestamp(int(unicode(publishtime)[:10]))) if publishtime else u""
-				return game_type, popular, kc_date
+				publish_date = unicode(datetime.date.fromtimestamp(int(unicode(publishtime)[:10]))) if publishtime else u""
+				return game_type, popular, publish_date
 	return None
 		
 
@@ -785,16 +785,16 @@ def get_sogou_kc():
 			game_type = ret.get('category_name', u'')
 			dt = ret.get('date', u'')
 			if dt:
-				kc_date = dt[:11]
-				#print title, kc_date, ret.get('appid', u'')
-				ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('sogou')).first()
+				publish_date = dt[:11]
+				#print title, publish_date, ret.get('appid', u'')
+				ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('sogou')).first()
 				if ins is None:
 					count += 1
 					item = KC_LIST(**{
 									"title": title,
 									"title2": ret.get('appid', u''),
 									"game_type": game_type,
-									"kc_date": kc_date,
+									"publish_date": publish_date,
 									"popular": popular,
 									"img": img,
 									"source": source_map.get('sogou')
@@ -844,10 +844,10 @@ def get_dangle_kc():
 			status = ret.get('operationStatus', u'')
 			title = ret.get('name', u'')
 			publishtime = ret.get('activityDate', u'')
-			kc_date = unicode(datetime.date.fromtimestamp(int(unicode(publishtime)[:10]))) if publishtime else u""
+			publish_date = unicode(datetime.date.fromtimestamp(int(unicode(publishtime)[:10]))) if publishtime else u""
 			img = ret.get('iconUrl', u'')
-			if kc_date:
-				ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('dangle')).first()
+			if publish_date:
+				ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('dangle')).first()
 				if ins is None:
 					count += 1
 					item = KC_LIST(**{
@@ -855,7 +855,7 @@ def get_dangle_kc():
 									"title2": ret.get('id', u''),
 									"game_type": game_type,
 									"status": status,
-									"kc_date": kc_date,
+									"publish_date": publish_date,
 									"img": img,
 									"source": source_map.get('dangle')
 									})
@@ -877,8 +877,8 @@ def get_i4_kc():
 			dt = ret.get('updateTime', u'')
 			popular = ret.get('downloadCount', u'')
 			#dt = ret.get('createTime', u'')
-			kc_date = unicode(datetime.date.fromtimestamp(int(unicode(dt)[:10]))) if dt else u""
-			#print title, kc_date
+			publish_date = unicode(datetime.date.fromtimestamp(int(unicode(dt)[:10]))) if dt else u""
+			#print title, publish_date
 
 def get_muzhiwan_kc(page):
 	count = 0
@@ -907,9 +907,9 @@ def get_muzhiwan_kc(page):
 						img = _img.get('lazy-src')
 						info = get_muzhiwan_detail(detail.get('href'))
 						if u'发布' in info:
-							kc_date = info.get(u'发布', u'')
-							if kc_date:
-								ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('muzhiwan')).first()
+							publish_date = info.get(u'发布', u'')
+							if publish_date:
+								ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('muzhiwan')).first()
 								if ins is None:
 									count += 1
 									item = KC_LIST(**{
@@ -917,7 +917,7 @@ def get_muzhiwan_kc(page):
 											"url": detail.get('href'),
 											"title2": info.get('title2', u''),
 											"game_type": info.get(u'分类', u''),
-											"kc_date": info.get(u'发布', u''),
+											"publish_date": info.get(u'发布', u''),
 											"img": img,
 											"popular": popular,
 											"source": source_map.get('muzhiwan')
@@ -962,7 +962,7 @@ def get_huawei_kc(page):
 		if unit_list is not None:
 			for unit in unit_list.find_all('div', class_='list-game-app dotline-btn nofloat'):
 				title = u""
-				kc_date = u""
+				publish_date = u""
 				img = u""
 				url = u""
 				popular = u""
@@ -978,21 +978,21 @@ def get_huawei_kc(page):
 				if date_p is not None:
 					date_span = date_p.find('span')
 					if date_span is not None:
-						kc_date = date_span.text.split(u'：')[1].strip()
-						if kc_date and title:
+						publish_date = date_span.text.split(u'：')[1].strip()
+						if publish_date and title:
 							download_div = unit.find('div', class_="app-btn")
 							if download_div is not None:
 								if len(download_div.find_all('span'))==2:
 									download_span = download_div.find_all('span')[1]
 									m = re.search('\d+', download_span.text)
 									popular = m.group() if m is not None else u''
-							#print kc_date, title, popular, img
-							ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('huawei')).first()
+							#print publish_date, title, popular, img
+							ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('huawei')).first()
 							if ins is None:
 								count += 1
 								item = KC_LIST(**{
 											"title": title,
-											"kc_date": kc_date,
+											"publish_date": publish_date,
 											"img": img,
 											"url": url,
 											"popular": popular,
@@ -1025,13 +1025,13 @@ def get_kuaiyong_kc(page):
 					info = get_kuaiyong_detail(detail_url)
 					if u'时　　间' in info:
 						title = info.get('title', u'')
-						kc_date = info.get(u'时　　间', u'')
-						ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('kuaiyong')).first()
+						publish_date = info.get(u'时　　间', u'')
+						ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('kuaiyong')).first()
 						if ins is None:
 							count += 1
 							item = KC_LIST(**{
 											"title": title,
-											"kc_date": kc_date,
+											"publish_date": publish_date,
 											"img": img,
 											"url": detail_url,
 											"game_type": info.get(u'类　　别', u''),
@@ -1091,14 +1091,14 @@ def get_itools_kc():
 							title = info.get('title', u'')
 							dt = info.get(u'更新时间', u'')
 							if title and dt:
-								kc_date = re.sub(u'年|月|日', u'-', dt)[:-1]
-								#print title, kc_date
-								ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('itools')).first()
+								publish_date = re.sub(u'年|月|日', u'-', dt)[:-1]
+								#print title, publish_date
+								ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('itools')).first()
 								if ins is None:
 									count += 1
 									item = KC_LIST(**{
 													"title": title,
-													"kc_date": kc_date,
+													"publish_date": publish_date,
 													"img": info.get('img', u''),
 													"url": detail_url,
 													"game_type": info.get(u'标       签', u''),
@@ -1159,13 +1159,13 @@ def get_anzhi_kc(page):
 						if u'时间' in info:
 							dt = info.get(u'时间', u'')
 							if title and dt:
-								kc_date = re.sub(u'年|月|日', u'-', dt)[:-1]
-								ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.kc_date==kc_date).filter(KC_LIST.source==source_map.get('anzhi')).first()
+								publish_date = re.sub(u'年|月|日', u'-', dt)[:-1]
+								ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('anzhi')).first()
 								if ins is None:
 									count += 1
 									item = KC_LIST(**{
 													"title": title,
-													"kc_date": kc_date,
+													"publish_date": publish_date,
 													"img": info.get('img', u''),
 													"url": detail_url,
 													"popular": info.get(u'下载', u''),
@@ -1214,20 +1214,20 @@ def get_360_web_kc(page):
 		if iconList is not None:
 			for li in iconList.find_all('li'):
 				title = u''
-				kc_date = li.find('span').text if li.find('span') is not None else u''
+				publish_date = li.find('span').text if li.find('span') is not None else u''
 				img = u''
 				if li.find('h3') is not None:
 					if li.find('h3').find('a') is not None:
 						title = li.find('h3').find('a').text
-				if title and kc_date:
+				if title and publish_date:
 					if li.find('a') is not None:
 						img  = li.find('a').find('img').get('src')
 						_url = u"http://zhushou.360.cn%s" % li.find('a').get('href')
-						ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.source==source_map.get('360zhushou_web')).filter(KC_LIST.kc_date==kc_date).first()
+						ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.source==source_map.get('360zhushou_web')).filter(KC_LIST.publish_date==publish_date).first()
 						if not ins:
 							count += 1
 							item = KC_LIST(**{
-											'kc_date':kc_date,
+											'publish_date':publish_date,
 											'title':title,
 											'img':img,
 											'url':_url,
@@ -1256,12 +1256,12 @@ def get_pp_kc(page):
 				detail = get_pp_detail_by_id(gid)
 				title = g.get('title', u'')
 				updatetime = g.get('updatetime', u'')
-				kc_date = unicode(datetime.date.fromtimestamp(updatetime))
-				ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.source==source_map.get('pp')).filter(KC_LIST.kc_date==kc_date).first()
+				publish_date = unicode(datetime.date.fromtimestamp(updatetime))
+				ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.source==source_map.get('pp')).filter(KC_LIST.publish_date==publish_date).first()
 				if not ins:
 					count += 1
 					item = KC_LIST(**{
-									'kc_date':kc_date,
+									'publish_date':publish_date,
 									'title':title,
 									'game_type': detail.get('catName', u''),
 									'title2': gid,
@@ -1305,12 +1305,12 @@ def get_meizu_kc():
 					if title and gid and detail is not None:
 						version_time = detail.get('version_time', u'')
 						if version_time:
-							kc_date = unicode(datetime.date.fromtimestamp(int(unicode(version_time)[:10])))
-							ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.source==source_map.get('meizu')).filter(KC_LIST.kc_date==kc_date).first()
+							publish_date = unicode(datetime.date.fromtimestamp(int(unicode(version_time)[:10])))
+							ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.source==source_map.get('meizu')).filter(KC_LIST.publish_date==publish_date).first()
 							if not ins:
 								count += 1
 								item = KC_LIST(**{
-											'kc_date': kc_date,
+											'publish_date': publish_date,
 											'title': re.get('name', u''),
 											'game_type': re.get('category_name', u''),
 											'title2': gid,
@@ -1358,13 +1358,13 @@ def get_xyzs_kc(page):
 					detail = get_xyzs_detail_by_id(gid)
 					if addtime and title:
 						game_type = detail.get('apptypesno', u'') if detail is not None else u''
-						kc_date = unicode(datetime.date.fromtimestamp(int(addtime)))
-						print kc_date, title, game_type
-#						ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.source==source_map.get('xyzs')).filter(KC_LIST.kc_date==kc_date).first()
+						publish_date = unicode(datetime.date.fromtimestamp(int(addtime)))
+						print publish_date, title, game_type
+#						ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.source==source_map.get('xyzs')).filter(KC_LIST.publish_date==publish_date).first()
 #						if not ins:
 #							count += 1
 #							item = KC_LIST(**{
-#											'kc_date': kc_date,
+#											'publish_date': publish_date,
 #											'title': re.get('title', u''),
 #											'game_type': game_type,
 #											'title2': gid,
