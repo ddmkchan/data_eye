@@ -29,7 +29,7 @@ class T:
 def get_9game_detail():
 	mylogger.info("get 9game detail start ...")
 	count = 0
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==0).filter(KC_LIST.kc_date>=u'2015-10-01'):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==0).filter(KC_LIST.publish_date>=u'2015-10-01'):
 		try:
 			response = s.get(ret.url, timeout=10)
 		except Exception,e:
@@ -106,7 +106,7 @@ def get_9game_info_from_bbs(url):
 def get_18183_detail():
 	mylogger.info("get 18183 detail start ...")
 	count = 0 
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.kc_date>=u'2015-10-01').filter(KC_LIST.url!=u'').filter(KC_LIST.source==2):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.publish_date>=u'2015-10-01').filter(KC_LIST.url!=u'').filter(KC_LIST.source==2):
 		try:
 			response = s.get(ret.url, timeout=10)
 		except Exception,e:
@@ -168,7 +168,7 @@ def get_18183_detail():
 def get_360_web_detail():
 	mylogger.info("get 360 detail start ...")
 	count = 0
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.kc_date>=u'2015-10-01').filter(KC_LIST.source==22).filter(KC_LIST.url!=''):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.publish_date>=u'2015-10-01').filter(KC_LIST.source==22).filter(KC_LIST.url!=''):
 		try:
 			response = s.get(ret.url, timeout=10)
 		except Exception,e:

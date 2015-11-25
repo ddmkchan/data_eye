@@ -31,7 +31,7 @@ def get_360_web_detail():
 	count = 0
 	err_times = 0
 	dt = unicode(datetime.date.today())
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.kc_date>=u'2015-10-01').filter(KC_LIST.source==22).filter(KC_LIST.url!=''):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.publish_date>=u'2015-10-01').filter(KC_LIST.source==22).filter(KC_LIST.url!=''):
 		if err_times >= 10:
 			mylogger.error("reach max error_times")
 			break
