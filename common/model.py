@@ -28,7 +28,7 @@ class KC_LIST(Base):
 	game_id = Column(Unicode(50), nullable=False, default=u'')
 	pkg_name = Column(Unicode(100), nullable=False, default=u'')
 	popular = Column(Unicode(50), nullable=False, default=u'')
-	kc_date = Column(Unicode(50), nullable=False, default=u'')
+	publish_date = Column(Unicode(50), nullable=False, default=u'')
 	source = Column(Integer, nullable=False, default=0)
 	create_date = Column(DateTime,nullable=False,default=datetime.now())#创建时间
 	last_update = Column(DateTime,nullable=False,default=datetime.now())#最后更新时间
