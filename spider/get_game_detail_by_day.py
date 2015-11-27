@@ -289,7 +289,7 @@ def get_xiaomi_new_detail():
 			r = requests.get(url, timeout=10)
 		except Exception,e:
 			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
-			response = T(404)
+			r = T(404)
 		if r.status_code == 200:
 			d = r.json()
 			if d['errCode'] == 200:
@@ -341,7 +341,7 @@ def get_xiaomi_rpg_detail():
 			r = requests.get(url, timeout=10)
 		except Exception,e:
 			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
-			response = T(404)
+			r = T(404)
 		if r.status_code == 200:
 			d = r.json()
 			if d['errCode'] == 200:

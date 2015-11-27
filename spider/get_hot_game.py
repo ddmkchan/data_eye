@@ -23,10 +23,26 @@ db_conn = new_session()
 
 source_map = {
 			"baidu"	: 0,
-			"xiaomi": 1,
+			"xiaomi_active": 1,
 			"360"	: 2,
 			"9game"	: 3,
 			"9game_hot_wanted"	: 4,
+			"360_app_single"	: 5,
+			"360_app_webgame"	: 6,
+			"360_app_new_game"	: 7,
+			"m5_qq_single"	: 8,#应用宝
+			"m5_qq_webgame"	: 9,#应用宝
+			"m5_qq_new_game"	: 10,#应用宝
+			"m_baidu_single"	: 11,
+			"m_baidu_webgame"	: 12,
+			"m_baidu_new_game"	: 13,
+			"dangle_new_game"	: 14,
+			"xiaomi_downloads"	: 15,
+			"vivo_single"	: 16,
+			"vivo_webgame"	: 17,
+			"vivo_new_game"	: 18,
+			"gionee_active"	: 19,
+			"gionee_hot"	: 20,
 				}
 
 def get_baidu_hot_games():
@@ -102,13 +118,13 @@ def get_icons(f):
 	except Exception,e:
 		mylogger.error(traceback.format_exc())
 
-def get_active_game_rank(page):
+def get_xiaomi_game_rank(page, rank_id):
 	url = "http://game.xiaomi.com/index.php?c=app&a=ajaxPage&type=rank"
 	payload = {
 				"page"			:page,
 				"category_id"	:"",
 				"total_page"	:60,
-				"rank_id"		:12,
+				"rank_id"		:rank_id,
 				"type"			:"rank"
 				}
 	r = s.post(url, data=payload)
@@ -116,11 +132,14 @@ def get_active_game_rank(page):
 		return r.json()
 	return None
 
-def get_xiaomi_games():
+
+def get_xiaomi_app_rank(gtype, rank_id):
+	rank = 0
 	for page in xrange(5):
-		detail = get_active_game_rank(page)
+		detail = get_xiaomi_game_rank(page, rank_id)
 		if detail is not None:
 			for d in detail:
+				rank += 1
 				popular 	= u""
 				game_type 	= u""
 				status 		= u""
@@ -129,8 +148,18 @@ def get_xiaomi_games():
 				img = d.get("icon")
 				downloads = d.get("download_count")
 				size = d.get("apk_size")
-				source = source_map.get('xiaomi')
-				yield game_name, img, downloads, size, source, popular, game_type, status, url
+				source = source_map.get(gtype)
+				yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
+
+def store_xiaomi_app_rank():
+	type_2_source = {
+						"xiaomi_active": 12,
+						"xiaomi_downloads": 3,
+					}
+	for gtype, rank_id in type_2_source.iteritems():
+		for data in get_xiaomi_app_rank(gtype, rank_id):
+			store_data(data)
+		
 
 def get_360_online_games():
 	for page in xrange(1,4):
@@ -273,6 +302,154 @@ def get_appannie_detail():
 			yield app_name, img_div.find("img").get("src"), u"", u"", 4
 
 
+def get_360_app_rank(gtype):
+	rank = 0
+	type_2_source = {'single': '360_app_single',
+						'webgame': '360_app_webgame',
+						'new': '360_app_new_game'}
+	_url = 'http://openboxcdn.mobilem.360.cn//app/rank?from=game&type=%s&page=1' % gtype
+	try:
+		r = requests.get(_url, timeout=10)
+		if r.status_code == 200:
+			j = r.json()
+			if j['errno'] == u'0':
+				for app in j['data']:
+					rank += 1
+					game_name, img, downloads, size, source, popular, game_type, status, url = [U''] * 9
+					game_name = app.get('name', u'')
+					img = app.get('logo_url', u'')
+					downloads = app.get('download_times', u'')
+					size = app.get('size', u'')
+					game_type = app.get('category_name', u'')
+					url = app.get('apkid', u'') + "\t" + app.get('id', u'')
+					source = source_map.get(type_2_source.get(gtype))
+					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
+	except Exception,e:
+		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
+
+def store_360_app_rank():
+	for gtype in ['single', 'webgame', 'new']:
+		mylogger.info("%s rank start... " % gtype)
+		for data in get_360_app_rank(gtype):
+			store_data(data)
+
+def store_data(ret):
+	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
+	ins = db_conn.query(HotGames).filter(HotGames.name==game_name).filter(HotGames.source==source).filter(HotGames.create_date==date.today()).first()
+	if ins is None:
+		item = HotGames(**{
+						"name"			: game_name,
+						"src"			: img,
+						"download_count"		: downloads,
+						"size"			: size,
+						"source"		: source,
+						"rank"			: rank,
+						"popular"		: popular,
+						"game_type"		: game_type,
+						"status"		: status,
+						"url"			: url
+						})
+		db_conn.merge(item)
+	db_conn.commit()
+
+def get_m5qq_app_rank(gtype):
+	#应用宝
+	rank = 0
+	type_2_source = {
+						'19': 'm5_qq_single',
+						'20': 'm5_qq_webgame',
+						'18': 'm5_qq_new_game',
+					}
+	_url = 'http://m5.qq.com/app/applist.htm?listType=%s&pageSize=50&contextData=' % gtype
+	try:
+		r = requests.get(_url, timeout=10)
+		if r.status_code == 200:
+			j = r.json()
+			if 'obj' in j and 'appList' in j['obj']:
+				for app in j['obj']['appList']:
+					rank += 1
+					game_name, img, downloads, size, source, popular, game_type, status, url = [U''] * 9
+					game_name = app.get('appName', u'')
+					img = app.get('iconUrl', u'')
+					downloads = app.get('appDownCount', u'')
+					size = app.get('fileSize', u'')
+					game_type = app.get('categoryName', u'')
+					url = u"%s\t%s" % (app.get('pkgName', u''),  app.get('appId', u''))
+					source = source_map.get(type_2_source.get(gtype))
+					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
+					#for k, v in app.iteritems():
+				#		print k, v
+	except Exception,e:
+		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
+
+def store_m5qq_app_rank():
+	for gtype in ['18', '19', '20']:
+		mylogger.info("get_m5qq_app_rank %s rank start... " % gtype)
+		for data in get_m5qq_app_rank(gtype):
+			store_data(data)
+
+
+def get_m_baidu_rank(gtype, _url):
+	rank = 0
+	try:
+		r = requests.get(_url, timeout=10)
+		if r.status_code == 200:
+			j = r.json()
+			if 'result' in j and 'data' in j['result']:
+				for item in j['result']['data']:
+					if 'itemdata' in item:
+						rank += 1
+						app = item.get('itemdata', {})
+						game_name, img, downloads, size, source, popular, game_type, status, url = [U''] * 9
+						game_name = app.get('sname', u'')
+						img = app.get('icon', u'')
+						downloads = app.get('display_download', u'')
+						size = app.get('size', u'')
+						game_type = app.get('catename', u'')
+						url = u"%s\t%s" % (app.get('package', u''),  app.get('docid', u''))
+						source = source_map.get(gtype)
+						yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
+						#for k, v in app.iteritems():
+						#	print k, v
+						#print 
+	except Exception,e:
+		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
+
+def store_m_baidu_app_rank():
+	single_url = 'http://m.baidu.com/appsrv?uid=YPvuu_PqvfgkiHf30uS88liwHulTiSiQYiHPfgiOB8qLuHf3_PvoigaX2ig5uBiN3dqqC&native_api=1&psize=3&abi=armeabi-v7a&cll=_hv19g8O2NAVA&usertype=0&is_support_webp=true&ver=16786356&from=1011454q&board_id=board_102_736&operator=460015&network=WF&pkname=com.dragon.android.pandaspace&country=CN&cen=cuid_cut_cua_uid&gms=false&platform_version_id=19&firstdoc=&name=game&action=ranklist&pu=cua%40_a-qi4uq-igBNE6lI5me6NIy2I_UC-I4juDpieLqA%2Cosname%40baiduappsearch%2Cctv%401%2Ccfrom%401010680f%2Ccuid%40YPvuu_PqvfgkiHf30uS88liwHulTiSiQYiHPfgiOB86QuviJ0O2lfguGv8_Huv8uja20fqqqB%2Ccut%405fXCirktSh_Uh2IJgNvHtyN6moi5pQqAC&language=zh&apn=&native_api=1&pn=0&f=gameranklist%40tab%401&bannert=26%4027%4028%4029%4030%4031%4032%4043'
+	new_games_url = 'http://m.baidu.com/appsrv?uid=YPvuu_PqvfgkiHf30uS88liwHulTiSiQYiHPfgiOB8qLuHf3_PvoigaX2ig5uBiN3dqqC&native_api=1&psize=3&abi=armeabi-v7a&cll=_hv19g8O2NAVA&usertype=0&is_support_webp=true&ver=16786356&from=1011454q&board_id=board_102_737&operator=460015&network=WF&pkname=com.dragon.android.pandaspace&country=CN&cen=cuid_cut_cua_uid&gms=false&platform_version_id=19&firstdoc=&name=game&action=ranklist&pu=cua%40_a-qi4uq-igBNE6lI5me6NIy2I_UC-I4juDpieLqA%2Cosname%40baiduappsearch%2Cctv%401%2Ccfrom%401010680f%2Ccuid%40YPvuu_PqvfgkiHf30uS88liwHulTiSiQYiHPfgiOB86QuviJ0O2lfguGv8_Huv8uja20fqqqB%2Ccut%405fXCirktSh_Uh2IJgNvHtyN6moi5pQqAC&language=zh&apn=&&native_api=1&pn=0&f=gameranklist%40tab%403&bannert=26%4027%4028%4029%4030%4031%4032%4043'
+	web_game_url = 'http://m.baidu.com/appsrv?uid=YPvuu_PqvfgkiHf30uS88liwHulTiSiQYiHPfgiOB8qLuHf3_PvoigaX2ig5uBiN3dqqC&native_api=1&psize=3&abi=armeabi-v7a&cll=_hv19g8O2NAVA&usertype=0&is_support_webp=true&ver=16786356&from=1011454q&board_id=board_102_735&operator=460015&network=WF&pkname=com.dragon.android.pandaspace&country=CN&cen=cuid_cut_cua_uid&gms=false&platform_version_id=19&firstdoc=&name=game&action=ranklist&pu=cua%40_a-qi4uq-igBNE6lI5me6NIy2I_UC-I4juDpieLqA%2Cosname%40baiduappsearch%2Cctv%401%2Ccfrom%401010680f%2Ccuid%40YPvuu_PqvfgkiHf30uS88liwHulTiSiQYiHPfgiOB86QuviJ0O2lfguGv8_Huv8uja20fqqqB%2Ccut%405fXCirktSh_Uh2IJgNvHtyN6moi5pQqAC&language=zh&apn=&&native_api=1&pn=0&f=gameranklist%40tab%402&bannert=26%4027%4028%4029%4030%4031%4032%4043'
+	_dict = {'m_baidu_single': single_url, 'm_baidu_webgame': web_game_url, 'm_baidu_new_game': new_games_url}	
+	for gtype, _url in _dict.iteritems():
+		for data in get_m_baidu_rank(gtype, _url):
+			store_data(data)
+		
+def get_dangle_app_rank():
+	_url = 'http://api2014.digua.d.cn/newdiguaserver/game/rank?pn=1&type=16&ps=50'
+	headers = {'HEAD': {"stamp":1448610575430,"verifyCode":"78492ba9e8569f3b9d9173ac4e4b6cb9","it":2,"resolutionWidth":1080,"imei":"865931027730878","clientChannelId":"100327","versionCode":750,"mac":"34:80:b3:4d:69:87","vender":"Qualcomm","vp":"","version":"7.5","sign":"2ec90f723384b1ec","dd":480,"sswdp":"360","hasRoot":0,"glEsVersion":196608,"device":"MI_4LTE","ss":2,"local":"zh_CN","language":"2","sdk":19,"resolutionHeight":1920,"osName":"4.4.4","gpu":"Adreno (TM) 330"}}
+	rank = 0
+	try:
+		r = requests.post(_url, timeout=10, headers=headers)
+		if r.status_code == 200:
+			j = r.json()
+			if 'list' in j:
+				for app in j['list']:
+					rank += 1
+					game_name, img, downloads, size, source, popular, game_type, status, url = [U''] * 9
+					game_name = app.get('name', u'')
+					img = app.get('iconUrl', u'')
+					downloads = app.get('downs', u'')
+					game_type = app.get('categoryName', u'')
+					source = source_map.get('dangle_new_game')
+					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
+					#for k, v in app.iteritems():
+					#	print k, v
+					#print 
+	except Exception,e:
+		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
+
+
+
 def get_data(f):
 	for i in enumerate(f()):
 		rank, ret = i
@@ -295,17 +472,106 @@ def get_data(f):
 	db_conn.commit()
 	mylogger.info("%s done!" % f.__name__)
 
+
+def get_vivo_app_rank(gtype, _url):
+	rank = 0
+	try:
+		r = requests.get(_url, timeout=10)
+		if r.status_code == 200:
+			j = r.json()
+			if 'msg' in j:
+				for app in j['msg']:
+					rank += 1
+					game_name, img, downloads, size, source, popular, game_type, status, url = [U''] * 9
+					game_name = app.get('name', u'')
+					img = app.get('icon', u'')
+					downloads = app.get('download', u'')
+					size = app.get('size', u'')
+					game_type = app.get('type', u'')
+					url = u"%s\t%s" % (app.get('pkgName', u''),  app.get('id', u''))
+					source = source_map.get(gtype)
+					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
+					#for k, v in app.iteritems():
+					#	print k, v
+					#print 
+	except Exception,e:
+		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
+
+def store_vivo_app_rank():
+	new_games_url = 'http://main.gamecenter.vivo.com.cn/clientRequest/rankList?appVersionName=2.0.0&model=MI+4LTE&e=11010030313647453200da18b1312200&page_index=1&pixel=3.0&imei=865931027730878&origin=527&type=new&av=19&patch_sup=1&cs=0&adrVerName=4.4.4&appVersion=37&elapsedtime=18535194&s=2%7C1363799553'
+	single_url = 'http://main.gamecenter.vivo.com.cn/clientRequest/rankList?appVersionName=2.0.0&model=MI+4LTE&e=11010030313647453200da18b1312200&page_index=1&pixel=3.0&imei=865931027730878&origin=528&type=Alone20150916173741&av=19&patch_sup=1&cs=0&adrVerName=4.4.4&appVersion=37&elapsedtime=18658164&s=2%7C1323451747'
+	web_game_url = 'http://main.gamecenter.vivo.com.cn/clientRequest/rankList?appVersionName=2.0.0&model=MI+4LTE&e=11010030313647453200da18b1312200&page_index=1&pixel=3.0&imei=865931027730878&origin=529&type=Compr20150916173717&av=19&patch_sup=1&cs=0&adrVerName=4.4.4&appVersion=37&elapsedtime=18675505&s=2%7C2756240867'
+	_dict = {'vivo_single': single_url, 'vivo_webgame': web_game_url, 'vivo_new_game': new_games_url}	
+	for gtype, _url in _dict.iteritems():
+		for data in get_vivo_app_rank(gtype, _url):
+			store_data(data)
+
+def get_gionee_app_rank(gtype, param):
+	rank = 0
+	try:
+		for page in xrange(1, 6):
+			_url = 'http://game.gionee.com/Api/Local_Clientrank/%s/?&page=%s' % (param, page)
+			r = requests.get(_url, timeout=10)
+			if r.status_code == 200:
+				j = r.json()
+				if 'data' in j and 'list' in j['data']:
+					for app in j['data']['list']:
+						rank += 1
+						game_name, img, downloads, size, source, popular, game_type, status, url = [U''] * 9
+						game_name = app.get('name', u'')
+						img = app.get('img', u'')
+						downloads = app.get('downloadCount', u'')
+						size = app.get('size', u'')
+						game_type = app.get('category', u'')
+						url = u"%s\t%s" % (app.get('package', u''),  app.get('gameid', u''))
+						source = source_map.get(gtype)
+						yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
+	except Exception,e:
+		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
+
+def store_gionee_app_rank():
+	_map = {
+						"gionee_active": 'olactiveRankIndex',
+						"gionee_hot": 'soaringRankIndex',
+					}
+	for gtype, param in _map.iteritems():
+		for data in get_gionee_app_rank(gtype, param):
+			store_data(data)
+		
+
+def get_coolpad_app_rank():
+	pass
+
+def store_coolpad_app_rank():
+	webgame_raw_data="""<?xml version="1.0" encoding="utf-8"?><request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064" ><rankorder>0</rankorder><syncflag>0</syncflag><start>1</start><categoryid>1</categoryid><iscoolpad>0</iscoolpad><level>0</level><querytype>5</querytype><max>30</max></request>"""
+
+	new_game_raw_data="""<?xml version="1.0" encoding="utf-8"?><request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064" ><rankorder>0</rankorder><syncflag>0</syncflag><start>1</start><categoryid>1</categoryid><iscoolpad>0</iscoolpad><level>0</level><querytype>3</querytype><max>30</max></request>"""
+
+	hot_game_raw_data="""<?xml version="1.0" encoding="utf-8"?><request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064" ><rankorder>0</rankorder><syncflag>0</syncflag><start>1</start><categoryid>1</categoryid><iscoolpad>0</iscoolpad><level>0</level><querytype>6</querytype><max>30</max></request>"""
+
+	_dict = {'vivo_single': single_url, 'vivo_webgame': web_game_url, 'vivo_new_game': new_games_url}	
+	for gtype, _url in _dict.iteritems():
+		for data in get_vivo_app_rank(gtype, _url):
+			store_data(data)
+
+
+
 def main():
 	mylogger.info("holy shit!")
 	#get_icons(get_baidu_hot_games)
 	get_data(get_baidu_hot_games)
-	get_data(get_xiaomi_games)
 	get_data(get_360_online_games)
 	get_data(get_9game_detail)
 	get_data(get_9game_detail2)
 	#get_data(get_appannie_detail)
+	store_360_app_rank()
+	store_m5qq_app_rank()
+	store_m_baidu_app_rank()
+	for data in get_dangle_app_rank():
+		store_data(data)
+	store_xiaomi_app_rank()
+	store_vivo_app_rank()
+	store_gionee_app_rank()
 
 if __name__ == '__main__':
 	main()
-	#get_data(get_9game_detail)
-	#get_data(get_appannie_detail)
