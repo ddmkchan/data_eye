@@ -139,10 +139,6 @@ def get_18183_kc():
 	URL = "http://xin.18183.com/ceshi/"
 	try:
 		response = s.get(URL, timeout=10)
-	except Exception,e:
-		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
-		response = T(404)
-	if response.status_code == 200:
 		r = response.text.encode('ISO-8859-1').decode(requests.utils.get_encodings_from_content(response.text)[0])
 		soup = BeautifulSoup(r)
 		publish_dates = soup.find("ul", class_="tab_menu").find_all("li")
@@ -179,6 +175,8 @@ def get_18183_kc():
 										"source"	:	source_map.get('18183')
 											})
 								db_conn.merge(item)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
 	db_conn.commit()
 	mylogger.info("get %s records from 18183 kc" % count)
 
@@ -187,10 +185,6 @@ def get_360_kc():
 	URL = "http://u.360.cn/xin/ceshi/"
 	try:
 		response = s.get(URL, timeout=10)
-	except Exception,e:
-		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
-		response = T(404)
-	if response.status_code == 200:
 		r = response.text.encode('ISO-8859-1').decode(requests.utils.get_encodings_from_content(response.text)[0])
 		soup = BeautifulSoup(r)
 		c = soup.find_all("div", class_="content")
@@ -236,6 +230,8 @@ def get_360_kc():
 											"source": source_map.get('u360')
 											})
 								db_conn.merge(item)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
 	mylogger.info("get %s records from 360 kc" % count)
 	db_conn.commit()				
 
@@ -243,39 +239,44 @@ def get_appicsh_kc():
 	count = 0
 	#r = s.get("http://appicsh.qq.com/cgi-bin/appstage/FirstPublishTab?type=3&index=0&pageSize=20")
 	url = "http://m5.qq.com/app/applist.htm?listType=18&pageSize=150"
-	r = requests.get(url, timeout=10)
-	if r.status_code == 200:
-		d = r.json()
-		if d['msg'] == u'success':
-			new_games_list = d['obj']['appList']
-			for game in new_games_list:
-				title = game.get('appName', u"")
-				game_type = game.get('categoryName', u"")
-				img = game.get('iconUrl', u"")
-				publishtime = game.get('apkPublishTime', u"")
-				publish_date = unicode(datetime.date.fromtimestamp(publishtime)) if publishtime else u""
-				#print title, publish_date, img
-				if title and publish_date :
-					ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('appicsh')).first()
-					if ins is None:
-						count += 1
-						item = KC_LIST(**{
-									"title": title,
-									"game_type": game_type,
-									"publish_date": publish_date,
-									"img": img,
-									"source": source_map.get('appicsh')
-									})
-						db_conn.merge(item)
-					else:
-						ins.url = u'http://m5.qq.com/app/getappdetail.htm?pkgName=%s&sceneId=0' % game.get('pkgName', u'')
+	try:
+		r = requests.get(url, timeout=10)
+		if r.status_code == 200:
+			d = r.json()
+			if d['msg'] == u'success':
+				new_games_list = d['obj']['appList']
+				for game in new_games_list:
+					title = game.get('appName', u"")
+					game_type = game.get('categoryName', u"")
+					img = game.get('iconUrl', u"")
+					publishtime = game.get('apkPublishTime', u"")
+					publish_date = unicode(datetime.date.fromtimestamp(publishtime)) if publishtime else u""
+					#print title, publish_date, img
+					if title and publish_date :
+						ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('appicsh')).first()
+						if ins is None:
+							count += 1
+							item = KC_LIST(**{
+										"title": title,
+										"game_type": game_type,
+										"publish_date": publish_date,
+										"img": img,
+										"source": source_map.get('appicsh')
+										})
+							db_conn.merge(item)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	mylogger.info("get %s records from appicsh" % count)
 	db_conn.commit()
 
 def get_360zhushou_kc():
 	count = 0
 	URL = "http://openbox.mobilem.360.cn/gamestart/list?type=2"
-	r = s.get(URL)
+	try:
+		r = s.get(URL)
+	except Exception,e:
+		r = T(404)
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	if r.status_code == 200:
 		soup = BeautifulSoup(r.text)
 		item_list = soup.find("div", class_="app-item-list")
@@ -332,7 +333,11 @@ def get_360zhushou_kc():
 def get_xiaomi_new_kc(page):
 	count = 0
 	url = "http://app.migc.xiaomi.com/cms/interface/v5/subjectgamelist1.php?pageSize=20&page=%s&subId=138" % page
-	r = requests.get(url)
+	try:
+		r = requests.get(url)
+	except Exception,e:
+		r = T(404)
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	if r.status_code == 200:
 		d = r.json()
 		if d['errCode'] == 200:
@@ -371,7 +376,11 @@ def get_xiaomi_new_kc(page):
 def get_xiaomi_rpg_kc(page):
 	count = 0
 	url = "http://app.migc.xiaomi.com/cms/interface/v5/subjectgamelist1.php?subId=203&pageSize=20&page=%s" % page
-	r = requests.get(url)
+	try:
+		r = requests.get(url)
+	except Exception,e:
+		r = T(404)
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	if r.status_code == 200:
 		d = r.json()
 		if d['errCode'] == 200:
@@ -415,7 +424,11 @@ def get_xiaomi_rpg_kc(page):
 def get_open_play_kc():
 	count = 0
 	url = "http://open.play.cn/api/v2/mobile/channel/content.json?channel_id=702&terminal_id=18166&current_page=0&rows_of_page=20"
-	r = requests.get(url)
+	try:
+		r = requests.get(url)
+	except Exception,e:
+		r = T(404)
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	if r.status_code == 200:
 		d = r.json()
 		if d['code'] == 0:
@@ -452,7 +465,11 @@ def get_vivo_kc(page):
 	count = 0
 	#url = "http://gamecenter.vivo.com.cn/clientRequest/topicGame?id=214&page_index=1"
 	url = "http://main.gamecenter.vivo.com.cn/clientRequest/startingGame?page_index=%s" % page
-	r = requests.get(url)
+	try:
+		r = requests.get(url)
+	except Exception,e:
+		r = T(404)
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	if r.status_code == 200:
 		d = r.json()
 		for ret in d['msg']:
@@ -508,7 +525,11 @@ def get_coolpad_kc():
   <max>10</max>
 </request>
 """
-	r = requests.post(url, data=raw_data, headers={'Content-Type': 'application/xml'})
+	try:
+		r = requests.post(url, data=raw_data, headers={'Content-Type': 'application/xml'}, timeout=10)
+	except Exception,e:
+		r = T(404)
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	if r.status_code == 200:
 		t = re.sub(u'\r|\n', '', r.text)
 		doc = xmltodict.parse(t)
@@ -550,7 +571,11 @@ def get_coolpad_pubtime_by_id(resid):
 <request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064">
   <resid>%s</resid>
 </request>""" % resid
-	r = requests.post(url, data=raw_data, headers={'Content-Type': 'application/xml'})
+	try:
+		r = requests.post(url, data=raw_data, headers={'Content-Type': 'application/xml'})
+	except Exception,e:
+		r = T(404)
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	if r.status_code == 200:
 		t = re.sub(u'\r|\n', '', r.text)
 		doc = xmltodict.parse(t)
@@ -566,7 +591,11 @@ def get_coolpad_pubtime_by_id(resid):
 def get_gionee_kc(page):
 	count = 0
 	url = "http://game.gionee.com/Api/Local_Rank/clientIndex?&page=%s" % page
-	r = requests.get(url)
+	try:
+		r = requests.get(url, timeout=10)
+	except Exception,e:
+		r = T(404)
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	if r.status_code == 200:
 		d = r.json()
 		for ret in d['data']['list']:
@@ -601,7 +630,11 @@ def get_gionee_kc(page):
 def get_lenovo_kc():
 	count = 0
 	url = "http://yx.lenovomm.com/business/app!getNewest.action?width=1080&t=22&s=0&dpi=480&height=1920"
-	r = requests.get(url)
+	try:
+		r = requests.get(url, timeout=10)
+	except Exception,e:
+		r = T(404)
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	if r.status_code == 200:
 		d = r.json()
 		for ret in d['datalist']:
@@ -635,7 +668,11 @@ def get_lenovo_kc():
 def get_iqiyi_kc(page):
 	count = 0
 	url = "http://store.iqiyi.com/gc/list?callback=rs&id=228&no=%s" % page
-	r = requests.get(url)
+	try:
+		r = requests.get(url, timeout=10)
+	except Exception,e:
+		r = T(404)
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	if r.status_code == 200:
 		m = re.search(u'rs\\(([\s\S]*)\\)\\;', r.text)
 		if m is not None:
@@ -669,24 +706,31 @@ def get_iqiyi_kc(page):
 					
 def get_iqiyi_pubtime_by_id(qipu_id):
 	url = "http://store.iqiyi.com/gc/game/detail?callback=rs&id=%s" % qipu_id
-	r = requests.get(url)
-	if r.status_code == 200:
-		m = re.search(u'rs\\(([\s\S]*)\\)\\;', r.text)
-		if m is not None:
-			d = json.loads(m.group(1))
-			dt = d['app']['date']
-			m = re.search(u'(\d+)年(\d+)月(\d+)日', dt)
-			try:
-				publish_date = u"%s-%s-%s" % (m.group(1), m.group(2), m.group(3))
-				return publish_date
-			except Exception, e:
-				mylogger.error("### %s ###\t%s" % (dt.encode('utf-8'), traceback.format_exc()))
+	try:
+		r = requests.get(url)
+		if r.status_code == 200:
+			m = re.search(u'rs\\(([\s\S]*)\\)\\;', r.text)
+			if m is not None:
+				d = json.loads(m.group(1))
+				dt = d['app']['date']
+				m = re.search(u'(\d+)年(\d+)月(\d+)日', dt)
+				try:
+					publish_date = u"%s-%s-%s" % (m.group(1), m.group(2), m.group(3))
+					return publish_date
+				except Exception, e:
+					mylogger.error("### %s ###\t%s" % (dt.encode('utf-8'), traceback.format_exc()))
+	except Exception, e:
+		mylogger.error("### %s ###\t%s" % (qipu_id.encode('utf-8'), traceback.format_exc()))
 	return u''	
 	
 def get_youku_kc():
 	count = 0
 	url = "http://api.gamex.mobile.youku.com/app/new_game_tab/get?pg=1&pz=40"
-	r = requests.get(url)
+	try:
+		r = requests.get(url, timeout=10)
+	except Exception,e:
+		r = T(404)
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	if r.status_code == 200:
 		d = r.json()
 		for ret in d['games']:
@@ -720,7 +764,7 @@ def get_wandoujia_kc():
 		r = requests.get(url, timeout=10)
 	except Exception,e:
 		r = T(404)
-		mylogger.error("### %s ### %s" % (url.encode('utf-8'), traceback.format_exc()))
+		mylogger.error("### %s ### %s" % (url, traceback.format_exc()))
 	if r.status_code == 200:
 		d = r.json()
 		for ret in d['entity']:
@@ -775,7 +819,11 @@ def get_wandoujia_detail(url):
 def get_sogou_kc():
 	count = 0
 	url = "http://mobile.zhushou.sogou.com/android/rank/toplist.html?limit=25&start=25&group=2&id=13"
-	r = requests.get(url)
+	try:
+		r = requests.get(url, timeout=10)
+	except Exception,e:
+		r = T(404)
+		mylogger.error("### %s ### %s" % (url, traceback.format_exc()))
 	if r.status_code == 200:
 		d = r.json()
 		for ret in d['recommend_app']:
@@ -836,7 +884,11 @@ def get_dangle_kc():
     "osName": "4.4.4",
     "gpu": "Adreno (TM) 330"
 	}}
-	r = requests.post(url, headers=headers)
+	try:
+		r = requests.post(url, headers=headers, timeout=15)
+	except Exception,e:
+		r = T(404)
+		mylogger.error("### %s ### %s" % (url, traceback.format_exc()))
 	if r.status_code == 200:
 		d = r.json()
 		for ret in d['list']:
@@ -868,7 +920,11 @@ def get_dangle_kc():
 def get_i4_kc():
 	count = 0
 	url = "http://app3.i4.cn/controller/action/online.go?store=3&module=3&rows=100&sort=2&submodule=6&model=101&id=0&reqtype=3&page=1"
-	r = requests.get(url)
+	try:
+		r = requests.get(url)
+	except Exception,e:
+		r = T(404)
+		mylogger.error("### %s ### %s" % (url, traceback.format_exc()))
 	if r.status_code == 200:
 		d = r.json()
 		for ret in d['result']['list']:

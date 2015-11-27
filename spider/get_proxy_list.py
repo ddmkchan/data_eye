@@ -71,7 +71,7 @@ def get_kd_proxy_list(page):
 											"location": location,
 											"is_anonymity": is_anonymity,
 											"type": type,
-											"check_time": u"20" + check_time,
+											"check_time": check_time,
 										})
 							db_conn.merge(item)
 	except Exception,e:
@@ -93,6 +93,15 @@ def check_proxy(proxy):
 	except Exception,e:
 		mylogger.error("%s" % (traceback.format_exc()))
 		
+
+def test():
+	count = 0
+	URL = "http://zhushou.360.cn/list/index/cid/2/order/newest/?page=1"
+	try:
+		response = s.get(URL, timeout=10)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+		response = T(404)
 
 if __name__ == '__main__':
 	get_xici_nn_proxy_list(1)

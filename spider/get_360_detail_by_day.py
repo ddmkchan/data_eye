@@ -26,6 +26,11 @@ class T:
 		self.status_code = status_code
 
 
+headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'}
+
+def get_proxies():
+	return [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in db_conn.query(ProxyList)]
+
 def get_360_web_detail():
 	mylogger.info("get 360 detail start ...")
 	count = 0
@@ -38,7 +43,13 @@ def get_360_web_detail():
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
 			try:
-				response = s.get(ret.url, timeout=10)
+				r = s.get(ret.url, timeout=10)
+			except Exception,e:
+				r = T(404)
+				err_times += 1
+				sleep(3.21)
+				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
+			if r.status_code == 200:
 				soup = BeautifulSoup(response.text)
 				imgs = u''
 				rating = u''
@@ -85,10 +96,6 @@ def get_360_web_detail():
 				if count % 100 == 0:
 					mylogger.info("360 detail %s commit" % count)
 					db_conn.commit()
-			except Exception,e:
-				err_times += 1
-				sleep(3.21)
-				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get 360 detail %s" % count)
 	db_conn.commit()
 
