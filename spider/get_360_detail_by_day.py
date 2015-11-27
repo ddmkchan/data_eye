@@ -50,7 +50,7 @@ def get_360_web_detail():
 				sleep(3.21)
 				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
 			if r.status_code == 200:
-				soup = BeautifulSoup(response.text)
+				soup = BeautifulSoup(r.text)
 				imgs = u''
 				rating = u''
 				summary = u''
