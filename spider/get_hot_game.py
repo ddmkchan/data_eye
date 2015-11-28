@@ -13,6 +13,7 @@ from define import *
 from model import *
 from bs4 import BeautifulSoup
 import time
+import xmltodict
 
 from get_logger import *
 mylogger = get_logger('hot_game')
@@ -43,6 +44,14 @@ source_map = {
 			"vivo_new_game"	: 18,
 			"gionee_active"	: 19,
 			"gionee_hot"	: 20,
+			"coolpad_hot"	: 21,
+			"coolpad_webgame"	: 22,
+			"coolpad_new_game"	: 23,
+			"open_play_download"	: 24,#爱游戏榜单
+			"open_play_free"	: 25,#爱游戏榜单
+			"open_play_webgame"	: 26,#爱游戏榜单
+			"wandoujia_single"	: 27,
+			"wandoujia_webgame"	: 28,
 				}
 
 def get_baidu_hot_games():
@@ -315,7 +324,7 @@ def get_360_app_rank(gtype):
 			if j['errno'] == u'0':
 				for app in j['data']:
 					rank += 1
-					game_name, img, downloads, size, source, popular, game_type, status, url = [U''] * 9
+					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
 					game_name = app.get('name', u'')
 					img = app.get('logo_url', u'')
 					downloads = app.get('download_times', u'')
@@ -329,7 +338,7 @@ def get_360_app_rank(gtype):
 
 def store_360_app_rank():
 	for gtype in ['single', 'webgame', 'new']:
-		mylogger.info("%s rank start... " % gtype)
+		mylogger.info("360 %s rank start... " % gtype)
 		for data in get_360_app_rank(gtype):
 			store_data(data)
 
@@ -368,7 +377,7 @@ def get_m5qq_app_rank(gtype):
 			if 'obj' in j and 'appList' in j['obj']:
 				for app in j['obj']['appList']:
 					rank += 1
-					game_name, img, downloads, size, source, popular, game_type, status, url = [U''] * 9
+					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
 					game_name = app.get('appName', u'')
 					img = app.get('iconUrl', u'')
 					downloads = app.get('appDownCount', u'')
@@ -400,7 +409,7 @@ def get_m_baidu_rank(gtype, _url):
 					if 'itemdata' in item:
 						rank += 1
 						app = item.get('itemdata', {})
-						game_name, img, downloads, size, source, popular, game_type, status, url = [U''] * 9
+						game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
 						game_name = app.get('sname', u'')
 						img = app.get('icon', u'')
 						downloads = app.get('display_download', u'')
@@ -435,7 +444,7 @@ def get_dangle_app_rank():
 			if 'list' in j:
 				for app in j['list']:
 					rank += 1
-					game_name, img, downloads, size, source, popular, game_type, status, url = [U''] * 9
+					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
 					game_name = app.get('name', u'')
 					img = app.get('iconUrl', u'')
 					downloads = app.get('downs', u'')
@@ -482,7 +491,7 @@ def get_vivo_app_rank(gtype, _url):
 			if 'msg' in j:
 				for app in j['msg']:
 					rank += 1
-					game_name, img, downloads, size, source, popular, game_type, status, url = [U''] * 9
+					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
 					game_name = app.get('name', u'')
 					img = app.get('icon', u'')
 					downloads = app.get('download', u'')
@@ -517,7 +526,7 @@ def get_gionee_app_rank(gtype, param):
 				if 'data' in j and 'list' in j['data']:
 					for app in j['data']['list']:
 						rank += 1
-						game_name, img, downloads, size, source, popular, game_type, status, url = [U''] * 9
+						game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
 						game_name = app.get('name', u'')
 						img = app.get('img', u'')
 						downloads = app.get('downloadCount', u'')
@@ -539,8 +548,30 @@ def store_gionee_app_rank():
 			store_data(data)
 		
 
-def get_coolpad_app_rank():
-	pass
+def get_coolpad_app_rank(gtype, fd):
+	rank = 0
+	_url = "http://gamecenter.coolyun.com/gameAPI/API/getResList?key=0"
+	try:
+		r = requests.post(_url, timeout=10, data=fd, headers=headers)
+		if r.status_code == 200:
+			t = re.sub(u'\r|\n', '', r.text)
+			doc = xmltodict.parse(t)
+			if '@msg' in doc['response'] and doc['response']['@msg'] == u'成功':
+				for app in doc['response']['reslist']['res']:
+					rank += 1
+					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+					game_name = app.get('@name', u'')
+					img = app.get('icon', u'')
+					downloads = app.get('downloadtimes', u'')
+					game_type = app.get('levelname', u'')
+					source = source_map.get(gtype)
+					size = app.get('size', u'')
+					url = u"%s\t%s" % (app.get('package_name', u''),  app.get('@rid', u''))
+					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
+	except Exception,e:
+		mylogger.error("%s====>\t%s" % (gtype, traceback.format_exc()))
+
+
 
 def store_coolpad_app_rank():
 	webgame_raw_data="""<?xml version="1.0" encoding="utf-8"?><request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064" ><rankorder>0</rankorder><syncflag>0</syncflag><start>1</start><categoryid>1</categoryid><iscoolpad>0</iscoolpad><level>0</level><querytype>5</querytype><max>30</max></request>"""
@@ -549,21 +580,80 @@ def store_coolpad_app_rank():
 
 	hot_game_raw_data="""<?xml version="1.0" encoding="utf-8"?><request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064" ><rankorder>0</rankorder><syncflag>0</syncflag><start>1</start><categoryid>1</categoryid><iscoolpad>0</iscoolpad><level>0</level><querytype>6</querytype><max>30</max></request>"""
 
-	_dict = {'vivo_single': single_url, 'vivo_webgame': web_game_url, 'vivo_new_game': new_games_url}	
+	_dict = {'coolpad_hot': hot_game_raw_data, 'coolpad_webgame': webgame_raw_data, 'coolpad_new_game': new_game_raw_data}	
+	for gtype, rd in _dict.iteritems():
+		for data in get_coolpad_app_rank(gtype, rd):
+			store_data(data)
+
+def get_open_play_app_rank(gtype, _url):
+	rank = 0
+	try:
+		r = requests.get(_url, timeout=10)
+		if r.status_code == 200:
+			j = r.json()
+			if j['code'] == 0:
+				for app in j['ext']['main']['content']['game_list']:
+					rank += 1
+					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+					game_name = app.get('game_name', u'')
+					img = app.get('game_icon', u'')
+					downloads = app.get('game_download_count', u'')
+					size = app.get('game_size', u'')
+					game_type = app.get('class_name', u'')
+					url = app.get('game_detail_url', u'')
+					source = source_map.get(gtype)
+					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
+	except Exception,e:
+		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
+
+
+
+def store_open_play_app_rank():
+	download_page 	= "http://open.play.cn/api/v2/mobile/channel/content.json?channel_id=911&terminal_id=18166&current_page=0&rows_of_page=50"
+	free_page		= "http://open.play.cn/api/v2/mobile/channel/content.json?channel_id=914&terminal_id=18166&current_page=0&rows_of_page=50"
+	webgame_page 	= "http://open.play.cn/api/v2/mobile/channel/content.json?channel_id=917&terminal_id=18166&current_page=0&rows_of_page=50"
+
+	_dict = {'open_play_download': download_page, 'open_play_free': free_page, 'open_play_webgame': webgame_page}	
 	for gtype, _url in _dict.iteritems():
-		for data in get_vivo_app_rank(gtype, _url):
+		for data in get_open_play_app_rank(gtype, _url):
+			store_data(data)
+
+def get_wandoujia_app_rank():
+	rank = 0
+	try:
+		r = requests.get(_url, timeout=10)
+		if r.status_code == 200:
+			j = r.json()
+				for app in j['entity'][:1]:
+					rank += 1
+					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+					game_name = app.get('game_name', u'')
+					img = app.get('game_icon', u'')
+					downloads = app.get('game_download_count', u'')
+					size = app.get('game_size', u'')
+					game_type = app.get('class_name', u'')
+					url = app.get('game_detail_url', u'')
+					source = source_map.get(gtype)
+					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
+	except Exception,e:
+		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
+
+def store_wandoujia_app_rank():
+	single_url 		= "http://apis.wandoujia.com/five/v2/games/tops/TOP_WEEKLY_DOWNLOAD_CONSOLE_GAME?max=20"
+	web_game_url 	= "http://apis.wandoujia.com/five/v2/games/tops/TOP_WEEKLY_DOWNLOAD_ONLINE_GAME?start=0&max=20"
+	_dict = {'wandoujia_single': single_url, 'wandoujia_webgame': web_game_url}	
+	for gtype, _url in _dict.iteritems():
+		for data in get_wandoujia_app_rank(gtype, _url):
 			store_data(data)
 
 
 
 def main():
 	mylogger.info("holy shit!")
-	#get_icons(get_baidu_hot_games)
 	get_data(get_baidu_hot_games)
 	get_data(get_360_online_games)
 	get_data(get_9game_detail)
 	get_data(get_9game_detail2)
-	#get_data(get_appannie_detail)
 	store_360_app_rank()
 	store_m5qq_app_rank()
 	store_m_baidu_app_rank()
@@ -572,6 +662,8 @@ def main():
 	store_xiaomi_app_rank()
 	store_vivo_app_rank()
 	store_gionee_app_rank()
+	store_coolpad_app_rank()
+	store_open_play_app_rank()
 
 if __name__ == '__main__':
 	main()

@@ -20,6 +20,10 @@ db_conn = new_session()
 s = requests.session()
 mylogger = get_logger('get_game_detail')
 
+
+import random
+proxies = [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in db_conn.query(ProxyList)]
+
 class T:
 	
 	def __init__(self, status_code):
@@ -63,7 +67,8 @@ def get_pp_detail():
 def get_pp_detail_by_id(gid):
 	try:
 		d = {"site":1, "id": gid}
-		r = requests.post('http://pppc2.25pp.com/pp_api/ios_appdetail.php', data=d)
+		p = proxies[random.randrange(len(proxies))]
+		r = requests.post('http://pppc2.25pp.com/pp_api/ios_appdetail.php', data=d, proxies=p)
 		return r.json()
 	except Exception,e:
 		mylogger.error("get %s detail \t%s" % (gid.encode('utf-8'), traceback.format_exc()))
@@ -72,7 +77,8 @@ def get_pp_detail_by_id(gid):
 def get_pp_comments_by_id(gid):
 	try:
 		d = {"s":1, "a":101, "i": gid, "p":1, "l":1}
-		r = requests.post('http://pppc2.25pp.com/pp_api/comment.php', data=d)
+		p = proxies[random.randrange(len(proxies))]
+		r = requests.post('http://pppc2.25pp.com/pp_api/comment.php', data=d, proxies=p)
 	except Exception,e:
 		mylogger.error("get %s comments \t%s" % (gid.encode('utf-8'), traceback.format_exc()))
 		r = T(404)
@@ -80,5 +86,10 @@ def get_pp_comments_by_id(gid):
 		return r.json()
 	return {}
 
+def get_proxies():
+	import random
+	proxies = [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in db_conn.query(ProxyList)]
+	return proxies[random.randrange(len())]
+		
 if __name__ == '__main__':
 	get_pp_detail()

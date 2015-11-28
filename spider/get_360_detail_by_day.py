@@ -16,9 +16,12 @@ from get_logger import *
 import random
 import xmltodict
 
+import random
 db_conn = new_session()
 s = requests.session()
 mylogger = get_logger('get_game_detail')
+
+proxies = [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in db_conn.query(ProxyList)]
 
 class T:
 	
@@ -43,7 +46,8 @@ def get_360_web_detail():
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
 			try:
-				r = s.get(ret.url, timeout=10)
+				p = proxies[random.randrange(len(proxies))]
+				r = s.get(ret.url, timeout=10, headers=headers, proxies=p)
 			except Exception,e:
 				r = T(404)
 				err_times += 1
