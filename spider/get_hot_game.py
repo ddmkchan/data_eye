@@ -896,6 +896,7 @@ def get_itools_app_rank():
 							#	print k, v
 	except Exception,e:
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+	mylogger.info("get itools app rank end... ")
 
 
 def get_itools_detail(URL):
