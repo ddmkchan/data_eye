@@ -2,7 +2,6 @@
 #encoding=utf-8
 
 import requests
-import datetime
 import json
 import re
 from bs4 import BeautifulSoup
@@ -11,6 +10,7 @@ import traceback
 from config import *
 import random
 import xmltodict
+import datetime
 
 db_conn = new_session()
 s = requests.session()
@@ -283,41 +283,40 @@ def get_xiaomi_new_detail():
 		url = "http://app.migc.xiaomi.com/cms/interface/v5/subjectgamelist1.php?pageSize=20&page=%s&subId=138" % page
 		try:
 			r = requests.get(url, timeout=10)
+			if r.status_code == 200:
+				d = r.json()
+				if d['errCode'] == 200:
+					new_games_list = d.get('gameList', [])
+					for g in new_games_list:
+						game_id = g.get('gameId', u'')
+						update_time = u''
+						updateTime = g.get('updateTime', u'')
+						if updateTime:
+							t = unicode(updateTime)[:10]
+							update_time = unicode(datetime.date.fromtimestamp(int(t)))
+						dt = unicode(datetime.date.today())
+						if game_id in id_map:
+							ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==id_map[game_id]).filter(GameDetailByDay.dt==dt).first()
+							if not ins:
+								item = GameDetailByDay(**{
+														'kc_id': id_map.get(game_id),
+														'summary' : g.get('introduction', u''),
+														'author' : g.get('publisherName', u''),
+														'game_type' : g.get('className', u''),
+														'rating' : g.get('ratingScore', u''),
+														'version' : g.get('versionName', u''),
+														'pkg_size' : g.get('apkSize', u''),
+														'download_num' : g.get('downloadCount', u''),
+														'dt' : dt,
+														'imgs' : u','.join([i.get('url') for i in g['screenShot']]),
+														'topic_num_total' : g.get('ratingCount', u''),
+														'update_time' : update_time,
+															})
+								db_conn.merge(item)
+							else:
+								ins.pkg_size = g.get('apkSize', u'')
 		except Exception,e:
 			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
-			r = T(404)
-		if r.status_code == 200:
-			d = r.json()
-			if d['errCode'] == 200:
-				new_games_list = d.get('gameList', [])
-				for g in new_games_list:
-					game_id = g.get('gameId', u'')
-					update_time = u''
-					updateTime = g.get('updateTime', u'')
-					if updateTime:
-						t = unicode(updateTime)[:10]
-						update_time = unicode(datetime.date.fromtimestamp(int(t)))
-					dt = unicode(datetime.date.today())
-					if game_id in id_map:
-						ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==id_map[game_id]).filter(GameDetailByDay.dt==dt).first()
-						if not ins:
-							item = GameDetailByDay(**{
-													'kc_id': id_map.get(game_id),
-													'summary' : g.get('introduction', u''),
-													'author' : g.get('publisherName', u''),
-													'game_type' : g.get('className', u''),
-													'rating' : g.get('ratingScore', u''),
-													'version' : g.get('versionName', u''),
-													'pkg_size' : g.get('apkSize', u''),
-													'download_num' : g.get('downloadCount', u''),
-													'dt' : dt,
-													'imgs' : u','.join([i.get('url') for i in g['screenShot']]),
-													'topic_num_total' : g.get('ratingCount', u''),
-													'update_time' : update_time,
-														})
-							db_conn.merge(item)
-						else:
-							ins.pkg_size = g.get('apkSize', u'')
 	db_conn.commit()
 							
 
@@ -335,41 +334,40 @@ def get_xiaomi_rpg_detail():
 		url = "http://app.migc.xiaomi.com/cms/interface/v5/subjectgamelist1.php?subId=203&pageSize=150&page=%s" % page
 		try:
 			r = requests.get(url, timeout=10)
+			if r.status_code == 200:
+				d = r.json()
+				if d['errCode'] == 200:
+					new_games_list = d.get('gameList', [])
+					for g in new_games_list:
+						game_id = g.get('gameId', u'')
+						update_time = u''
+						updateTime = g.get('updateTime', u'')
+						if updateTime:
+							t = unicode(updateTime)[:10]
+							update_time = unicode(datetime.date.fromtimestamp(int(t)))
+						dt = unicode(datetime.date.today())
+						if game_id in id_map:
+							ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==id_map[game_id]).filter(GameDetailByDay.dt==dt).first()
+							if not ins:
+								item = GameDetailByDay(**{
+														'kc_id': id_map.get(game_id),
+														'summary' : g.get('introduction', u''),
+														'author' : g.get('publisherName', u''),
+														'game_type' : g.get('className', u''),
+														'rating' : g.get('ratingScore', u''),
+														'version' : g.get('versionName', u''),
+														'download_num' : g.get('downloadCount', u''),
+														'dt' : dt,
+														'pkg_size' : g.get('apkSize', u''),
+														'imgs' : u','.join([i.get('url') for i in g['screenShot']]),
+														'topic_num_total' : g.get('ratingCount', u''),
+														'update_time' : update_time,
+															})
+								db_conn.merge(item)
+							else:
+								ins.pkg_size = g.get('apkSize', u'')
 		except Exception,e:
 			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
-			r = T(404)
-		if r.status_code == 200:
-			d = r.json()
-			if d['errCode'] == 200:
-				new_games_list = d.get('gameList', [])
-				for g in new_games_list:
-					game_id = g.get('gameId', u'')
-					update_time = u''
-					updateTime = g.get('updateTime', u'')
-					if updateTime:
-						t = unicode(updateTime)[:10]
-						update_time = unicode(datetime.date.fromtimestamp(int(t)))
-					dt = unicode(datetime.date.today())
-					if game_id in id_map:
-						ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==id_map[game_id]).filter(GameDetailByDay.dt==dt).first()
-						if not ins:
-							item = GameDetailByDay(**{
-													'kc_id': id_map.get(game_id),
-													'summary' : g.get('introduction', u''),
-													'author' : g.get('publisherName', u''),
-													'game_type' : g.get('className', u''),
-													'rating' : g.get('ratingScore', u''),
-													'version' : g.get('versionName', u''),
-													'download_num' : g.get('downloadCount', u''),
-													'dt' : dt,
-													'pkg_size' : g.get('apkSize', u''),
-													'imgs' : u','.join([i.get('url') for i in g['screenShot']]),
-													'topic_num_total' : g.get('ratingCount', u''),
-													'update_time' : update_time,
-														})
-							db_conn.merge(item)
-						else:
-							ins.pkg_size = g.get('apkSize', u'')
 	db_conn.commit()
 							
 

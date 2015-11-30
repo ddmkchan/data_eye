@@ -2,7 +2,6 @@
 #encoding=utf-8
 
 import requests
-import datetime
 import json
 import re
 from bs4 import BeautifulSoup
@@ -11,6 +10,7 @@ import traceback
 from config import *
 import random
 import xmltodict
+import datetime
 
 db_conn = new_session()
 s = requests.session()
