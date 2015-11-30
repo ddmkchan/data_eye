@@ -1,21 +1,16 @@
 #!/usr/bin/env python
 #encoding=utf-8
 
-import sys
 import requests
 import json
 import urllib
 import traceback
 import re
-import sys
-sys.path.append('/home/cyp/Utils/common')
-from define import *
-from model import *
 from bs4 import BeautifulSoup
 import time
 import xmltodict
+from config import *
 
-from get_logger import *
 mylogger = get_logger('hot_game')
 
 s = requests.session()

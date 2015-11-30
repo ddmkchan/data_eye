@@ -1,10 +1,6 @@
 #!/usr/bin/env python
 #encoding=utf-8
 
-import sys
-sys.path.append('/home/cyp/Utils/common')
-from define import *
-from model import *
 import requests
 import datetime
 import json
@@ -12,7 +8,7 @@ import re
 from bs4 import BeautifulSoup
 from time import sleep
 import traceback
-from get_logger import *
+from config import *
 import random
 import xmltodict
 

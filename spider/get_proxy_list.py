@@ -8,13 +8,10 @@ import urllib
 import traceback
 import re
 import sys
-sys.path.append('/home/cyp/Utils/common')
-from define import *
-from model import *
 from bs4 import BeautifulSoup
 import time
 
-from get_logger import *
+from config import *
 mylogger = get_logger('proxy_list')
 
 s = requests.session()
