@@ -3,8 +3,7 @@
 import os
 import logging
 from logging.handlers import RotatingFileHandler
-
-LOG_FILE = "/home/cyp/logs"
+from define import LOG_FILE
 
 
 #定义一个RotatingFileHandler，最多备份5个日志文件，每个日志文件最大10M
