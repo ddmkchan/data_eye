@@ -761,6 +761,7 @@ def store_sogou_app_rank():
 	for gtype, _url in _dict.iteritems():
 		for data in get_sogou_app_rank(gtype, _url):
 			store_data(data)
+	mylogger.info("get sogou app rank end... ")
 
 def get_i4_app_rank():
 	rank = 0
@@ -931,7 +932,6 @@ def get_itools_detail(URL):
 
 
 def main():
-	mylogger.info("holy shit!")
 	get_data(get_baidu_hot_games)
 	get_data(get_360_online_games)
 	get_data(get_9game_detail)
