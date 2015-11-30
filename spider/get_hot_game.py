@@ -52,6 +52,16 @@ source_map = {
 			"open_play_webgame"	: 26,#爱游戏榜单
 			"wandoujia_single"	: 27,
 			"wandoujia_webgame"	: 28,
+			"iqiyi_download"	: 29,
+			"iqiyi_hot"	: 30,
+			"youku_single"	: 31,
+			"youku_webgame"	: 32,
+			"sogou_single"	: 33,
+			"sogou_webgame"	: 34,
+			"i4_hot"	: 35,
+			"pp_hot"	: 36,
+			"kuaiyong_hot"	: 37,
+			"itools_hot"	: 38,
 				}
 
 def get_baidu_hot_games():
@@ -244,7 +254,7 @@ def get_9game_detail():
 				else:
 					game_name = u""
 				source = source_map.get('9game')
-				downloads 	= u""
+				downloads 	= popular
 				size 		= u""
 				yield game_name, img, downloads, size, source, popular, game_type, status, url
 			except Exception,e:
@@ -272,7 +282,7 @@ def get_9game_detail2():
 				else:
 					game_name = u""
 				source = source_map.get('9game_hot_wanted')
-				downloads 	= u""
+				downloads 	= popular
 				size 		= u""
 				yield game_name, img, downloads, size, source, popular, game_type, status, url
 			except Exception,e:
@@ -386,8 +396,6 @@ def get_m5qq_app_rank(gtype):
 					url = u"%s\t%s" % (app.get('pkgName', u''),  app.get('appId', u''))
 					source = source_map.get(type_2_source.get(gtype))
 					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
-					#for k, v in app.iteritems():
-				#		print k, v
 	except Exception,e:
 		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
 
@@ -450,10 +458,7 @@ def get_dangle_app_rank():
 					downloads = app.get('downs', u'')
 					game_type = app.get('categoryName', u'')
 					source = source_map.get('dangle_new_game')
-					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
-					#for k, v in app.iteritems():
-					#	print k, v
-					#print 
+					store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 	except Exception,e:
 		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
 
@@ -618,23 +623,26 @@ def store_open_play_app_rank():
 		for data in get_open_play_app_rank(gtype, _url):
 			store_data(data)
 
-def get_wandoujia_app_rank():
+def get_wandoujia_app_rank(gtype, _url):
 	rank = 0
 	try:
 		r = requests.get(_url, timeout=10)
 		if r.status_code == 200:
 			j = r.json()
-				for app in j['entity'][:1]:
+			if j['entity'] is not None:
+				for item in j['entity']:
 					rank += 1
 					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
-					game_name = app.get('game_name', u'')
-					img = app.get('game_icon', u'')
-					downloads = app.get('game_download_count', u'')
-					size = app.get('game_size', u'')
-					game_type = app.get('class_name', u'')
-					url = app.get('game_detail_url', u'')
+					game_name = item.get('title', u'')
+					img = item.get('icon', u'')
 					source = source_map.get(gtype)
+					if item['action'] is not None:
+						info =  get_wandoujia_detail(item['action']['url'])
+						if info is not None:
+							game_type, downloads = info 
 					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
+					#for k, v in item['detail']['appDetail'].iteritems():
+					#	print k, v
 	except Exception,e:
 		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
 
@@ -647,6 +655,280 @@ def store_wandoujia_app_rank():
 			store_data(data)
 
 
+def get_wandoujia_detail(url):
+	try:
+		r = requests.get(url, timeout=10)
+	except Exception,e:
+		r = T(404)
+		mylogger.error("### %s ### %s" % (url.encode('utf-8'), traceback.format_exc()))
+	if r.status_code == 200:
+		d = r.json()
+		entity = d['entity']
+		if entity:
+			detail = entity[0]['detail']['appDetail']
+			if detail is not None:
+				categories = detail.get('categories', [])
+				game_type = u",".join([c['name'] for c in categories if c['level']==1])
+				popular = detail.get('downloadCount', u'')
+				return game_type, popular
+	return None
+
+
+def get_iqiyi_app_rank(gtype, _url):
+	rank = 0
+	try:
+		r = requests.get(_url, timeout=10)
+		if r.status_code == 200:
+			m = re.search(u'rs\\(([\s\S]*)\\)\\;', r.text)
+			if m is not None:
+				d = json.loads(m.group(1))
+				if d['apps'] is not None:
+					for app in d['apps'][:1]:
+						rank += 1
+						game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+						game_name = app.get('name', u'')
+						img = app.get('icon', u'')
+						size = app.get('size', u'')
+						downloads = app.get('cnt', u'')
+						game_type = app.get('cate_name', u'')
+						source = source_map.get(gtype)
+						yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
+	except Exception, e:
+		mylogger.error("### %s ###\n%s" % (_url, traceback.format_exc()))
+
+def store_iqiyi_app_rank():
+	_dict = {'iqiyi_download': "http://store.iqiyi.com/gc/top//download?callback=rs&id=download&no=1", 'iqiyi_hot' : "http://store.iqiyi.com/gc/top/up?callback=rs&t=1445585439376"}	
+	for gtype, _url in _dict.iteritems():
+		for data in get_iqiyi_app_rank(gtype, _url):
+			store_data(data)
+
+
+def get_youku_app_rank(gtype, _url):
+	rank = 0
+	try:
+		r = requests.get(_url, timeout=10)
+		if r.status_code == 200:
+			j = r.json()
+			if j['status'] == u'success':
+				for app in j['games']:
+					rank += 1
+					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+					game_name = app.get('appname', u'')
+					img = app.get('logo', u'')
+					downloads = app.get('total_downloads', u'')
+					size = app.get('size', u'')
+					url = app.get('id', u'')
+					source = source_map.get(gtype)
+					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
+					#for k,v in app.iteritems():
+					#	print k,v
+	except Exception,e:
+		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
+
+
+def store_youku_app_rank():
+	_dict = {"youku_single": 'http://api.gamex.mobile.youku.com/app/rank/classified?product_id=1&pz=40&pg=1&type=1', 'youku_webgame': 'http://api.gamex.mobile.youku.com/app/rank/classified?product_id=1&pz=40&pg=1&type=0'}
+	for gtype, _url in _dict.iteritems():
+		for data in get_youku_app_rank(gtype, _url):
+			store_data(data)
+
+def get_sogou_app_rank(gtype, _url):
+	rank = 0
+	try:
+		r = requests.get(_url, timeout=10)
+		if r.status_code == 200:
+			j = r.json()
+			if j['recommend_app'] is not None:
+				for app in j['recommend_app']:
+					rank += 1
+					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+					game_name = app.get('name', u'')
+					img = app.get('icon', u'')
+					size = app.get('size', u'')
+					downloads = app.get('downloadCount', u'')
+					size = app.get('size', u'')
+					source = source_map.get(gtype)
+					url = u"%s\t%s" % (app.get('packagename', u''),  app.get('appid', u''))
+					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
+					#for k,v in app.iteritems():
+					#	print k,v
+	except Exception,e:
+		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
+
+
+def store_sogou_app_rank():
+	_dict = {"sogou_single": 'http://mobile.zhushou.sogou.com/android/rank/toplist.html?id=12&limit=25&group=2&start=0&iv=41&uid=f3c2ed94d7d2272de87a8ef3abab2409&vn=4.1.3&channel=baidu&sogouid=a7f30d60a6b1aed168a8c9d7c46bbac5&stoken==SnxL9KjGT6sBvQ7ZJD4Ghw&cellid=&sc=0', 'sogou_webgame': 'http://mobile.zhushou.sogou.com/android/rank/toplist.html?id=11&limit=25&group=2&start=0&iv=41&uid=f3c2ed94d7d2272de87a8ef3abab2409&vn=4.1.3&channel=baidu&sogouid=a7f30d60a6b1aed168a8c9d7c46bbac5&stoken==SnxL9KjGT6sBvQ7ZJD4Ghw&cellid=&sc=0'}
+	for gtype, _url in _dict.iteritems():
+		for data in get_sogou_app_rank(gtype, _url):
+			store_data(data)
+
+def get_i4_app_rank():
+	rank = 0
+	_url = 'http://app3.i4.cn/controller/action/online.go?store=3&module=3&rows=50&sort=2&submodule=5&model=101&id=0&reqtype=3&page=1'
+	try:
+		r = requests.get(_url, timeout=10)
+		if r.status_code == 200:
+			j = r.json()
+			if j['result'] is not None and j['result']['list']:
+				for app in j['result']['list']:
+					rank += 1
+					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+					game_name = app.get('appName', u'')
+					img = app.get('icon', u'')
+					size = app.get('size', u'')
+					game_type = app.get('typeName', u'')
+					downloads = app.get('downCount', u'')
+					size = app.get('size', u'')
+					source = source_map.get('i4_hot')
+					url = u"%s\t%s" % (app.get('sourceId', u''),  app.get('itemId', u''))
+					store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+	except Exception,e:
+		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
+
+
+def get_pp_app_rank():
+	rank = 0
+	headers = {'tunnel-command':4261421088}
+	try:
+		d = {"dcType":0, "resType":2, "listType":5, "catId":0, "clFlag":1, "perCount":50, "page":0}
+		r = requests.post('http://jsondata.25pp.com/index.html', data=json.dumps(d), headers=headers)
+		if r.status_code == 200:
+			content = re.sub(u'\ufeff', u'', r.text)
+			j = json.loads(content)
+			if j['content'] is not None:
+				for app in j['content']:
+					rank += 1
+					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+					game_name = app.get('title', u'')
+					img = app.get('thumb', u'')
+					downloads = app.get('downloads', u'')
+					size = app.get('fsize', u'')
+					source = source_map.get('pp_hot')
+					url = u"%s\t%s" % (app.get('buid', u''),  app.get('itemId', u''))
+					out = [rank, game_name, img, downloads, size, source, popular, game_type, status, url]
+					store_data(out)
+	except Exception,e:
+		mylogger.error("get pp app rank\t%s" % (traceback.format_exc()))
+
+
+
+def get_kuaiyong_app_rank():
+	rank = 0
+	URL = "http://app.kuaiyong.com/ranking/index/appType/game"
+	try:
+		response = s.get(URL, timeout=10)
+		if response.status_code == 200:
+			soup = BeautifulSoup(response.text)
+			for item in soup.find_all('div', class_="app-item-info"):
+				info = item.find('a', class_='app-name')
+				if info is not None:
+					detail_url = u"http://app.kuaiyong.com%s" % info.get('href')
+					app = get_kuaiyong_detail(detail_url)
+					if app:
+						rank += 1
+						game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+						game_name = app.get('title', u'')
+						img = app.get('img', u'')
+						size = app.get(u'大　　小', u'')
+						downloads = app.get(u'下载', u'')
+						game_type = app.get(u'类　　别', u'')
+						source = source_map.get('kuaiyong_hot')
+						url = detail_url
+						out = [rank, game_name, img, downloads, size, source, popular, game_type, status, url]
+						store_data(out)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+
+
+def get_kuaiyong_detail(URL):
+	mydict = {}
+	try:
+		response = s.get(URL, timeout=10)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+		response = T(404)
+	if response.status_code == 200:
+		soup = BeautifulSoup(response.text)
+		base_left = soup.find('div', class_='base-left')
+		if base_left is not None:
+			img = base_left.find('img')
+			if img is not None:
+				mydict['img'] = img.get('src')
+		base_right = soup.find('div', class_='base-right')
+		if base_right is not None:
+			if base_right.find('h1') is not None:
+				mydict[u'title'] = base_right.find('h1').text
+			base_list = base_right.find('div', class_='base-list')
+			if base_list is not None:
+				for ret in base_list.find_all('p'):
+					if ret.text:
+						segs = ret.text.split(u'：')
+						if len(segs) == 2:
+							mydict[segs[0]] = segs[1]
+						elif len(segs)==1 and u'次下载' in ret.text:
+							mydict[u'下载'] = re.sub(u'次下载|\n|\r', u'', ret.text)
+	return mydict
+
+
+def get_itools_app_rank():
+	rank = 0
+	URL = "http://ios.itools.cn/game/iphone/gameall_1"
+	try:
+		response = s.get(URL, timeout=10)
+		if response.status_code == 200:
+			soup = BeautifulSoup(response.text)
+			ul = soup.find('ul', class_='ios_app_list')
+			if ul is not None:
+				for app in ul.find_all('li')[:50]:
+					app_on = app.find('div', class_='ios_app_on')
+					if app_on is not None:
+						detail_url = app_on.find('a').get('href') if app_on.find('a') is not None else u''
+						if detail_url:
+							detail_url = u"http://ios.itools.cn%s" % detail_url
+							app = get_itools_detail(detail_url)
+							if app:
+								rank += 1
+								game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+								game_name = app.get('title', u'')
+								img = app.get('img', u'')
+								size = app.get(u'大       小', u'')
+								source = source_map.get('itools_hot')
+								url = detail_url
+								out = [rank, game_name, img, downloads, size, source, popular, game_type, status, url]
+								store_data(out)
+							#for k, v in detail.iteritems():
+							#	print k, v
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+
+
+def get_itools_detail(URL):
+	mydict = {}
+	try:
+		response = s.get(URL, timeout=10)
+		if response.status_code == 200:
+			soup = BeautifulSoup(response.text)
+			details_app = soup.find('div', class_="details_app")
+			if details_app is not None:
+				img_div = details_app.find('div', class_='fl w140')
+				if img_div is not None:
+					img = img_div.find('p').find('img').get('src') if img_div.find('p') is not None else u''
+					mydict['img'] = img
+				info_div = details_app.find('dl', class_='fl')
+				if info_div is not None:
+					mydict['title'] = info_div.find('dt').text
+					for info in info_div.find_all('span'):
+						segs =  info.text.split(u'：')
+						if len(segs) == 2:
+							mydict[segs[0]] = segs[1]
+					for info in info_div.find_all('dd'):
+						segs =  info.text.split(u'：')
+						if len(segs) == 2:
+							mydict[segs[0]] = segs[1]
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+	return mydict
+
 
 def main():
 	mylogger.info("holy shit!")
@@ -657,13 +939,20 @@ def main():
 	store_360_app_rank()
 	store_m5qq_app_rank()
 	store_m_baidu_app_rank()
-	for data in get_dangle_app_rank():
-		store_data(data)
+	get_dangle_app_rank()
 	store_xiaomi_app_rank()
 	store_vivo_app_rank()
 	store_gionee_app_rank()
 	store_coolpad_app_rank()
 	store_open_play_app_rank()
+	store_wandoujia_app_rank()
+	store_iqiyi_app_rank()
+	store_youku_app_rank()
+	store_sogou_app_rank()
+	get_pp_app_rank()
+	get_i4_app_rank()
+	get_kuaiyong_app_rank()
+	get_itools_app_rank()
 
 if __name__ == '__main__':
 	main()

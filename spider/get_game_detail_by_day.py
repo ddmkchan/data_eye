@@ -1119,6 +1119,43 @@ def check_proxy(proxy):
 	except Exception,e:
 		mylogger.error("%s" % (traceback.format_exc()))
 		
+
+def get_youku_detail_by_id(app_id):
+	URL = "http://api.gamex.mobile.youku.com/v2/app/detail?product_id=1&app_id=%s" % app_id
+	try:
+		response = s.get(URL, timeout=10)
+		if response.status_code == 200:
+			j = response.json()
+			return j['app']
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+	return None
+
+def get_youku_detail():
+	count = 0
+	mylogger.info("get youku detail start ...")
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==13).limit(1):
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+		if not ins:
+			g = get_youku_detail_by_id(ret.title2)
+			if g is not None:	
+				count += 1 
+				item = GameDetailByDay(**{
+									'kc_id': ret.id,
+									'summary' : g.get('desc', u''),
+									'version' : g.get('version', u''),
+									'game_type' : g.get('type', u''),
+									'pkg_size' : g.get('size', u''),
+									'rating' : g.get('score', u''),
+									'download_num' : g.get('total_downloads', u''),
+									'dt' : dt,
+									'imgs' : u','.join(g.get('screenshot', [])),
+										})
+				db_conn.merge(item)
+	mylogger.info("get youku detail %s" % count)
+	db_conn.commit()
+
 def main():
 	get_xiaomi_new_detail()
 	get_xiaomi_rpg_detail()
@@ -1139,6 +1176,7 @@ def main():
 	get_wandoujia_detail()
 	sleep(10)
 	get_kuaiyong_detail()
+	get_youku_detail()
 
 if __name__ == '__main__':
 	main()
