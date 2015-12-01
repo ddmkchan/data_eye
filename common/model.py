@@ -49,7 +49,7 @@ class HotGames(Base):
 	popular = Column(Unicode(50), nullable=False, default=u'')
 	source = Column(Integer, nullable=False, default=-1, index=True)
 	dt = Column(Unicode(100), nullable=False, default=u'')
-	create_date = Column(DateTime,nullable=False,default=date.today())#创建时间
+	create_date = Column(DateTime,nullable=False,default=datetime.now())#创建时间
 	last_update = Column(DateTime,nullable=False,default=datetime.now())#最后更新时间
 
 

@@ -913,7 +913,7 @@ def get_itools_detail(URL):
 def store_data(ret):
 	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
 	dt = unicode(datetime.date.today())
-	ins = db_conn.query(HotGames).filter(HotGames.name==game_name).filter(HotGames.source==source).filter(HotGames.create_date==date.today()).first()
+	ins = db_conn.query(HotGames).filter(HotGames.name==game_name).filter(HotGames.source==source).filter(HotGames.dt==dt).first()
 	if ins is None:
 		item = HotGames(**{
 						"name"			: game_name,
