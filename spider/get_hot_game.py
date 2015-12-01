@@ -10,6 +10,7 @@ from bs4 import BeautifulSoup
 import time
 import xmltodict
 from config import *
+import datetime
 
 mylogger = get_logger('hot_game')
 
@@ -347,24 +348,6 @@ def store_360_app_rank():
 		for data in get_360_app_rank(gtype):
 			store_data(data)
 
-def store_data(ret):
-	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
-	ins = db_conn.query(HotGames).filter(HotGames.name==game_name).filter(HotGames.source==source).filter(HotGames.create_date==date.today()).first()
-	if ins is None:
-		item = HotGames(**{
-						"name"			: game_name,
-						"src"			: img,
-						"download_count"		: downloads,
-						"size"			: size,
-						"source"		: source,
-						"rank"			: rank,
-						"popular"		: popular,
-						"game_type"		: game_type,
-						"status"		: status,
-						"url"			: url
-						})
-		db_conn.merge(item)
-	db_conn.commit()
 
 def get_m5qq_app_rank(gtype):
 	#应用宝
@@ -926,6 +909,27 @@ def get_itools_detail(URL):
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
 	return mydict
 
+
+def store_data(ret):
+	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
+	dt = unicode(datetime.date.today())
+	ins = db_conn.query(HotGames).filter(HotGames.name==game_name).filter(HotGames.source==source).filter(HotGames.create_date==date.today()).first()
+	if ins is None:
+		item = HotGames(**{
+						"name"			: game_name,
+						"src"			: img,
+						"download_count"		: downloads,
+						"size"			: size,
+						"source"		: source,
+						"rank"			: rank,
+						"popular"		: popular,
+						"game_type"		: game_type,
+						"status"		: status,
+						"url"			: url,
+						"dt"			: dt
+						})
+		db_conn.merge(item)
+	db_conn.commit()
 
 def main():
 	get_data(get_baidu_hot_games)

@@ -6,15 +6,12 @@ import requests
 import json
 import urllib
 import traceback
+from config import *
 import re
-import sys
-sys.path.append('/home/cyp/Utils/common')
-from define import *
-from model import *
 from bs4 import BeautifulSoup
 import time
+import datetime
 
-from get_logger import *
 mylogger = get_logger('proxy_list')
 
 s = requests.session()
@@ -47,5 +44,11 @@ def test():
 		#r = s.get(URL, timeout=10, proxies=p)
 		print p, r.status_code
 
+def f():
+	for re in db_conn.query(HotGames):
+		re.dt = unicode(re.create_date.date())
+	db_conn.commit()
+
 if __name__ == '__main__':
-	test()
+	#test()
+	f()
