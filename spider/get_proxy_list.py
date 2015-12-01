@@ -101,6 +101,7 @@ def test():
 		response = T(404)
 
 if __name__ == '__main__':
+	mylogger.info('get proxy start ...')
 	get_xici_nn_proxy_list(1)
 	get_kd_proxy_list(1)
 	#for p in get_proxies():

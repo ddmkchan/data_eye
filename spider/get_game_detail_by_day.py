@@ -1128,7 +1128,7 @@ def get_youku_detail_by_id(app_id):
 def get_youku_detail():
 	count = 0
 	mylogger.info("get youku detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==13).limit(1):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==13):
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
@@ -1168,7 +1168,6 @@ def main():
 	get_meizu_detail()
 	get_huawei_detail()
 	get_wandoujia_detail()
-	sleep(10)
 	get_kuaiyong_detail()
 	get_youku_detail()
 
