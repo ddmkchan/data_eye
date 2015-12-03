@@ -39,7 +39,7 @@ def get_9game_detail():
 		if not ins:
 			try:
 				p = proxies[random.randrange(len(proxies))]
-				response = sess.get(ret.url, timeout=10, proxies=p)
+				response = sess.get(ret.url, timeout=15, proxies=p)
 				if response.status_code == 200:
 					count += 1
 					soup = BeautifulSoup(response.text)
@@ -807,7 +807,8 @@ def get_huawei_detail():
 def get_huawei_detail_by_id(url):
 	mydict = {}
 	try:
-		response = requests.get(url, timeout=15)
+		p = proxies[random.randrange(len(proxies))]
+		response = requests.get(url, timeout=20, proxies=p)
 		soup = BeautifulSoup(response.text)
 		for d in soup.find_all('li', class_='ul-li-detail'):
 			if u'开发者：' in d.text:

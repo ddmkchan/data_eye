@@ -62,8 +62,9 @@ def get_9game_today_kc():
 		#	db_conn.merge(item)
 		#	db_conn.commit()
 		soup = BeautifulSoup(r.text)
-		todayopen = soup.find("div", id="todayOpen").find("span")
-		publish_date 	= u"" if todayopen is None else u"2015-%s" %  todayopen.text[1:-1]
+		#todayopen = soup.find("div", id="todayOpen").find("span")
+		#publish_date 	= u"" if todayopen is None else u"2015-%s" %  todayopen.text[1:-1]
+		publish_date = unicode(datetime.date.today())
 		time 		= u""
 		title 		= u""
 		title2 		= u""
@@ -102,7 +103,7 @@ def get_9game_today_kc():
 							#game_type 	= type_div[1].find('td')
 							#print type_div
 							#print re.split(u"：| ", time)[1], status, game_type
-						
+					print title, publish_date
 					if title != "" and status !="":
 						ins = db_conn.query(KC_LIST).filter(KC_LIST.source==source_map.get('9game')).filter(KC_LIST.title==title).filter(KC_LIST.status==status).filter(KC_LIST.publish_date==publish_date).first()
 						if not ins:
@@ -1483,6 +1484,7 @@ def main():
 
 if __name__ == '__main__':
 	main()
+	#get_9game_today_kc()
 	#get_360zhushou_kc()
 	#get_i4_kc()
 	#get_itools_kc()
