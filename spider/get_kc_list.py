@@ -234,20 +234,24 @@ def get_360_kc():
 def get_appicsh_kc():
 	count = 0
 	#r = s.get("http://appicsh.qq.com/cgi-bin/appstage/FirstPublishTab?type=3&index=0&pageSize=20")
-	url = "http://m5.qq.com/app/applist.htm?listType=18&pageSize=150"
+	#url = "http://m5.qq.com/app/applist.htm?listType=18&pageSize=150" #pc url
+	url = "http://appicsh.qq.com/cgi-bin/appstage/FirstPublishTab?type=3&index=0&pageSize=20"
 	try:
 		r = requests.get(url, timeout=10)
 		if r.status_code == 200:
 			d = r.json()
 			if d['msg'] == u'success':
-				new_games_list = d['obj']['appList']
+				new_games_list = d['new_games']['list']
+				#new_games_list = d['obj']['appList']
 				for game in new_games_list:
-					title = game.get('appName', u"")
-					game_type = game.get('categoryName', u"")
-					img = game.get('iconUrl', u"")
-					publishtime = game.get('apkPublishTime', u"")
+					title = game.get('name', u"")
+					game_type = game.get('categor', u"")
+					img = game.get('icon', u"")
+					publishtime = game.get('publishtime', u"")
+					pkg_name = game.get('pkgname', u'')
+					url = u"http://m5.qq.com/app/getappdetail.htm?pkgName=%s&sceneId=0" % pkg_name if pkg_name else u''
 					publish_date = unicode(datetime.date.fromtimestamp(publishtime)) if publishtime else u""
-					#print title, publish_date, img
+					print title, publish_date, pkg_name
 					if title and publish_date :
 						ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('appicsh')).first()
 						if ins is None:
@@ -257,13 +261,16 @@ def get_appicsh_kc():
 										"game_type": game_type,
 										"publish_date": publish_date,
 										"img": img,
-										"source": source_map.get('appicsh')
+										"source": source_map.get('appicsh'),
+										"url": url
 										})
 							db_conn.merge(item)
+						else:
+							ins.url = url
 	except Exception,e:
 		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	mylogger.info("get %s records from appicsh" % count)
-	db_conn.commit()
+#	db_conn.commit()
 
 def get_360zhushou_kc():
 	count = 0
@@ -275,12 +282,14 @@ def get_360zhushou_kc():
 		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	if r.status_code == 200:
 		soup = BeautifulSoup(r.text)
-		item_list = soup.find("div", class_="app-item-list")
+		item_list = soup.find_all("div", class_="app-item-list")[0]
 		if item_list is not None:
-			#logo_list = item_list.find_all('div', class_='app-logo')
+			app_list = item_list.find_all('div', class_='app-main app-item')
 			#print logo_list
-			app_list = item_list.find_all('div', class_='app-detail')
-			for item in app_list:
+			#app_list = item_list.find_all('div', class_='app-detail')
+			for app in app_list:
+				logo = app.find('div', class_='app-logo')
+				item = app.find('div', class_='app-detail')
 				title = u""
 				game_type = u""
 				size = u""
@@ -288,27 +297,24 @@ def get_360zhushou_kc():
 				status = u""
 				time = u""
 				img = u""
-				#if len(logo_list) == len(app_list):
-				#	img_div = logo_list[count].find('img')
-				#	if img_div is not None:
-				#		img = img_div.get('src')
+				if logo is not None:
+					if logo.find('img') is not None:
+						img = logo.find('img').get('src')
 				title_h3 = item.find('h3')
 				if title is not None:
 					title = title_h3.text
 					meta = item.find('div', class_="app-meta text-over")
 					if meta is not None:
-						#m = re.search(u'\d+\.*\d*M', meta.text)
-						#size = m.group() if m is not None else u''
 						m2 = re.search(u'[\u4e00-\u9fa5\s]+', meta.text)
 						game_type = m2.group() if m2 is not None else u''
-						#print m2.group(), '-----', m.group()
-						#game_type, size = meta.text.split(u' ')
 					meta2 = item.find('div', class_="app-meta2 text-over")
 					if meta2 is not None:
 						spans = meta2.find_all('span')
 						if len(spans) == 2:
 							dt, status = [i.text for i in spans]
 							publish_date, time = dt.split(u' ')
+					#print title, game_type, '****', publish_date, img
+				#print app.get('data-sid'), app.get('data-pname')	
 				if title and publish_date:
 					ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('360zhushou')).first()
 					if ins is None:
@@ -319,11 +325,16 @@ def get_360zhushou_kc():
 											"publish_date" : publish_date,
 											"time" : time,
 											"img" : img,
+											"title2" : app.get('data-pname'),
+											"game_id" : app.get('data-sid'),
 											"status" : status,
 											"source" : source_map.get('360zhushou'),
 										})
 						db_conn.merge(item)
-	mylogger.info("get %s records from 360 zhushou" % count)
+					else:
+						ins.title2 = app.get('data-pname')
+						ins.game_id = app.get('data-sid')
+	mylogger.info("get %s records from 360 zhushou app" % count)
 	db_conn.commit()
 
 def get_xiaomi_new_kc(page):
@@ -1474,6 +1485,7 @@ def main():
 
 if __name__ == '__main__':
 	main()
+	#get_360zhushou_kc()
 	#get_i4_kc()
 	#get_itools_kc()
 	#for i in xrange(6, 11):

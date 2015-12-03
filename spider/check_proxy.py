@@ -51,4 +51,5 @@ def f():
 
 if __name__ == '__main__':
 	#test()
-	f()
+	print 'test'
+	#f()
