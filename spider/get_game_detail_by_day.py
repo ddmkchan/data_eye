@@ -18,7 +18,6 @@ mylogger = get_logger('get_game_detail')
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'}
 
 import random
-proxies = [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in db_conn.query(ProxyList)]
 
 class T:
 	
@@ -39,7 +38,8 @@ def get_9game_detail():
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
 			try:
-				response = sess.get(ret.url, timeout=10)
+				p = proxies[random.randrange(len(proxies))]
+				response = sess.get(ret.url, timeout=10, proxies=p)
 				if response.status_code == 200:
 					count += 1
 					soup = BeautifulSoup(response.text)
@@ -99,7 +99,8 @@ def get_9game_detail():
 
 def get_9game_info_from_bbs(url):
 	try:
-		response = requests.get(url, timeout=10)
+		p = proxies[random.randrange(len(proxies))]
+		response = requests.get(url, timeout=10, proxies=p)
 		if response.status_code == 200:
 			soup = BeautifulSoup(response.text)
 			topics = soup.find('span', 'xs1 xw0 i')	

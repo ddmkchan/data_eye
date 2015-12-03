@@ -17,7 +17,6 @@ db_conn = new_session()
 s = requests.session()
 mylogger = get_logger('get_game_detail')
 
-proxies = [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in db_conn.query(ProxyList)]
 
 class T:
 	

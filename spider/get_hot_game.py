@@ -17,6 +17,8 @@ mylogger = get_logger('hot_game')
 s = requests.session()
 db_conn = new_session()
 
+import random
+proxies = [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in db_conn.query(ProxyList)]
 
 source_map = {
 			"baidu"	: 0,
@@ -395,7 +397,8 @@ def get_m_baidu_rank(gtype, _url):
 	global BAIDU_NEW_GAME_RANK
 
 	try:
-		r = requests.get(_url, timeout=10)
+		p = proxies[random.randrange(len(proxies))]
+		r = requests.get(_url, timeout=10, proxies=p)
 		if r.status_code == 200:
 			j = r.json()
 			if 'result' in j and 'data' in j['result']:
@@ -432,8 +435,7 @@ def store_m_baidu_app_rank():
 	new_games_url = [prefix_new_games_url+ "&pn=%s" %p for p in xrange(5)]
 	prefix_web_game_url = 'http://m.baidu.com/appsrv?uid=YPvuu_PqvfgkiHf30uS88liwHulTiSiQYiHPfgiOB8qLuHf3_PvoigaX2ig5uBiN3dqqC&native_api=1&psize=3&abi=armeabi-v7a&cll=_hv19g8O2NAVA&usertype=0&is_support_webp=true&ver=16786356&from=1011454q&board_id=board_102_735&operator=460015&network=WF&pkname=com.dragon.android.pandaspace&country=CN&cen=cuid_cut_cua_uid&gms=false&platform_version_id=19&firstdoc=&name=game&action=ranklist&pu=cua%40_a-qi4uq-igBNE6lI5me6NIy2I_UC-I4juDpieLqA%2Cosname%40baiduappsearch%2Cctv%401%2Ccfrom%401010680f%2Ccuid%40YPvuu_PqvfgkiHf30uS88liwHulTiSiQYiHPfgiOB86QuviJ0O2lfguGv8_Huv8uja20fqqqB%2Ccut%405fXCirktSh_Uh2IJgNvHtyN6moi5pQqAC&language=zh&apn=&&native_api=1&f=gameranklist%40tab%402&bannert=26%4027%4028%4029%4030%4031%4032%4043'
 	web_game_url = [prefix_web_game_url+"&pn=%s" %p for p in xrange(5)]
-	#_dict = {'m_baidu_single': single_url, 'm_baidu_webgame': web_game_url, 'm_baidu_new_game': new_games_url}	
-	_dict = {'m_baidu_new_game': new_games_url}	
+	_dict = {'m_baidu_single': single_url, 'm_baidu_webgame': web_game_url, 'm_baidu_new_game': new_games_url}	
 	for gtype, urls in _dict.iteritems():
 		for _url in urls:
 			for data in get_m_baidu_rank(gtype, _url):

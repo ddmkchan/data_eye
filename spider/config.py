@@ -14,3 +14,6 @@ else:
 from get_logger import *
 from define import *
 from model import *
+
+
+proxies = [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in db_conn.query(ProxyList).filter(ProxyList.check_time>='2015-12-01')]
