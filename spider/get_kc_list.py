@@ -251,7 +251,6 @@ def get_appicsh_kc():
 					pkg_name = game.get('pkgname', u'')
 					url = u"http://m5.qq.com/app/getappdetail.htm?pkgName=%s&sceneId=0" % pkg_name if pkg_name else u''
 					publish_date = unicode(datetime.date.fromtimestamp(publishtime)) if publishtime else u""
-					print title, publish_date, pkg_name
 					if title and publish_date :
 						ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('appicsh')).first()
 						if ins is None:
