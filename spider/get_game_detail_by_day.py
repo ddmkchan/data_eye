@@ -670,7 +670,7 @@ def get_dangle_detail():
 											'imgs' : u','.join(g['snapshotUrls']),
 												})
 				db_conn.merge(item)
-			else:
+			if 'ex_msg' in g:
 				error_times += 1
 	mylogger.info("get dangle detail %s" % count)
 	db_conn.commit()
@@ -711,8 +711,9 @@ def get_dangle_detail_by_id(gid):
 			d = r.json()
 			return d
 		except Exception,e:
+			return {'ex_msg': u'Exception'}
 			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
-	return None
+	return {}
 
 def get_muzhiwan_detail():
 	count = 0
@@ -741,7 +742,7 @@ def get_muzhiwan_detail():
 												'imgs' : u','.join(g.get('imgs', [])),
 													})
 				db_conn.merge(item)
-			else:
+			if 'ex_msg' in g:
 				error_times += 1
 	mylogger.info("get muzhiwan detail %s" % count)
 	db_conn.commit()
@@ -765,6 +766,7 @@ def get_muzhiwan_detail_by_id(url):
 		if summary is not None:
 			mydict['description'] = summary.text
 	except Exception,e:
+		mydict = {'ex_msg': u'Exception'}
 		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	return mydict
 
@@ -781,6 +783,8 @@ def get_huawei_detail():
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
 			g = get_huawei_detail_by_id(ret.url)
+			if 'ex_msg' in g:
+				error_times += 1
 			if g:
 				count += 1 
 				item = GameDetailByDay(**{
@@ -799,8 +803,6 @@ def get_huawei_detail():
 				if count % 100 == 0:
 					mylogger.info("huawei detail commit %s" % count)
 					db_conn.commit()
-			else:
-				error_times += 1
 	mylogger.info("get huawei detail %s" % count)
 	db_conn.commit()
 
@@ -841,6 +843,7 @@ def get_huawei_detail_by_id(url):
 				if m is not None:
 					mydict['comment_num'] = m.group()
 	except Exception,e:
+		mydict = {'ex_msg': u'Exception'}
 		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 		sleep(5)
 	return mydict
