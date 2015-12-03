@@ -86,7 +86,7 @@ def get_9game_detail():
 													'comment_num' : comments_num,
 													})
 					db_conn.merge(item)
-					if count % 100 == 0:
+					if count % 50 == 0:
 						sleep(3)
 						mylogger.info("9game detail commit %s" % count)
 						db_conn.commit()
