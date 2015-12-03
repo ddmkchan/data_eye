@@ -233,7 +233,6 @@ def get_360_kc():
 
 def get_appicsh_kc():
 	count = 0
-	#r = s.get("http://appicsh.qq.com/cgi-bin/appstage/FirstPublishTab?type=3&index=0&pageSize=20")
 	#url = "http://m5.qq.com/app/applist.htm?listType=18&pageSize=150" #pc url
 	url = "http://appicsh.qq.com/cgi-bin/appstage/FirstPublishTab?type=3&index=0&pageSize=20"
 	try:
@@ -269,7 +268,7 @@ def get_appicsh_kc():
 	except Exception,e:
 		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	mylogger.info("get %s records from appicsh" % count)
-#	db_conn.commit()
+	db_conn.commit()
 
 def get_360zhushou_kc():
 	count = 0
