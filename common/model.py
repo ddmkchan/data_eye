@@ -135,7 +135,8 @@ class PublishGame(Base):
 	device = Column(Unicode(100), nullable=False, default=u'')
 	publish_status = Column(Unicode(100), nullable=False, default=u'')
 	channels = Column(Unicode(200), nullable=False, default=u'')
-	publish_dates = Column(Unicode(200), nullable=False, default=u'')
+	channel_ids = Column(UnicodeText, nullable=False, default=u'')
+	publish_dates = Column(UnicodeText, nullable=False, default=u'')
 	dt = Column(Unicode(100), nullable=False, default=u'')
 	create_date = Column(DateTime, nullable=False, default=datetime.now())#创建时间
 	last_update = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间

@@ -16,10 +16,13 @@ db_conn = new_session()
 
 def main():
 	mydict = {}
-	for ret in new_session().query(KC_LIST):
-		segs = re.split(u'-|\(|（|：|:|[\s]*-|－', ret.title)
+	for ret in new_session().query(KC_LIST).filter(KC_LIST.title!=u''):
+		segs = re.split(u'-|\(|\)|（|）|：|:|[\s]*-|－', ret.title)
 		if len(segs)>=2:
-			mydict[ret.id] = segs[0]
+			if ret.title.startswith('(') or ret.title.startswith(u'（'): 
+				mydict[ret.id] = segs[2]
+			else:
+				mydict[ret.id] = segs[0]
 		else:
 			mydict[ret.id] = ret.title
 	out = {}
@@ -30,16 +33,90 @@ def main():
 		if v in out:
 			out[v].append(str(k))
 	for title, ids in out.iteritems():
-		get_publish_status(ids)	
+		publish_status = get_publish_status(ids)	
+		imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total = get_game_detail(ids)
+		print title, game_type, ids
+		#ins = db_conn.query(PublishGame).filter(PublishGame.name==title).first()
+		#if ins is not None:
+		#	item = PublishGame(**{
+		#						'name': title,
+		#						'imgs': imgs,
+		#						'game_type': game_type,
+		#						'summary': summary,
+		#						'download_num': download_num,
+		#						'comment_num': comment_num,
+		#						'rating': rating,
+		#						'pkg_size': pkg_size,
+		#						'author': author,
+		#						'version': version,
+		#						'topic_num': topic_num_total,
+		#						'channels': publish_status.get('channel_list', u''),
+		#						'publish_dates': publish_status.get('publish_date_list', u''),
+		#						})
+		#	db_conn.merge(item)
+		#else:
+		#	ins.imgs = imgs
+		#	ins.game_type = game_type
+		#	ins.summary = summary
+		#	ins.download_num = download_num
+		#	ins.comment_num = comment_num
+		#	ins.rating = rating
+		#	ins.pkg_size = pkg_size
+		#	ins.author = author
+		#	ins.version = version
+		#	ins.topic_num = topic_num_total
+		#	ins.channels = publish_status.get('channel_list', u'')
+		#	ins.publish_dates = publish_status.get('publish_date_list', u'')
+		#	ins.last_update = datetime.datetime.now()
+	db_conn.commit()
 
 def get_publish_status(ids):
-	_sql = "select publish_date, status, device from kc_list where id in (%s)" % ",".join(ids)
-	
-	print _sql
-
+	out = {}
+	out['publish_date_list'] = []
+	out['channel_list'] = []
+	_sql = "select b.name,publish_date from (select * from kc_list where id in (%s)) a join channel b on a.source=b.id order by publish_date desc" % ",".join(ids)
+	for ret in db_conn.execute(_sql):
+		channel,publish_date = ret
+		out['publish_date_list'].append(publish_date)
+		out['channel_list'].append(channel)
+	return out
 
 def get_game_detail(ids):
-	pass
+	imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total = [u''] * 10
+	_sql =  "select max(dt) as dt, kc_id from game_detail_by_day where kc_id in (%s) group by kc_id" % (",".join(ids))
+	for re in db_conn.execute(_sql):
+		dt, kc_id = re
+		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.dt==dt).filter(GameDetailByDay.kc_id==kc_id).first()
+		if ins is not None:
+			if not imgs:
+				imgs = ins.imgs
+			if not game_type:
+				game_type = ins.game_type
+			if not summary:
+				summary = ins.summary
+			if not download_num:
+				download_num = ins.download_num
+			if not comment_num:
+				comment_num = ins.comment_num
+			if not rating:
+				rating = ins.rating
+			if not pkg_size:
+				size = ins.pkg_size
+				if ins.pkg_size and u'M' not in ins.pkg_size:
+					size = round(int(ins.pkg_size)/1024.0/1024.0, 2)
+				pkg_size = size
+			if not author:
+				author = ins.author
+			if not version:
+				version = ins.version
+			if not topic_num_total:
+				topic_num_total = ins.topic_num_total
+	return (imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total)
+
+
+	#ids = (int(id) for id in ids)
+	#for ret in db_conn.query(GameDetailByDay).filter(GameDetailByDay.dt==unicode(datetime.date.today()+datetime.timedelta(-1))).filter(GameDetailByDay.kc_id.in_(ids)):
+	#	print ret.kc_id, ret.dt
 		
 def remove_duplicate_record():
 	for rt in db_conn.execute("select source,title, publish_date, count(1) from kc_list where source=0 group by source, title, publish_date having count(1)>1;"):
@@ -53,4 +130,5 @@ def remove_duplicate_record():
 
 if __name__ == '__main__':
 	main()
+	#get_game_detail(['12746','12747','12748'])
 	#remove_duplicate_record()
