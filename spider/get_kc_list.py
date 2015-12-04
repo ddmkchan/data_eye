@@ -1421,10 +1421,10 @@ def get_xyzs_kc(page):
 						title = re.get('title', u'')
 						addtime = re.get('addtime', u'')
 						gid = re.get('itunesid', 0)
-						detail = get_xyzs_detail_by_id(gid)
+						#detail = get_xyzs_detail_by_id(gid)
 						if addtime and title:
 							# addtime字段内容不一定正确，日期会异常
-							game_type = detail.get('apptypesno', u'') if detail is not None else u''
+							#game_type = detail.get('apptypesno', u'') if detail is not None else u''
 							publish_date = unicode(datetime.date.fromtimestamp(int(addtime)))
 							ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.source==source_map.get('xyzs')).filter(KC_LIST.publish_date==publish_date).first()
 						if not ins:
@@ -1432,7 +1432,6 @@ def get_xyzs_kc(page):
 							item = KC_LIST(**{
 											'publish_date': publish_date,
 											'title': title,
-											'game_type': game_type,
 											'title2': gid,
 											'img': re.get('icon', u''),
 											'source': source_map.get('xyzs'),
@@ -1444,22 +1443,6 @@ def get_xyzs_kc(page):
 	mylogger.info("get %s records from xyzs " % (count))
 	db_conn.commit()
 		
-
-
-def get_xyzs_detail_by_id(gid):
-	URL = "http://interface.xyzs.com/v2/ios/c01/app"
-	d = {'itunesid': gid}
-	try:
-		response = s.get(URL, params=d, timeout=10)
-	except Exception,e:
-		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
-		response = T(404)
-	if response.status_code == 200:
-		j = response.json()
-		if 'data' in j:
-			print j['data'].get('app')
-			return j['data'].get('app')
-	return None
 
 
 def main():

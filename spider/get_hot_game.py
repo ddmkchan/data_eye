@@ -60,6 +60,7 @@ source_map = {
 			"pp_hot"	: 36,
 			"kuaiyong_hot"	: 37,
 			"itools_hot"	: 38,
+			"xyzs_hot"	: 39,
 				}
 
 def get_baidu_hot_games():
@@ -683,7 +684,7 @@ def get_iqiyi_app_rank(gtype, _url):
 			if m is not None:
 				d = json.loads(m.group(1))
 				if d['apps'] is not None:
-					for app in d['apps'][:1]:
+					for app in d['apps']:
 						rank += 1
 						game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
 						game_name = app.get('name', u'')
@@ -953,6 +954,30 @@ def store_data(ret):
 		db_conn.merge(item)
 	db_conn.commit()
 
+def get_xyzs_app_rank():
+	rank = 0
+	URL = "http://interface.xyzs.com/v2/ios/c01/rank/game?p=1&ps=20"
+	try:
+		response = s.get(URL, timeout=10)
+		if response.status_code == 200:
+			j = response.json()
+			if j['code'] == 200:
+				for app in j['data']['result']:
+					rank += 1
+					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+					game_name = app.get('title', u'')
+					img = app.get('icon', u'')
+					size = app.get('size', u'')
+					game_type = app.get('cus_desc', u'')
+					downloads = app.get('downloadnum', u'')
+					size = app.get('size', u'')
+					source = source_map.get('xyzs_hot')
+					url = u"%s\t%s" % (app.get('bundleid', u''),  app.get('itunesid', u''))
+					store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+
+
 def main():
 	get_data(get_baidu_hot_games)
 	get_data(get_360_online_games)
@@ -975,6 +1000,7 @@ def main():
 	get_i4_app_rank()
 	get_kuaiyong_app_rank()
 	get_itools_app_rank()
+	get_xyzs_app_rank()
 
 if __name__ == '__main__':
 	main()
