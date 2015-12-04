@@ -56,14 +56,7 @@ def get_9game_today_kc():
 	mylogger.info("9game gogo")
 	try:
 		r = s.get(URL, timeout=10)
-		#page_ins = db_conn.query(PageSource).filter(PageSource.url==URL).filter(PageSource.source==1).filter(PageSource.create_date==date.today()).first()
-		#if not page_ins:
-		#	item = PageSource(**{"url":URL, "code":r.text, "source":1})
-		#	db_conn.merge(item)
-		#	db_conn.commit()
 		soup = BeautifulSoup(r.text)
-		#todayopen = soup.find("div", id="todayOpen").find("span")
-		#publish_date 	= u"" if todayopen is None else u"2015-%s" %  todayopen.text[1:-1]
 		publish_date = unicode(datetime.date.today())
 		time 		= u""
 		title 		= u""
@@ -103,7 +96,6 @@ def get_9game_today_kc():
 							#game_type 	= type_div[1].find('td')
 							#print type_div
 							#print re.split(u"：| ", time)[1], status, game_type
-					print title, publish_date
 					if title != "" and status !="":
 						ins = db_conn.query(KC_LIST).filter(KC_LIST.source==source_map.get('9game')).filter(KC_LIST.title==title).filter(KC_LIST.status==status).filter(KC_LIST.publish_date==publish_date).first()
 						if not ins:
@@ -938,7 +930,6 @@ def get_i4_kc(page):
 				newUpdateTime = ret.get('newUpdateTime', u'')
 				img = u'http://d.image.i4.cn/image/%s' % ret.get('icon', u'')
 				publish_date = newUpdateTime[:10] if newUpdateTime else u''
-				print title, publish_date, title2, popular
 				ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('i4')).first()
 				if ins is None:
 					count += 1
@@ -1422,39 +1413,36 @@ def get_xyzs_kc(page):
 	URL = "http://interface.xyzs.com/v2/ios/c01/game/latest?p=%s&ps=20" % page
 	try:
 		response = s.get(URL, timeout=10)
+		if response.status_code == 200:
+			j = response.json() 
+			if j.get('code') == 200:
+				if 'data' in j:
+					for re in j['data'].get('result', []):
+						title = re.get('title', u'')
+						addtime = re.get('addtime', u'')
+						gid = re.get('itunesid', 0)
+						detail = get_xyzs_detail_by_id(gid)
+						if addtime and title:
+							# addtime字段内容不一定正确，日期会异常
+							game_type = detail.get('apptypesno', u'') if detail is not None else u''
+							publish_date = unicode(datetime.date.fromtimestamp(int(addtime)))
+							ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.source==source_map.get('xyzs')).filter(KC_LIST.publish_date==publish_date).first()
+						if not ins:
+							count += 1
+							item = KC_LIST(**{
+											'publish_date': publish_date,
+											'title': title,
+											'game_type': game_type,
+											'title2': gid,
+											'img': re.get('icon', u''),
+											'source': source_map.get('xyzs'),
+											'popular' : re.get('downloadnum', u'')
+												})
+							db_conn.merge(item)
 	except Exception,e:
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
-		response = T(404)
-	if response.status_code == 200:
-		j = response.json() 
-		if j.get('code', 9527) == 200:
-			if 'data' in j:
-				for re in j['data'].get('result', []):
-					#for k, v in re.iteritems():
-					#	print k, v
-					title = re.get('title', u'')
-					addtime = re.get('addtime', u'')
-					gid = re.get('itunesid', 0)
-					detail = get_xyzs_detail_by_id(gid)
-					if addtime and title:
-						game_type = detail.get('apptypesno', u'') if detail is not None else u''
-						publish_date = unicode(datetime.date.fromtimestamp(int(addtime)))
-						print publish_date, title, game_type
-#						ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.source==source_map.get('xyzs')).filter(KC_LIST.publish_date==publish_date).first()
-#						if not ins:
-#							count += 1
-#							item = KC_LIST(**{
-#											'publish_date': publish_date,
-#											'title': re.get('title', u''),
-#											'game_type': game_type,
-#											'title2': gid,
-#											'img': re.get('icon', u''),
-#											'source': source_map.get('xyzs'),
-#											'popular' : re.get('downloadnum', u'')
-#												})
-#							db_conn.merge(item)
-#	mylogger.info("get %s records from xyzs " % (count))
-#	db_conn.commit()
+	mylogger.info("get %s records from xyzs " % (count))
+	db_conn.commit()
 		
 
 
@@ -1469,6 +1457,7 @@ def get_xyzs_detail_by_id(gid):
 	if response.status_code == 200:
 		j = response.json()
 		if 'data' in j:
+			print j['data'].get('app')
 			return j['data'].get('app')
 	return None
 
@@ -1500,9 +1489,11 @@ def main():
 	get_pp_kc(1)
 	get_meizu_kc()
 	get_i4_kc(1)
+	get_xyzs_kc(1)
 
 if __name__ == '__main__':
 	main()
-	#for p in xrange(1,21):
+	#for p in xrange(20,31):
 	#get_itools_kc()
-	#get_xyzs_kc(1)
+		#get_xyzs_kc(p)
+
