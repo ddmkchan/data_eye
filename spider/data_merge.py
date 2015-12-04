@@ -28,9 +28,18 @@ def main():
 		out[t] = []
 	for k, v in mydict.iteritems():	
 		if v in out:
-			out[v].append(k)
-	for k,v in out.iteritems():
-		print k, v
+			out[v].append(str(k))
+	for title, ids in out.iteritems():
+		get_publish_status(ids)	
+
+def get_publish_status(ids):
+	_sql = "select publish_date, status, device from kc_list where id in (%s)" % ",".join(ids)
+	
+	print _sql
+
+
+def get_game_detail(ids):
+	pass
 		
 def remove_duplicate_record():
 	for rt in db_conn.execute("select source,title, publish_date, count(1) from kc_list where source=0 group by source, title, publish_date having count(1)>1;"):
@@ -43,5 +52,5 @@ def remove_duplicate_record():
 	db_conn.commit()
 
 if __name__ == '__main__':
-	#main()
-	remove_duplicate_record()
+	main()
+	#remove_duplicate_record()

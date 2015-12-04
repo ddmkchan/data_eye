@@ -115,3 +115,27 @@ class ProxyList(Base):
 	last_update = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间
 
 
+class PublishGame(Base):
+
+	__tablename__ = 'publish_game'
+
+	id = Column(Integer, primary_key=True, autoincrement=False)
+	name = Column(Unicode(100), nullable=False, default=u'', index=True)
+	imgs = Column(UnicodeText, nullable=False, default=u'')
+	game_type = Column(Unicode(100), nullable=False, default=u'')
+	summary = Column(UnicodeText, nullable=False, default=u'')
+	download_num = Column(Unicode(50), nullable=False, default=u'')
+	comment_num = Column(Unicode(50), nullable=False, default=u'')
+	rating = Column(Unicode(50), nullable=False, default=u'')
+	rank = Column(Unicode(50), nullable=False, default=u'')
+	topic_num = Column(Unicode(50), nullable=False, default=u'')
+	pkg_size = Column(Unicode(50), nullable=False, default=u'')
+	version = Column(Unicode(100), nullable=False, default=u'')
+	author = Column(Unicode(100), nullable=False, default=u'')
+	device = Column(Unicode(100), nullable=False, default=u'')
+	publish_status = Column(Unicode(100), nullable=False, default=u'')
+	channels = Column(Unicode(200), nullable=False, default=u'')
+	publish_dates = Column(Unicode(200), nullable=False, default=u'')
+	dt = Column(Unicode(100), nullable=False, default=u'')
+	create_date = Column(DateTime, nullable=False, default=datetime.now())#创建时间
+	last_update = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间
