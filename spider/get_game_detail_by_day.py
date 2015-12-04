@@ -1148,7 +1148,7 @@ def get_360_app_detail():
 	mylogger.info("get 360 app detail start ...")
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==4):
 		if error_times >= 10:
-			mylogger.info("youku reach max error times ... ")
+			mylogger.info("360 reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
@@ -1195,6 +1195,49 @@ def get_360_app_detail():
 	mylogger.info("get 360 app detail %s" % count)
 	db_conn.commit()
 
+
+def get_i4_app_detail():
+	count = 0
+	error_times = 0
+	mylogger.info("get i4 app detail start ...")
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==16):
+		if error_times >= 10:
+			mylogger.info("i4 reach max error times ... ")
+			break
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+		if not ins:
+			url = "http://app3.i4.cn/controller/action/online.go?store=3&module=1&id=%s&reqtype=5" % ret.title2
+			try:
+				r = requests.get(url, timeout=10)
+				if r.status_code == 200:
+
+					j = r.json()
+					if len(j['result']['list']) >= 1:
+						g = j['result']['list'][0]
+						count += 1 
+						#for k, v in g.iteritems():
+						#	print k, v
+						item = GameDetailByDay(**{
+									'kc_id': ret.id,
+									'summary' : g.get('shortNote', u''),
+									'version' : g.get('shortVersion', u''),
+									'game_type' : g.get('typeName', u''),
+									'pkg_size' : g.get('sizeByte', u''),
+									'rating' : g.get('rating', u''),
+									'author' : g.get('company', u''),
+									'download_num' : g.get('downloadCount', u''),
+									'dt' : dt,
+									'imgs' : u','.join([u"http://d.image.i4.cn/image/%s" % img.get('url') for img in json.loads(g.get('image', []))]),
+										})
+						db_conn.merge(item)
+			except Exception,e:
+				error_times += 1
+				mylogger.error("i4 app #### %s #### \t%s" % (url, traceback.format_exc()))
+	mylogger.info("get i4 app detail %s" % count)
+	db_conn.commit()
+
+
 def main():
 	get_xiaomi_new_detail()
 	get_xiaomi_rpg_detail()
@@ -1218,4 +1261,5 @@ def main():
 	get_360_app_detail()
 
 if __name__ == '__main__':
-	main()
+	#main()
+	get_i4_app_detail()

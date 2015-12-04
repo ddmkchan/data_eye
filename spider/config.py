@@ -15,5 +15,6 @@ from get_logger import *
 from define import *
 from model import *
 
+check_date = date.today()+timedelta(-3)
 
-proxies = [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in new_session().query(ProxyList).filter(ProxyList.check_time>='2015-12-01')]
+proxies = [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in new_session().query(ProxyList).filter(ProxyList.check_time>=unicode(check_date))]

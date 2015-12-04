@@ -923,24 +923,42 @@ def get_dangle_kc():
 	mylogger.info("get %s records from dangle" % count)
 	db_conn.commit()
 				
-def get_i4_kc():
+def get_i4_kc(page):
 	count = 0
-	url = "http://app3.i4.cn/controller/action/online.go?store=3&module=3&rows=100&sort=2&submodule=6&model=101&id=0&reqtype=3&page=1"
+	url = "http://app3.i4.cn/controller/action/online.go?store=3&module=3&rows=20&sort=2&submodule=6&model=101&id=0&reqtype=3&page=%s" % page
 	try:
 		r = requests.get(url)
+		if r.status_code == 200:
+			d = r.json()
+			for ret in d['result']['list']:
+				game_type = ret.get('typeName', u'')
+				title = ret.get('appName', u'')
+				title2 = ret.get('id', u'')
+				popular = ret.get('downloadCount', u'')
+				newUpdateTime = ret.get('newUpdateTime', u'')
+				img = u'http://d.image.i4.cn/image/%s' % ret.get('icon', u'')
+				publish_date = newUpdateTime[:10] if newUpdateTime else u''
+				print title, publish_date, title2, popular
+				ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('i4')).first()
+				if ins is None:
+					count += 1
+					item = KC_LIST(**{
+									"title": title,
+									"title2": title2,
+									"game_type": game_type,
+									"publish_date": publish_date,
+									"img": img,
+									"popular": popular,
+									"source": source_map.get('i4')
+									})
+					db_conn.merge(item)
 	except Exception,e:
-		r = T(404)
 		mylogger.error("### %s ### %s" % (url, traceback.format_exc()))
-	if r.status_code == 200:
-		d = r.json()
-		for ret in d['result']['list']:
-			game_type = ret.get('typeName', u'')
-			title = ret.get('appName', u'')
-			dt = ret.get('updateTime', u'')
-			popular = ret.get('downloadCount', u'')
-			#dt = ret.get('createTime', u'')
-			publish_date = unicode(datetime.date.fromtimestamp(int(unicode(dt)[:10]))) if dt else u""
-			#print title, publish_date
+	mylogger.info("get %s records from i4" % count)
+	db_conn.commit()
+
+def get_i4_detail_by_id():
+	url = "http://app3.i4.cn/controller/action/online.go?store=3&module=1&id=253283&reqtype=5"
 
 def get_muzhiwan_kc(page):
 	count = 0
@@ -1481,13 +1499,10 @@ def main():
 	get_9game_today_kc()
 	get_pp_kc(1)
 	get_meizu_kc()
+	get_i4_kc(1)
 
 if __name__ == '__main__':
 	main()
-	#get_9game_today_kc()
-	#get_360zhushou_kc()
-	#get_i4_kc()
+	#for p in xrange(1,21):
 	#get_itools_kc()
-	#for i in xrange(6, 11):
-	#	get_anzhi_kc(i)
 	#get_xyzs_kc(1)

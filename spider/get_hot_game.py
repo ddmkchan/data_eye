@@ -775,13 +775,13 @@ def get_i4_app_rank():
 					rank += 1
 					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
 					game_name = app.get('appName', u'')
-					img = app.get('icon', u'')
+					img = u'http://d.image.i4.cn/image/%s' % app.get('icon', u'')
 					size = app.get('size', u'')
 					game_type = app.get('typeName', u'')
 					downloads = app.get('downCount', u'')
 					size = app.get('size', u'')
 					source = source_map.get('i4_hot')
-					url = u"%s\t%s" % (app.get('sourceId', u''),  app.get('itemId', u''))
+					url = u"%s\t%s" % (app.get('sourceId', u''),  app.get('id', u''))
 					store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 	except Exception,e:
 		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
