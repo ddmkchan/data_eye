@@ -742,6 +742,9 @@ def get_muzhiwan_detail():
 												'imgs' : u','.join(g.get('imgs', [])),
 													})
 				db_conn.merge(item)
+				if count % 100 == 0:
+					sleep(1.23)
+					mylogger.info("muzhiwan detail %s commit ... " % count)
 			if 'ex_msg' in g:
 				error_times += 1
 	mylogger.info("get muzhiwan detail %s" % count)

@@ -108,11 +108,11 @@ def get_game_detail(ids):
 				game_type = ins.game_type
 			if not summary:
 				summary = ins.summary
-			if not download_num:
+			if not download_num or download_num == u'0':
 				download_num = ins.download_num
-			if not comment_num:
+			if not comment_num or comment_num == u'0':
 				comment_num = ins.comment_num
-			if not rating:
+			if not rating or rating == u'0':
 				rating = ins.rating
 			if not pkg_size:
 				size = ins.pkg_size
@@ -123,7 +123,7 @@ def get_game_detail(ids):
 				author = ins.author
 			if not version:
 				version = ins.version
-			if not topic_num_total:
+			if not topic_num_total or rating == u'0':
 				topic_num_total = ins.topic_num_total
 	return (imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total)
 
