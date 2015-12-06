@@ -20,7 +20,8 @@ def main():
 	count = 0
 	db_conn.close()
 	mydict = {}
-	for ret in new_session().query(KC_LIST).filter(KC_LIST.title!=u''):
+	from sqlalchemy import not_
+	for ret in new_session().query(KC_LIST).filter(KC_LIST.title!=u'').filter(not_(KC_LIST.source.in_((21, 22)))).filter(KC_LIST.publish_date>=u'2015-10-01'):
 		segs = re.split(u'-|\(|\)|（|）|：|:|[\s]*-|－', ret.title)
 		if len(segs)>=2:
 			if ret.title.startswith('(') or ret.title.startswith(u'（'): 
@@ -55,6 +56,7 @@ def main():
 								'author': author,
 								'version': version,
 								'topic_num': topic_num_total,
+								'kc_list_ids': publish_status.get('kc_list_ids', u''),
 								'channels': publish_status.get('channel_list', u''),
 								'publish_dates': publish_status.get('publish_date_list', u''),
 								})
@@ -75,6 +77,7 @@ def main():
 			ins.topic_num = topic_num_total
 			ins.channels = publish_status.get('channel_list', u'')
 			ins.publish_dates = publish_status.get('publish_date_list', u'')
+			ins.kc_list_ids = publish_status.get('kc_list_ids', u'')
 			ins.last_update = datetime.datetime.now()
 	db_conn.commit()
 
@@ -141,6 +144,6 @@ def remove_duplicate_record():
 
 if __name__ == '__main__':
 	main()
-	#print get_publish_status(['1272', '1378', '1380', '7771', '13809', '14579', '16447'])
+	#print get_publish_status(['9247,13786,17106'])
 	#get_game_detail(['12746','12747','12748'])
 	#remove_duplicate_record()
