@@ -59,7 +59,7 @@ def main():
 								'publish_dates': publish_status.get('publish_date_list', u''),
 								})
 			db_conn.merge(item)
-			if count % 50 == 0:
+			if count % 500 == 0:
 				db_conn.commit()
 				mylogger.info("merge data %s commit ..." % count)		
 		else:
