@@ -41,7 +41,7 @@ PTPQ_ENGINE = create_engine(
 )
 
 def new_session():
-    return scoped_session(sessionmaker(bind=PTPQ_ENGINE, autoflush=True))
+    return scoped_session(sessionmaker(bind=PTPQ_ENGINE, autoflush=False))
 
 session = new_session()
 

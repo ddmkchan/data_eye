@@ -119,7 +119,7 @@ class PublishGame(Base):
 
 	__tablename__ = 'publish_game'
 
-	id = Column(Integer, primary_key=True, autoincrement=False)
+	id = Column(Integer, primary_key=True, autoincrement=True)
 	name = Column(Unicode(100), nullable=False, default=u'', index=True)
 	imgs = Column(UnicodeText, nullable=False, default=u'')
 	game_type = Column(Unicode(100), nullable=False, default=u'')
@@ -134,8 +134,8 @@ class PublishGame(Base):
 	author = Column(Unicode(100), nullable=False, default=u'')
 	device = Column(Unicode(100), nullable=False, default=u'')
 	publish_status = Column(Unicode(100), nullable=False, default=u'')
-	channels = Column(Unicode(200), nullable=False, default=u'')
-	channel_ids = Column(UnicodeText, nullable=False, default=u'')
+	kc_list_ids = Column(Unicode(200), nullable=False, default=u'')
+	channels = Column(UnicodeText, nullable=False, default=u'')
 	publish_dates = Column(UnicodeText, nullable=False, default=u'')
 	dt = Column(Unicode(100), nullable=False, default=u'')
 	create_date = Column(DateTime, nullable=False, default=datetime.now())#创建时间

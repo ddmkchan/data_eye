@@ -14,7 +14,10 @@ import datetime
 
 db_conn = new_session()
 
+mylogger = get_logger('merge_data')
+
 def main():
+	count = 0
 	db_conn.close()
 	mydict = {}
 	for ret in new_session().query(KC_LIST).filter(KC_LIST.title!=u''):
@@ -34,7 +37,6 @@ def main():
 		if v in out:
 			out[v].append(str(k))
 	for title, ids in out.iteritems():
-		count = 0
 		publish_status = get_publish_status(ids)	
 		imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total = get_game_detail(ids)
 		#print title, game_type, ids
@@ -57,9 +59,9 @@ def main():
 								'publish_dates': publish_status.get('publish_date_list', u''),
 								})
 			db_conn.merge(item)
-			if count == 500:
+			if count % 50 == 0:
 				db_conn.commit()
-				print '%s commit ' % count
+				mylogger.info("merge data %s commit ..." % count)		
 		else:
 			ins.imgs = imgs
 			ins.game_type = game_type
@@ -78,13 +80,16 @@ def main():
 
 def get_publish_status(ids):
 	out = {}
-	out['publish_date_list'] = []
-	out['channel_list'] = []
-	_sql = "select b.name,publish_date from (select * from kc_list where id in (%s)) a join channel b on a.source=b.id order by publish_date desc" % ",".join(ids)
+	l1 = []
+	l2 = []
+	_sql = "select b.name,publish_date from (select * from kc_list where id in (%s)) a join channel b on a.source=b.id order by publish_date" % ",".join(ids)
 	for ret in db_conn.execute(_sql):
 		channel,publish_date = ret
-		out['publish_date_list'].append(publish_date)
-		out['channel_list'].append(channel)
+		l1.append(publish_date)
+		l2.append(channel)
+	out['publish_date_list'] = ",".join(l1)
+	out['channel_list'] = ",".join(l2)
+	out['kc_list_ids'] = ",".join(ids)
 	return out
 
 def get_game_detail(ids):
@@ -108,8 +113,8 @@ def get_game_detail(ids):
 				rating = ins.rating
 			if not pkg_size:
 				size = ins.pkg_size
-				if ins.pkg_size and u'M' not in ins.pkg_size:
-					size = round(int(ins.pkg_size)/1024.0/1024.0, 2)
+				if ins.pkg_size and u'M' not in ins.pkg_size.upper() and u'G' not in ins.pkg_size.upper():
+					size = "%sM" % round(int(ins.pkg_size)/1024.0/1024.0, 2)
 				pkg_size = size
 			if not author:
 				author = ins.author
@@ -136,5 +141,6 @@ def remove_duplicate_record():
 
 if __name__ == '__main__':
 	main()
+	#print get_publish_status(['1272', '1378', '1380', '7771', '13809', '14579', '16447'])
 	#get_game_detail(['12746','12747','12748'])
 	#remove_duplicate_record()
