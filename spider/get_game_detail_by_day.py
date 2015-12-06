@@ -728,15 +728,15 @@ def get_muzhiwan_detail():
 		if not ins:
 			g = get_muzhiwan_detail_by_id(ret.url)
 			if g:
-				m = re.search(u'(\d+)个', g.get(u'评论数', u''))
-				comment_num = m.group(1) if m is not None else u''
+				#m = re.search(u'(\d+)个', g.get(u'评论数', u''))
+				#comment_num = m.group(1) if m is not None else u''
 				count += 1 
 				item = GameDetailByDay(**{
 												'kc_id': ret.id,
 												'summary' : g.get('description', u''),
 												'version' : g.get(u'版本', u''),
 												'game_type' : g.get(u'分类', u''),
-												'comment_num' : comment_num,
+												'comment_num' : g.get('comments', u''),
 												'pkg_size' : g.get(u'大小' u''),
 												'dt' : dt,
 												'imgs' : u','.join(g.get('imgs', [])),
@@ -748,12 +748,27 @@ def get_muzhiwan_detail():
 	db_conn.commit()
 
 
+def get_muzhiwan_comment_by_gid(gid):
+	try:
+		url = u'http://www.muzhiwan.com/index.php?action=game&opt=readHit&gid=%s' % gid
+		r = requests.get(url)
+		if r.status_code == 200:
+			return r.text
+	except Exception,e:
+		mylogger.error("get muzhiwan comments %s\t%s" % (url, traceback.format_exc()))
+	return None
+
 def get_muzhiwan_detail_by_id(url):
 	mydict = {}
 	try:
 		response = requests.get(url, timeout=10)
 		soup = BeautifulSoup(response.text)
 		info = soup.find('div', class_='detail_info')
+		gid = soup.find('input', id='gid')
+		if gid is not None:
+			comments = get_muzhiwan_comment_by_gid(gid.get('value'))
+			if comments is not None:
+				mydict['comments'] = comments
 		if info is not None:
 			for ret in info.find('div', class_='clearfix').find_all('li'):
 				segs = ret.text.split(u'：')
