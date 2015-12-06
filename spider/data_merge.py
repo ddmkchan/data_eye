@@ -15,6 +15,7 @@ import datetime
 db_conn = new_session()
 
 def main():
+	db_conn.close()
 	mydict = {}
 	for ret in new_session().query(KC_LIST).filter(KC_LIST.title!=u''):
 		segs = re.split(u'-|\(|\)|（|）|：|:|[\s]*-|－', ret.title)
@@ -33,41 +34,46 @@ def main():
 		if v in out:
 			out[v].append(str(k))
 	for title, ids in out.iteritems():
+		count = 0
 		publish_status = get_publish_status(ids)	
 		imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total = get_game_detail(ids)
-		print title, game_type, ids
-		#ins = db_conn.query(PublishGame).filter(PublishGame.name==title).first()
-		#if ins is not None:
-		#	item = PublishGame(**{
-		#						'name': title,
-		#						'imgs': imgs,
-		#						'game_type': game_type,
-		#						'summary': summary,
-		#						'download_num': download_num,
-		#						'comment_num': comment_num,
-		#						'rating': rating,
-		#						'pkg_size': pkg_size,
-		#						'author': author,
-		#						'version': version,
-		#						'topic_num': topic_num_total,
-		#						'channels': publish_status.get('channel_list', u''),
-		#						'publish_dates': publish_status.get('publish_date_list', u''),
-		#						})
-		#	db_conn.merge(item)
-		#else:
-		#	ins.imgs = imgs
-		#	ins.game_type = game_type
-		#	ins.summary = summary
-		#	ins.download_num = download_num
-		#	ins.comment_num = comment_num
-		#	ins.rating = rating
-		#	ins.pkg_size = pkg_size
-		#	ins.author = author
-		#	ins.version = version
-		#	ins.topic_num = topic_num_total
-		#	ins.channels = publish_status.get('channel_list', u'')
-		#	ins.publish_dates = publish_status.get('publish_date_list', u'')
-		#	ins.last_update = datetime.datetime.now()
+		#print title, game_type, ids
+		ins = db_conn.query(PublishGame).filter(PublishGame.name==title).first()
+		if ins is None:
+			count += 1
+			item = PublishGame(**{
+								'name': title,
+								'imgs': imgs,
+								'game_type': game_type,
+								'summary': summary,
+								'download_num': download_num,
+								'comment_num': comment_num,
+								'rating': rating,
+								'pkg_size': pkg_size,
+								'author': author,
+								'version': version,
+								'topic_num': topic_num_total,
+								'channels': publish_status.get('channel_list', u''),
+								'publish_dates': publish_status.get('publish_date_list', u''),
+								})
+			db_conn.merge(item)
+			if count == 500:
+				db_conn.commit()
+				print '%s commit ' % count
+		else:
+			ins.imgs = imgs
+			ins.game_type = game_type
+			ins.summary = summary
+			ins.download_num = download_num
+			ins.comment_num = comment_num
+			ins.rating = rating
+			ins.pkg_size = pkg_size
+			ins.author = author
+			ins.version = version
+			ins.topic_num = topic_num_total
+			ins.channels = publish_status.get('channel_list', u'')
+			ins.publish_dates = publish_status.get('publish_date_list', u'')
+			ins.last_update = datetime.datetime.now()
 	db_conn.commit()
 
 def get_publish_status(ids):

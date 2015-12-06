@@ -1213,7 +1213,7 @@ def get_i4_app_detail():
 				if r.status_code == 200:
 
 					j = r.json()
-					if len(j['result']['list']) >= 1:
+					if j['result']['list'] is not None and len(j['result']['list']) >= 1:
 						g = j['result']['list'][0]
 						count += 1 
 						item = GameDetailByDay(**{
