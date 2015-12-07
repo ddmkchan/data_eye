@@ -45,6 +45,7 @@ source_map = {
 			"meizu": 25,
 			"xyzs": 26,
 			"91play": 27,#酷玩汇
+			"360_gamebox": 28,
 				}
 
 class T:
@@ -1370,9 +1371,9 @@ def get_meizu_kc():
 		if j.get('code', 9527) == 200:
 			blocks = j['value']['blocks']
 			if blocks:
-				for re in blocks[0]['data']:
-					title = re.get('name', u'')
-					gid = re.get('id', 0)
+				for rt in blocks[0]['data']:
+					title = rt.get('name', u'')
+					gid = rt.get('id', 0)
 					detail = get_meizu_detail_by_id(gid)
 					if title and gid and detail is not None:
 						version_time = detail.get('version_time', u'')
@@ -1383,12 +1384,12 @@ def get_meizu_kc():
 								count += 1
 								item = KC_LIST(**{
 											'publish_date': publish_date,
-											'title': re.get('name', u''),
-											'game_type': re.get('category_name', u''),
+											'title': rt.get('name', u''),
+											'game_type': rt.get('category_name', u''),
 											'title2': gid,
-											'img': re.get('icon', u''),
+											'img': rt.get('icon', u''),
 											'source': source_map.get('meizu'),
-											'popular' : re.get('download_count', u'')
+											'popular' : rt.get('download_count', u'')
 												})
 								db_conn.merge(item)
 	mylogger.info("get %s records from meizu " % (count))
@@ -1418,10 +1419,10 @@ def get_xyzs_kc(page):
 			j = response.json() 
 			if j.get('code') == 200:
 				if 'data' in j:
-					for re in j['data'].get('result', []):
-						title = re.get('title', u'')
-						addtime = re.get('addtime', u'')
-						gid = re.get('itunesid', 0)
+					for rt in j['data'].get('result', []):
+						title = rt.get('title', u'')
+						addtime = rt.get('addtime', u'')
+						gid = rt.get('itunesid', 0)
 						#detail = get_xyzs_detail_by_id(gid)
 						if addtime and title:
 							# addtime字段内容不一定正确，日期会异常
@@ -1434,9 +1435,9 @@ def get_xyzs_kc(page):
 											'publish_date': publish_date,
 											'title': title,
 											'title2': gid,
-											'img': re.get('icon', u''),
+											'img': rt.get('icon', u''),
 											'source': source_map.get('xyzs'),
-											'popular' : re.get('downloadnum', u'')
+											'popular' : rt.get('downloadnum', u'')
 												})
 							db_conn.merge(item)
 	except Exception,e:
@@ -1466,9 +1467,10 @@ def get_91play_kc():
 		response = requests.post(URL, data=raw_data, timeout=10)
 		if response.status_code == 200:
 			j = response.json() 
+			print j
 			if j['data'] is not None:
-				for re in json.loads(j['data']):
-					gid = re.get('id', 0)
+				for rt in json.loads(j['data']):
+					gid = rt.get('id', 0)
 					detail = get_91play_detail_by_id(gid)
 					#for k, v in detail.iteritems():
 					#	print k,v
@@ -1485,14 +1487,60 @@ def get_91play_kc():
 												'publish_date': publish_date,
 												'title': title,
 												'title2': gid,
-												'img': re.get('icon_url', u''),
+												'img': rt.get('icon_url', u''),
 												'source': source_map.get('91play'),
-												'popular' : re.get('download_count', u'')
+												'popular' : rt.get('download_count', u'')
 													})
 								db_conn.merge(item)
 	except Exception,e:
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
 	mylogger.info("get %s records from 91play " % (count))
+	db_conn.commit()
+
+
+def get_360_gamebox_kc(start):
+	count = 0
+	URL = "http://next.gamebox.360.cn/7/xgamebox/newzone?count=20&start=%s&type=ontest" % start
+	try:
+		response = requests.get(URL, timeout=10)
+		if response.status_code == 200:
+			j = response.json() 
+			if j.get('errno') == 0 and j['data'] is not None:
+				for rt in j['data'][:]:
+					#for k, v in re.iteritems():
+					#	print k, v
+					publish_date = u''
+					title = rt.get('name', u'')
+					kc_state = rt.get('state')
+					if kc_state is not None:
+						open_time_human = kc_state.get('open_time_human', u'')
+						if open_time_human:
+							try:
+								m = re.search(u'(\d+)月(\d+)日', open_time_human)
+								str_dt = u"%s-%s-%s" % (unicode(datetime.date.today().year), m.group(1), m.group(2))
+								dt = datetime.datetime.strptime(str_dt, '%Y-%m-%d')
+								publish_date = unicode(dt.date())
+							except Exception, e:
+								mylogger.error("### gamebox open time %s ###\t%s" % (title.encode('utf-8'), traceback.format_exc()))
+					if title and publish_date:
+						print title, publish_date
+						ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.source==source_map.get('360_gamebox')).filter(KC_LIST.publish_date==publish_date).first()
+						if not ins:
+							count += 1
+							item = KC_LIST(**{
+										'publish_date': publish_date,
+										'title': rt.get('name', u''),
+										'game_type': rt.get('category_name', u''),
+										'title2': rt.get('apkid', u''),
+										'game_id': rt.get('id', u''),
+										'img': rt.get('logo_url', u''),
+										'source': source_map.get('360_gamebox'),
+										'popular' : rt.get('download_times', u'')
+											})
+							db_conn.merge(item)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+	mylogger.info("get %s records from 360_gamebox " % (count))
 	db_conn.commit()
 
 def main():
@@ -1524,9 +1572,11 @@ def main():
 	get_i4_kc(1)
 	get_xyzs_kc(1)
 	get_91play_kc()
+	get_360_gamebox_kc(0)
 
 if __name__ == '__main__':
 	main()
-	#for p in xrange(20,31):
+	#for p in xrange(200, 400, 20):
+	#	get_360_gamebox_kc(p)
 	#get_itools_kc()
 		#get_xyzs_kc(p)

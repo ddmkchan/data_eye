@@ -62,6 +62,8 @@ source_map = {
 			"itools_hot"	: 38,
 			"xyzs_hot"	: 39,
 			"91play_hot"	: 40,
+			"360_gamebox_single"	: 41,
+			"360_gamebox_webgame"	: 42,
 				}
 
 def get_baidu_hot_games():
@@ -1004,6 +1006,38 @@ def get_91play_app_rank():
 		mylogger.error("91play app rank\t%s" % (traceback.format_exc()))
 
 
+def get_360_gamebox_app_rank(gtype, url):
+	rank = 0
+	try:
+		response = requests.get(url, timeout=10)
+		if response.status_code == 200:
+			j = response.json()
+			if j['data'] is not None:
+				for app in j['data']:
+					rank += 1
+					#for k, v in app.iteritems():
+					#	print k, v
+					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+					game_name = app.get('name', u'')
+					img = app.get('logo_url', u'')
+					size = app.get('size', u'')
+					game_type = app.get('category_name', u'')
+					downloads = app.get('download_times', u'')
+					source = source_map.get(gtype)
+					url = u"%s\t%s" % (app.get('apkid', u''),  app.get('id', u''))
+					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
+	except Exception,e:
+		mylogger.error("360_gamebox app rank\t%s" % (traceback.format_exc()))
+
+def store_360_gamebox_app_rank():
+	_dict = {
+			"360_gamebox_single" : "http://next.gamebox.360.cn/7/xgamebox/rank?count=20&start=0&typeid=2&type=download", 	
+			"360_gamebox_webgame": "http://next.gamebox.360.cn/7/xgamebox/rank?count=20&start=0&typeid=1&type=download", 	
+			}
+	for gtype, url in _dict.iteritems():
+		for data in get_360_gamebox_app_rank(gtype, url):
+			store_data(data)
+
 def main():
 	get_data(get_baidu_hot_games)
 	get_data(get_360_online_games)
@@ -1028,6 +1062,7 @@ def main():
 	get_itools_app_rank()
 	get_xyzs_app_rank()
 	get_91play_app_rank()
+	store_360_gamebox_app_rank()
 
 if __name__ == '__main__':
 	main()

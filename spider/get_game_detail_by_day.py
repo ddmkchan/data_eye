@@ -1179,8 +1179,6 @@ def get_360_app_detail():
 					if len(j['data'])>=1:
 						g = j['data'][0]
 						count += 1 
-						#for k, v in g.iteritems():
-						#	print k, v
 						comments_url = "http://comment.mobilem.360.cn/comment/getCommentTags?objid=%s" % ret.game_id
 						comments_num = u''
 						try:
@@ -1330,6 +1328,46 @@ def get_91play_detail():
 	mylogger.info("get 91play app detail %s" % count)
 	db_conn.commit()
 
+def get_360_gamebox_detail():
+	count = 0
+	error_times = 0
+	mylogger.info("get 360_gamebox app detail start ...")
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==28):
+		if error_times >= 10:
+			mylogger.info("360_gamebox reach max error times ... ")
+			break
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+		if not ins:
+			try:
+				url = "http://next.gamebox.360.cn/7/xgamebox/getappintro?pname=%s" % ret.title2
+				response = requests.get(url, timeout=10)
+				if response.status_code == 200:
+					j = response.json() 
+					if j['data'] is not None and j['data']['info'] is not None:
+						g = j['data']['info']
+						count += 1 
+						#for k, v in g.iteritems():
+						#	print k, v
+						item = GameDetailByDay(**{
+									'kc_id': ret.id,
+									'summary' : g.get('brief', u''),
+									'rating' : g.get('rating', u''),
+									'version' : g.get('version_name', u''),
+									'game_type' : g.get('category_name', u''),
+									'pkg_size' : g.get('size', u''),
+									'author' : g.get('corp', u''),
+									'download_num' : g.get('download_times', u''),
+									'dt' : dt,
+									'imgs' : u",".join(g.get('trumb', u'').split(u'|'))
+										})
+						db_conn.merge(item)
+			except Exception,e:
+				error_times += 1
+				mylogger.error("360_gamebox app detail #### %s #### \t%s" % (ret.title2.encode('utf-8'), traceback.format_exc()))
+	mylogger.info("get 360_gamebox app detail %s" % count)
+	db_conn.commit()
+
 def main():
 	get_xiaomi_new_detail()
 	get_xiaomi_rpg_detail()
@@ -1354,6 +1392,7 @@ def main():
 	get_i4_app_detail()
 	get_xyzs_app_detail()
 	get_91play_detail()
+	get_360_gamebox_detail()
 
 if __name__ == '__main__':
 	main()
