@@ -1462,7 +1462,7 @@ def get_91play_kc():
 	count = 0
 	URL = "http://play.91.com/api.php/Api/index"
 	try:
-		raw_data = {"id":2,"firmware":"19","time":1449455693994,"index":20,"device":1,"action":30002,"app_version":302,"action_version":4,"mac":"7b715ce093480b34d6987","debug":0,"size":20}
+		raw_data = {"id":2,"firmware":"19","time":1449455693994,"index":0,"device":1,"action":30002,"app_version":302,"action_version":4,"mac":"7b715ce093480b34d6987","debug":0,"size":20}
 		response = requests.post(URL, data=raw_data, timeout=10)
 		if response.status_code == 200:
 			j = response.json() 
