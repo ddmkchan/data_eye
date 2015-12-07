@@ -44,6 +44,7 @@ source_map = {
 			"pp": 24,
 			"meizu": 25,
 			"xyzs": 26,
+			"91play": 27,#酷玩汇
 				}
 
 class T:
@@ -1442,8 +1443,57 @@ def get_xyzs_kc(page):
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
 	mylogger.info("get %s records from xyzs " % (count))
 	db_conn.commit()
+
+def get_91play_detail_by_id(gid):
+	URL = "http://play.91.com/api.php/Api/index"
+	try:
+		raw_data = {"id": gid,"firmware":"19","time":1449458211590,"device":1,"action":30005,"app_version":302,"action_version":4,"mac":"7b715ce093480b34d6987","debug":0}
+		response = requests.post(URL, data=raw_data, timeout=10)
+		if response.status_code == 200:
+			j = response.json() 
+			if j['data'] is not None:
+				return json.loads(j['data'])
+	except Exception,e:
+		mylogger.error("91play %s detail\t%s" % (gid, traceback.format_exc()))
+	return None
 		
 
+def get_91play_kc():
+	count = 0
+	URL = "http://play.91.com/api.php/Api/index"
+	try:
+		raw_data = {"id":2,"firmware":"19","time":1449455693994,"index":20,"device":1,"action":30002,"app_version":302,"action_version":4,"mac":"7b715ce093480b34d6987","debug":0,"size":20}
+		response = requests.post(URL, data=raw_data, timeout=10)
+		if response.status_code == 200:
+			j = response.json() 
+			if j['data'] is not None:
+				for re in json.loads(j['data']):
+					gid = re.get('id', 0)
+					detail = get_91play_detail_by_id(gid)
+					#for k, v in detail.iteritems():
+					#	print k,v
+					if detail is not None:
+						title = detail.get('name', u'')
+						update_time = detail.get('update_time', u'')
+						if update_time and title:
+							publish_date = unicode(datetime.date.fromtimestamp(int(update_time)))
+							#print title, publish_date
+							ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.source==source_map.get('91play')).filter(KC_LIST.publish_date==publish_date).first()
+							if not ins:
+								count += 1
+								item = KC_LIST(**{
+												'publish_date': publish_date,
+												'title': title,
+												'title2': gid,
+												'img': re.get('icon_url', u''),
+												'source': source_map.get('91play'),
+												'popular' : re.get('download_count', u'')
+													})
+								db_conn.merge(item)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+	mylogger.info("get %s records from 91play " % (count))
+	db_conn.commit()
 
 def main():
 	mylogger.info("gogo")
@@ -1473,10 +1523,10 @@ def main():
 	get_meizu_kc()
 	get_i4_kc(1)
 	get_xyzs_kc(1)
+	get_91play_kc()
 
 if __name__ == '__main__':
 	main()
 	#for p in xrange(20,31):
 	#get_itools_kc()
 		#get_xyzs_kc(p)
-

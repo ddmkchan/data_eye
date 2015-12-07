@@ -61,6 +61,7 @@ source_map = {
 			"kuaiyong_hot"	: 37,
 			"itools_hot"	: 38,
 			"xyzs_hot"	: 39,
+			"91play_hot"	: 40,
 				}
 
 def get_baidu_hot_games():
@@ -936,7 +937,7 @@ def get_itools_detail(URL):
 def store_data(ret):
 	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
 	dt = unicode(datetime.date.today())
-	ins = db_conn.query(HotGames).filter(HotGames.name==game_name).filter(HotGames.source==source).filter(HotGames.dt==dt).first()
+	ins = db_conn.query(HotGames).filter(HotGames.name==game_name).filter(HotGames.source==source).filter(HotGames.dt==dt).filter(HotGames.rank==rank).first()
 	if ins is None:
 		item = HotGames(**{
 						"name"			: game_name,
@@ -970,12 +971,37 @@ def get_xyzs_app_rank():
 					size = app.get('size', u'')
 					game_type = app.get('cus_desc', u'')
 					downloads = app.get('downloadnum', u'')
-					size = app.get('size', u'')
 					source = source_map.get('xyzs_hot')
 					url = u"%s\t%s" % (app.get('bundleid', u''),  app.get('itunesid', u''))
 					store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 	except Exception,e:
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+
+
+def get_91play_app_rank():
+	rank = 0
+	URL = "http://play.91.com/api.php/Api/index"
+	try:
+		raw_data = {"firmware":"19","time":1449459810294,"device":1,"action":30011,"app_version":302,"action_version":4,"mac":"7b715ce093480b34d6987","debug":0}
+		response = requests.post(URL, data=raw_data, timeout=10)
+		if response.status_code == 200:
+			j = response.json()
+			if j['data'] is not None:
+				for app in json.loads(j['data']):
+					rank += 1
+					#for k, v in app.iteritems():
+					#	print k, v
+					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+					game_name = app.get('name', u'')
+					img = app.get('icon_url', u'')
+					size = app.get('app_size', u'')
+					game_type = app.get('type_name', u'')
+					downloads = app.get('download_count', u'')
+					source = source_map.get('91play_hot')
+					url = u"%s\t%s" % (app.get('package_name', u''),  app.get('id', u''))
+					store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+	except Exception,e:
+		mylogger.error("91play app rank\t%s" % (traceback.format_exc()))
 
 
 def main():
@@ -1001,6 +1027,7 @@ def main():
 	get_kuaiyong_app_rank()
 	get_itools_app_rank()
 	get_xyzs_app_rank()
+	get_91play_app_rank()
 
 if __name__ == '__main__':
 	main()

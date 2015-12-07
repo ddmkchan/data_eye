@@ -1290,6 +1290,48 @@ def get_xyzs_app_detail():
 	mylogger.info("get xyzs app detail %s" % count)
 	db_conn.commit()
 
+
+def get_91play_detail():
+	count = 0
+	error_times = 0
+	mylogger.info("get 91play app detail start ...")
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==27).limit(1):
+		if error_times >= 10:
+			mylogger.info("91play reach max error times ... ")
+			break
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+		if not ins:
+			try:
+				url = "http://play.91.com/api.php/Api/index"
+				raw_data = {"id": int(ret.title2),"firmware":"19","time":1449458211590,"device":1,"action":30005,"app_version":302,"action_version":4,"mac":"7b715ce093480b34d6987","debug":0}
+				response = requests.post(url, data=raw_data, timeout=10)
+				if response.status_code == 200:
+					j = response.json() 
+					if j['data'] is not None:
+						g = json.loads(j['data'])
+						count += 1 
+						#for k, v in g.iteritems():
+						#	print k,v
+						item = GameDetailByDay(**{
+									'kc_id': ret.id,
+									'summary' : g.get('content', u''),
+									'rating' : g.get('score', u''),
+									'version' : g.get('version', u''),
+									'game_type' : g.get('type_name', u''),
+									'pkg_size' : g.get('app_size', u''),
+									'author' : g.get('developer', u''),
+									'download_num' : g.get('download_count', u''),
+									'dt' : dt,
+									'imgs' : g.get('img_urls', u'')
+										})
+						db_conn.merge(item)
+			except Exception,e:
+				error_times += 1
+				mylogger.error("91play app detail #### %s #### \t%s" % (ret.title2.encode('utf-8'), traceback.format_exc()))
+	mylogger.info("get 91play app detail %s" % count)
+	db_conn.commit()
+
 def main():
 	get_xiaomi_new_detail()
 	get_xiaomi_rpg_detail()
@@ -1315,4 +1357,5 @@ def main():
 	get_xyzs_app_detail()
 
 if __name__ == '__main__':
-	main()
+	#main()
+	get_91play_detail()
