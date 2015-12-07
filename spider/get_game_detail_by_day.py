@@ -1295,7 +1295,7 @@ def get_91play_detail():
 	count = 0
 	error_times = 0
 	mylogger.info("get 91play app detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==27).limit(1):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==27):
 		if error_times >= 10:
 			mylogger.info("91play reach max error times ... ")
 			break
@@ -1311,8 +1311,6 @@ def get_91play_detail():
 					if j['data'] is not None:
 						g = json.loads(j['data'])
 						count += 1 
-						#for k, v in g.iteritems():
-						#	print k,v
 						item = GameDetailByDay(**{
 									'kc_id': ret.id,
 									'summary' : g.get('content', u''),
@@ -1355,7 +1353,7 @@ def main():
 	get_360_app_detail()
 	get_i4_app_detail()
 	get_xyzs_app_detail()
+	get_91play_detail()
 
 if __name__ == '__main__':
-	#main()
-	get_91play_detail()
+	main()
