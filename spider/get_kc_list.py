@@ -1523,7 +1523,7 @@ def get_360_gamebox_kc(start):
 							except Exception, e:
 								mylogger.error("### gamebox open time %s ###\t%s" % (title.encode('utf-8'), traceback.format_exc()))
 					if title and publish_date:
-						print title, publish_date
+						#print title, publish_date
 						ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.source==source_map.get('360_gamebox')).filter(KC_LIST.publish_date==publish_date).first()
 						if not ins:
 							count += 1
