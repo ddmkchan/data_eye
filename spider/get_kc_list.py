@@ -1506,8 +1506,8 @@ def get_360_gamebox_kc(start):
 		if response.status_code == 200:
 			j = response.json() 
 			if j.get('errno') == 0 and j['data'] is not None:
-				for rt in j['data'][:]:
-					#for k, v in re.iteritems():
+				for rt in j['data']:
+					#for k, v in rt.iteritems():
 					#	print k, v
 					publish_date = u''
 					title = rt.get('name', u'')
@@ -1523,7 +1523,6 @@ def get_360_gamebox_kc(start):
 							except Exception, e:
 								mylogger.error("### gamebox open time %s ###\t%s" % (title.encode('utf-8'), traceback.format_exc()))
 					if title and publish_date:
-						#print title, publish_date
 						ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.source==source_map.get('360_gamebox')).filter(KC_LIST.publish_date==publish_date).first()
 						if not ins:
 							count += 1
@@ -1577,6 +1576,5 @@ def main():
 if __name__ == '__main__':
 	main()
 	#for p in xrange(200, 400, 20):
-	#	get_360_gamebox_kc(p)
 	#get_itools_kc()
 		#get_xyzs_kc(p)
