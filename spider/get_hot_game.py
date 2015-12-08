@@ -195,7 +195,7 @@ def store_xiaomi_app_rank():
 		#print 
 
 def get_360_online_games():
-	for page in xrange(1,4):
+	for page in xrange(1,2):
 		r = s.get('http://zhushou.360.cn/list/index/cid/100451/order/download/?page=%s' % page)
 		if r.status_code == 200:
 			soup = BeautifulSoup(r.text)
@@ -213,107 +213,32 @@ def get_360_online_games():
 				yield game_name, img, downloads, size, source, popular, game_type, status, url
 
 
-def get_9game_web_app_rank():
-	pass
+def store_9game_web_app_rank():
+	_dict = {'9game': "http://www.9game.cn/xyrb/", '9game_hot_wanted':"http://www.9game.cn/xyqdb/"}
+	for gtype, url in _dict.iteritems():
+		get_9game_web_app_rank(gtype, url)
 
-def get_9game_new_wanted_list():
-	r = s.get("http://www.9game.cn/xyqdb/")
-	if r.status_code == 200:
-		soup = BeautifulSoup(r.text)
-		t = soup.find("div", class_="box-text").find("table").find_all("tr")
-		for i in t[1:]:
-			td_list = i.find_all("td")
-			#print td_list
-			rank = td_list[0].find("span").text
-			title = td_list[1].find("a").get("title")
-			url = u"http://www.9game.cn%s" % td_list[1].find("a").get("href")
-			game_type = td_list[2].text.rstrip()
-			status = td_list[3].text.strip()
-			popular = td_list[4].text.strip()
-			yield rank, title, url, game_type, status, popular
-
-
-def get_9game_new_hot_list():
-	r = s.get("http://www.9game.cn/xyrb/")
-	if r.status_code == 200:
-		soup = BeautifulSoup(r.text)
-		t = soup.find("div", class_="box-text").find("table").find_all("tr")
-		for i in t[1:]:
-			td_list = i.find_all("td")
-			#print td_list
-			rank = td_list[0].find("span").text
-			title = td_list[1].find("a").get("title")
-			url = u"http://www.9game.cn%s" % td_list[1].find("a").get("href")
-			game_type = td_list[2].text
-			status = td_list[3].text
-			popular = td_list[4].text
-			yield rank, title, url, game_type, status, popular
-
-def get_9game_detail():
-	for i in get_9game_new_hot_list():
-		rank, title, url, game_type, status, popular = i
-		r = s.get(url)
+def get_9game_web_app_rank(gtype, url):
+	try:	
+		p = proxies[random.randrange(len(proxies))]
+		r = requests.get(url, timeout=10)
 		if r.status_code == 200:
 			soup = BeautifulSoup(r.text)
-			try:
-				title_div = soup.find("div", class_="title")
-				img_div = soup.find("div", class_="info").find("span", class_="img")
-				if img_div is not None:
-					img = img_div.find("img").get("src")
-				elif soup.find("div", class_="info").find("img") is not None:
-					img = soup.find("div", class_="info").find("img").get("src")
-				else:
-					img 		= u""
-				if title_div is not None:
-					game_name = title_div.text.strip()
-				elif soup.find("div", class_="contain-title").find("div", class_="h-title") is not None:
-					game_name = soup.find("div", class_="contain-title").find("div", class_="h-title").find('h1').text
-				else:
-					game_name = u""
-				source = source_map.get('9game')
-				downloads 	= popular
-				size 		= u""
-				yield game_name, img, downloads, size, source, popular, game_type, status, url
-			except Exception,e:
-				mylogger.error("%s\t%s" % (title, traceback.format_exc()))
-
-def get_9game_detail2():
-	for i in get_9game_new_wanted_list():
-		rank, title, url, game_type, status, popular = i
-		r = s.get(url)
-		if r.status_code == 200:
-			soup = BeautifulSoup(r.text)
-			try:
-				title_div = soup.find("div", class_="title")
-				img_div = soup.find("div", class_="info").find("span", class_="img")
-				if img_div is not None:
-					img = img_div.find("img").get("src")
-				elif soup.find("div", class_="info").find("img") is not None:
-					img = soup.find("div", class_="info").find("img").get("src")
-				else:
-					img 		= u""
-				if title_div is not None:
-					game_name = title_div.text.strip()
-				elif soup.find("div", class_="contain-title").find("div", class_="h-title") is not None:
-					game_name = soup.find("div", class_="contain-title").find("div", class_="h-title").find('h1').text
-				else:
-					game_name = u""
-				source = source_map.get('9game_hot_wanted')
-				downloads 	= popular
-				size 		= u""
-				yield game_name, img, downloads, size, source, popular, game_type, status, url
-			except Exception,e:
-				mylogger.error("%s\t%s" % (title, traceback.format_exc()))
-
-def get_9game_page_detail():
-	r = s.get(url)
-	if r.status_code == 200:
-		soup = BeautifulSoup(r.text)
-		try:
-			pass
-		except Exception,e:
-			mylogger.error("%s" % (traceback.format_exc()))
-	
+			t = soup.find("div", class_="box-text").find("table").find_all("tr")
+			for i in t[1:]:
+				game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+				td_list = i.find_all("td")
+				rank = td_list[0].find("span").text
+				game_name = td_list[1].find("a").get("title")
+				url = u"http://www.9game.cn%s" % td_list[1].find("a").get("href")
+				game_type = td_list[2].text.rstrip()
+				status = td_list[3].text.strip()
+				popular = td_list[4].text.strip()
+				source = source_map.get(gtype)
+				downloads = popular
+				store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+	except Exception,e:
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 
 
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'}
@@ -1093,8 +1018,6 @@ def get_18183_top_app_rank(gtype, url):
 def main():
 	get_data(get_baidu_hot_games)
 	get_data(get_360_online_games)
-	get_data(get_9game_detail)
-	get_data(get_9game_detail2)
 	store_360_app_rank()
 	store_m5qq_app_rank()
 	store_m_baidu_app_rank()
@@ -1116,6 +1039,7 @@ def main():
 	get_91play_app_rank()
 	store_360_gamebox_app_rank()
 	store_18183_top_app_rank()
+	store_9game_web_app_rank()
 
 if __name__ == '__main__':
-	main()
+	#main()
