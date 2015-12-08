@@ -104,7 +104,11 @@ if __name__ == '__main__':
 			u"小米下载新网游"	: 50,
 				}
 	for k,v in source_map.iteritems():
-		item = RankingChannel(**{'id': v, 'name':k})
-		db_conn.merge(item)
+		ins = db_conn.query(RankingChannel).filter(RankingChannel.id==id).first()
+		if not ins:
+			item = RankingChannel(**{'id': v, 'name':k})
+			db_conn.merge(item)
+		else:
+			ins.name = k
 	db_conn.commit()
 

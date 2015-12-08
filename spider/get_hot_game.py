@@ -36,7 +36,7 @@ source_map = {
 			"m_baidu_webgame"	: 12,
 			"m_baidu_new_game"	: 13,
 			"dangle_new_game"	: 14,
-			"xiaomi_downloads"	: 15,
+			"xiaomi_new_game"	: 15,
 			"vivo_single"	: 16,
 			"vivo_webgame"	: 17,
 			"vivo_new_game"	: 18,
@@ -70,7 +70,7 @@ source_map = {
 			"18183_top"	: 46,
 			"18183_hot"	: 47,
 			"360_app_expect"	: 48,
-			"xiaomi_new_game": 49,
+			"xiaomi_downloads": 49,
 			"xiaomi_new_webganme": 50,
 				}
 
@@ -189,11 +189,10 @@ def store_xiaomi_app_rank():
 					}
 	for gtype, rank_id in type_2_source.iteritems():
 		for data in get_xiaomi_app_rank(gtype, rank_id):
-			#store_data(data)
-			rank, game_name, img, downloads, size, source, popular, game_type, status, url = data
-			print gtype, game_name
-		print 
-		
+			store_data(data)
+			#rank, game_name, img, downloads, size, source, popular, game_type, status, url = data
+			#print gtype, game_name
+		#print 
 
 def get_360_online_games():
 	for page in xrange(1,4):
