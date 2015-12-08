@@ -140,3 +140,53 @@ class PublishGame(Base):
 	dt = Column(Unicode(100), nullable=False, default=u'')
 	create_date = Column(DateTime, nullable=False, default=datetime.now())#创建时间
 	last_update = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间
+
+
+class HotGameDetailByDay(Base):
+	
+	__tablename__ = 'hot_game_detail_by_day'
+	
+	id = Column(Integer, primary_key=True, autoincrement=True)
+	name = Column(Unicode(100), nullable=False, default=u'', index=True)
+	imgs = Column(UnicodeText, nullable=False, default=u'')
+	game_type = Column(Unicode(100), nullable=False, default=u'')
+	summary = Column(UnicodeText, nullable=False, default=u'')
+	download_num = Column(Unicode(50), nullable=False, default=u'')
+	comment_num = Column(Unicode(50), nullable=False, default=u'')
+	rating = Column(Unicode(50), nullable=False, default=u'')
+	rank = Column(Unicode(50), nullable=False, default=u'')
+	topic_num_day = Column(Unicode(50), nullable=False, default=u'')
+	topic_num_total = Column(Unicode(50), nullable=False, default=u'')
+	pkg_size = Column(Unicode(50), nullable=False, default=u'')
+	company = Column(Unicode(100), nullable=False, default=u'')
+	version = Column(Unicode(100), nullable=False, default=u'')
+	author = Column(Unicode(100), nullable=False, default=u'')
+	dt = Column(Unicode(100), nullable=False, default=u'', index=True)
+	channel = Column(Integer, nullable=False, default=0, index=True)
+	update_time = Column(Unicode(100), nullable=False, default=u'')
+	create_date = Column(DateTime, nullable=False, default=datetime.now())#创建时间
+	last_update = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间
+
+class ChannelToRanking(Base):
+	
+	__tablename__ = 'channel_to_ranking'#渠道与榜单映射关系
+	
+	channel_id = Column(Integer, primary_key=True, autoincrement=False)
+	ranking_id = Column(Integer, primary_key=True, autoincrement=False)
+
+
+class Channel(Base):
+
+	__tablename__ = 'channel'
+
+	id = Column(Integer, primary_key=True, autoincrement=False)
+	name = Column(Unicode(100), nullable=False, default=u'', index=True)
+
+
+class RankingChannel(Base):
+
+	__tablename__ = 'ranking_channel'
+
+	id = Column(Integer, primary_key=True, autoincrement=False)
+	name = Column(Unicode(100), nullable=False, default=u'', index=True)
+

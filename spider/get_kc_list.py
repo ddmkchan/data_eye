@@ -46,6 +46,7 @@ source_map = {
 			"xyzs": 26,
 			"91play": 27,#酷玩汇
 			"360_gamebox": 28,
+			"m_baidu_app": 29,#百度手机助手
 				}
 
 class T:

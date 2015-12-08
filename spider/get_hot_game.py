@@ -29,9 +29,9 @@ source_map = {
 			"360_app_single"	: 5,
 			"360_app_webgame"	: 6,
 			"360_app_new_game"	: 7,
-			"m5_qq_single"	: 8,#应用宝
-			"m5_qq_webgame"	: 9,#应用宝
-			"m5_qq_new_game"	: 10,#应用宝
+			"m5_qq_single"	: 8,#应用宝PC
+			"m5_qq_webgame"	: 9,#应用宝PC
+			"m5_qq_new_game"	: 10,#应用宝PC
 			"m_baidu_single"	: 11,
 			"m_baidu_webgame"	: 12,
 			"m_baidu_new_game"	: 13,
@@ -69,6 +69,9 @@ source_map = {
 			"open_play_rise"	: 45,
 			"18183_top"	: 46,
 			"18183_hot"	: 47,
+			"360_app_expect"	: 48,
+			"xiaomi_new_game": 49,
+			"xiaomi_new_webganme": 50,
 				}
 
 def get_baidu_hot_games():
@@ -161,7 +164,7 @@ def get_xiaomi_game_rank(page, rank_id):
 
 def get_xiaomi_app_rank(gtype, rank_id):
 	rank = 0
-	for page in xrange(5):
+	for page in xrange(1):
 		detail = get_xiaomi_game_rank(page, rank_id)
 		if detail is not None:
 			for d in detail:
@@ -180,11 +183,16 @@ def get_xiaomi_app_rank(gtype, rank_id):
 def store_xiaomi_app_rank():
 	type_2_source = {
 						"xiaomi_active": 12,
-						"xiaomi_downloads": 3,
+						"xiaomi_new_webganme": 13,
+						"xiaomi_downloads": 2,
+						"xiaomi_new_game": 3,
 					}
 	for gtype, rank_id in type_2_source.iteritems():
 		for data in get_xiaomi_app_rank(gtype, rank_id):
-			store_data(data)
+			#store_data(data)
+			rank, game_name, img, downloads, size, source, popular, game_type, status, url = data
+			print gtype, game_name
+		print 
 		
 
 def get_360_online_games():
@@ -205,6 +213,9 @@ def get_360_online_games():
 				source 		= source_map.get("360")
 				yield game_name, img, downloads, size, source, popular, game_type, status, url
 
+
+def get_9game_web_app_rank():
+	pass
 
 def get_9game_new_wanted_list():
 	r = s.get("http://www.9game.cn/xyqdb/")
@@ -332,6 +343,7 @@ def get_360_app_rank(gtype):
 	rank = 0
 	type_2_source = {'single': '360_app_single',
 						'webgame': '360_app_webgame',
+						'expect': '360_app_expect',
 						'new': '360_app_new_game'}
 	_url = 'http://openboxcdn.mobilem.360.cn//app/rank?from=game&type=%s&page=1' % gtype
 	try:
@@ -354,7 +366,7 @@ def get_360_app_rank(gtype):
 		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
 
 def store_360_app_rank():
-	for gtype in ['single', 'webgame', 'new']:
+	for gtype in ['single', 'webgame', 'new', 'expect']:
 		mylogger.info("360 %s rank start... " % gtype)
 		for data in get_360_app_rank(gtype):
 			store_data(data)
@@ -447,7 +459,7 @@ def store_m_baidu_app_rank():
 	web_game_url = [prefix_web_game_url+"&pn=%s" %p for p in xrange(5)]
 	prefix_top_url = 'http://m.baidu.com/appsrv?uid=YPvuu_PqvfgkiHf30uS88liwHulTiSiQYiHPfgiOB8qLuHf3_PvoigaX2ig5uBiN3dqqC&native_api=1&psize=3&abi=armeabi-v7a&cll=_hv19g8O2NAVA&usertype=0&is_support_webp=true&ver=16786356&from=1011454q&board_id=board_102_139&operator=460015&network=WF&pkname=com.dragon.android.pandaspace&country=CN&cen=cuid_cut_cua_uid&gms=false&platform_version_id=19&firstdoc=&name=game&action=ranklist&pu=cua%40_a-qi4uq-igBNE6lI5me6NIy2I_UC-I4juDpieLqA%2Cosname%40baiduappsearch%2Cctv%401%2Ccfrom%401010680f%2Ccuid%40YPvuu_PqvfgkiHf30uS88liwHulTiSiQYiHPfgiOB86QuviJ0O2lfguGv8_Huv8uja20fqqqB%2Ccut%405fXCirktSh_Uh2IJgNvHtyN6moi5pQqAC&language=zh&apn=&&native_api=1&f=gameranklist%40tab%400&bannert=26%4027%4028%4029%4030%4031%4032%4043'
 	top_game_url = [prefix_top_url+"&pn=%s" %p for p in xrange(5)]
-	_dict = {'m_baidu_top': top_game_url}
+	_dict = {'m_baidu_top': top_game_url, 'm_baidu_single': single_url, 'm_baidu_webgame': web_game_url, 'm_baidu_new_game': new_games_url}
 	for gtype, urls in _dict.iteritems():
 		for _url in urls:
 			for data in get_m_baidu_rank(gtype, _url):
@@ -1104,7 +1116,7 @@ def main():
 	get_xyzs_app_rank()
 	get_91play_app_rank()
 	store_360_gamebox_app_rank()
+	store_18183_top_app_rank()
 
 if __name__ == '__main__':
-	#main()
-	store_18183_top_app_rank()
+	main()
