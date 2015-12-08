@@ -707,7 +707,6 @@ def get_dangle_detail(channel_id):
 												'imgs' : u','.join(g['snapshotUrls']),
 													})
 					db_conn.merge(item)
-					break
 	mylogger.info("get dangle detail %s" % count)
 	db_conn.commit()
 
@@ -1176,7 +1175,6 @@ def get_youku_detail(channel_id):
 	mylogger.info(_sql)
 	for ret in db_conn.execute(_sql):
 		name, pkg_id = ret
-		print name, pkg_id
 		if error_times >= 20:
 			mylogger.info("youku reach max error times ... ")
 			break
