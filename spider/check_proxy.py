@@ -66,7 +66,7 @@ if __name__ == '__main__':
 			u"百度手机助手app网游榜"	: 12,
 			u"百度手机助手app新游榜"	: 13,
 			u"当乐新游榜"	: 14,
-			u"小米下载下载榜"	: 15,
+			u"小米游戏新品榜"	: 15,
 			u"vivo单机榜"	: 16,
 			u"vivo网游榜"	: 17,
 			u"vivo新游榜"	: 18,
@@ -100,11 +100,11 @@ if __name__ == '__main__':
 			u"18183新游期待榜"	: 46,
 			u"18183热门手游榜"	: 47,
 			u"360助手app期待榜"	: 48,
-			u"小米下载新品榜"	: 49,
-			u"小米下载新网游"	: 50,
+			u"小米游戏下载榜"	: 49,
+			u"小米游戏新网游"	: 50,
 				}
 	for k,v in source_map.iteritems():
-		ins = db_conn.query(RankingChannel).filter(RankingChannel.id==id).first()
+		ins = db_conn.query(RankingChannel).filter(RankingChannel.id==v).first()
 		if not ins:
 			item = RankingChannel(**{'id': v, 'name':k})
 			db_conn.merge(item)
