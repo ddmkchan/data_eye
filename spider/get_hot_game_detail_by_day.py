@@ -95,7 +95,6 @@ def get_9game_detail(channel_id):
 													'comment_num' : comments_num,
 													})
 					db_conn.merge(item)
-					break
 					if count % 50 == 0:
 						sleep(3)
 						mylogger.info("9game detail commit %s" % count)
@@ -676,14 +675,15 @@ def get_dangle_detail(channel_id):
 	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
 	mylogger.info("### %s ###" % _sql)
 	for ret in db_conn.execute(_sql):
-		name, pkg_id = ret
+		name, url = ret
 		if error_times >= 10:
 			mylogger.info("dangle reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
-			g =  get_dangle_detail_by_id(pkg_id)
+			resourceType, gid = url.split('\t')
+			g =  get_dangle_detail_by_id(resourceType, gid)
 			if isinstance(g, EX):
 				error_times += 1
 			elif g is not None:
@@ -712,8 +712,10 @@ def get_dangle_detail(channel_id):
 	db_conn.commit()
 
 
-def get_dangle_detail_by_id(gid):
-	url = "http://api2014.digua.d.cn/newdiguaserver/res/detail?id=%s&resourceType=5"% gid
+def get_dangle_detail_by_id(resourceType, gid):
+	payload = {'id': gid, 'resourceType': resourceType}
+	url = "http://api2014.digua.d.cn/newdiguaserver/res/detail"
+	#url = "http://api2014.digua.d.cn/newdiguaserver/res/detail?id=%s&resourceType=5"% gid
 	headers = {"HEAD": {
     "stamp":1447747218496,
     "verifyCode":"78492ba9e8569f3b9d9173ac4e4b6cb9",
@@ -741,7 +743,7 @@ def get_dangle_detail_by_id(gid):
     "gpu":"Adreno (TM) 330"
 	}}
 	try:
-		r = requests.post(url, headers=headers, timeout=20)
+		r = requests.post(url, data=payload, headers=headers, timeout=20)
 		if r.status_code == 200:
 			d = r.json()
 			return d
@@ -1336,7 +1338,6 @@ def get_xyzs_app_detail(channel_id):
 									'imgs' : u','.join(g.get('iphoneimg', [])),
 										})
 						db_conn.merge(item)
-						break
 			except Exception,e:
 				error_times += 1
 				mylogger.error("xyzs app #### %s #### \t%s" % (url, traceback.format_exc()))
@@ -1469,7 +1470,7 @@ def main():
 	get_xyzs_app_detail(26)
 	get_youku_detail(13)
 	get_appicsh_detail(3)
-	#get_dangle_detail(15)
+	get_dangle_detail(15)
 	
 def get_itools_detail():
 	pass
