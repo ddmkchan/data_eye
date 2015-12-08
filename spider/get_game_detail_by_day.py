@@ -1344,7 +1344,7 @@ def get_360_gamebox_detail():
 				response = requests.get(url, timeout=10)
 				if response.status_code == 200:
 					j = response.json() 
-					if j['data'] is not None and j['data']['info'] is not None:
+					if j['data'] is not None and j['data']['info'] is not None and j['data']['info']:
 						g = j['data']['info']
 						count += 1 
 						#for k, v in g.iteritems():
@@ -1384,15 +1384,6 @@ def main():
 	get_dangle_detail()
 	get_muzhiwan_detail()
 	get_meizu_detail()
-	get_huawei_detail()
-	get_wandoujia_detail()
-	get_kuaiyong_detail()
-	get_youku_detail()
-	get_360_app_detail()
-	get_i4_app_detail()
-	get_xyzs_app_detail()
-	get_91play_detail()
-	get_360_gamebox_detail()
 
 if __name__ == '__main__':
 	main()

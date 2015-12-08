@@ -67,6 +67,8 @@ source_map = {
 			"m5_qq_download"	: 43,
 			"m_baidu_top"	: 44,
 			"open_play_rise"	: 45,
+			"18183_top"	: 46,
+			"18183_hot"	: 47,
 				}
 
 def get_baidu_hot_games():
@@ -1044,6 +1046,39 @@ def store_360_gamebox_app_rank():
 		for data in get_360_gamebox_app_rank(gtype, url):
 			store_data(data)
 
+def store_18183_top_app_rank():
+	_dict = {'18183_top': 'http://top.18183.com/', '18183_hot': 'http://top.18183.com/hot.html'}
+	for gtype, url in _dict.iteritems():
+		get_18183_top_app_rank(gtype, url)
+
+
+def get_18183_top_app_rank(gtype, url):
+	rank = 0
+	try:
+		response = requests.get(url, timeout=10)
+		if response.status_code == 200:
+			soup = BeautifulSoup(response.text)
+			ranking_mod = soup.find('div', class_='ranking-mod')
+			if ranking_mod is not None:
+				for app in ranking_mod.find_all('li'):
+					num_fl = app.find('div', class_='num fl')
+					if num_fl is not None:
+						game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+						rank = num_fl.text
+						dt = app.find('dt')
+						if dt is not None and dt.find('a') is not None:
+							game_name = dt.find('a').get('title')
+							url = dt.find('a').get('href')
+							img = dt.find('img').get('src')
+						rank_fl = app.find('div', class_='rank fl')
+						if rank_fl is not None and rank_fl.find('p') is not None:
+							downloads = rank_fl.find('p').text 
+						source = source_map.get(gtype)
+						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+						#print rank, game_name, source, url, downloads
+	except Exception,e:
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
+
 def main():
 	get_data(get_baidu_hot_games)
 	get_data(get_360_online_games)
@@ -1071,4 +1106,5 @@ def main():
 	store_360_gamebox_app_rank()
 
 if __name__ == '__main__':
-	main()
+	#main()
+	store_18183_top_app_rank()

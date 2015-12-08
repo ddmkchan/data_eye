@@ -89,3 +89,13 @@ def get_proxies():
 		
 if __name__ == '__main__':
 	get_pp_detail()
+	from get_game_detail_by_day import *
+	get_huawei_detail()
+	get_wandoujia_detail()
+	get_kuaiyong_detail()
+	get_youku_detail()
+	get_360_app_detail()
+	get_i4_app_detail()
+	get_xyzs_app_detail()
+	get_91play_detail()
+	get_360_gamebox_detail()

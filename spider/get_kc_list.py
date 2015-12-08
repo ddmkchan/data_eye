@@ -1542,6 +1542,7 @@ def get_360_gamebox_kc(start):
 	mylogger.info("get %s records from 360_gamebox " % (count))
 	db_conn.commit()
 
+
 def main():
 	mylogger.info("gogo")
 	get_18183_kc()
