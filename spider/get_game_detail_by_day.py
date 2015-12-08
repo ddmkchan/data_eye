@@ -24,6 +24,10 @@ class T:
 	def __init__(self, status_code):
 		self.status_code = status_code
 
+class EX:
+	
+	msg = ""
+
 
 def get_9game_detail():
 	mylogger.info("get 9game detail start ...")
@@ -444,7 +448,7 @@ def get_coolpad_detail():
 											'imgs' : imgs,
 												})
 				db_conn.merge(item)
-			else:
+			if isinstance(g, EX):
 				error_times += 1
 	mylogger.info("get coolpad detail %s" % count)
 	db_conn.commit()
@@ -456,21 +460,17 @@ def get_coolpad_detail_by_id(resid):
 <request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064">
   <resid>%s</resid>
 </request>""" % resid
-	msg = 'fail'
 	try:
 		r = requests.post(url, data=raw_data, headers={'Content-Type': 'application/xml'})
+		if r.status_code == 200:
+			t = re.sub(u'\r|\n', '', r.text)
+			doc = xmltodict.parse(t)
+			d = doc['response']['reslist']['res']
+			if d['@rid'] != u'':
+				return d
 	except Exception,e:
 		mylogger.error("%s\t%s" % (resid.encode('utf-8'), traceback.format_exc()))
-		r = T(404)
-	if r.status_code == 200:
-		t = re.sub(u'\r|\n', '', r.text)
-		doc = xmltodict.parse(t)
-		d = doc['response']['reslist']['res']
-		if d['@rid'] != u'':
-			return d
-		else:
-			msg = 'expire'
-	mylogger.info("get %s coolpad detail %s" % (resid, msg))
+		return EX()
 	return None
 
 def get_gionee_detail():
@@ -579,7 +579,7 @@ def get_iqiyi_detail():
 												'imgs' : u",".join([i.get('full_img', u'') for i in d['medias']]),
 													})
 					db_conn.merge(item)
-				else:
+				if isinstance(d, EX):
 					error_times += 1
 			except Exception,e:
 				error_times += 1
@@ -598,6 +598,7 @@ def get_iqiyi_detail_by_id(qipu_id):
 				return json.loads(m.group(1))
 	except Exception, e:
 		mylogger.error("### %s ###\t%s" % (qipu_id.encode('utf-8'), traceback.format_exc()))
+		return EX()
 	return None
 
 def get_sogou_detail():
@@ -670,14 +671,13 @@ def get_dangle_detail():
 											'imgs' : u','.join(g['snapshotUrls']),
 												})
 				db_conn.merge(item)
-			if 'ex_msg' in g:
+			if isinstance(g, EX):
 				error_times += 1
 	mylogger.info("get dangle detail %s" % count)
 	db_conn.commit()
 
 
 def get_dangle_detail_by_id(gid):
-	
 	url = "http://api2014.digua.d.cn/newdiguaserver/res/detail?id=%s&resourceType=5"% gid
 	headers = {"HEAD": {
     "stamp":1447747218496,
@@ -705,15 +705,14 @@ def get_dangle_detail_by_id(gid):
     "osName":"4.4.4",
     "gpu":"Adreno (TM) 330"
 	}}
-	r = requests.post(url, headers=headers)
-	if r.status_code == 200:
-		try:
-			d = r.json()
-			return d
-		except Exception,e:
-			return {'ex_msg': u'Exception'}
-			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
-	return {}
+	try:
+		r = requests.post(url, headers=headers, timeout=30)
+		if r.status_code == 200:
+			return r.json()
+	except Exception,e:
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
+		return EX()
+	return None
 
 def get_muzhiwan_detail():
 	count = 0
@@ -745,7 +744,7 @@ def get_muzhiwan_detail():
 				if count % 100 == 0:
 					sleep(1.23)
 					mylogger.info("muzhiwan detail %s commit ... " % count)
-			if 'ex_msg' in g:
+			if isinstance(g, EX):
 				error_times += 1
 	mylogger.info("get muzhiwan detail %s" % count)
 	db_conn.commit()
@@ -784,8 +783,8 @@ def get_muzhiwan_detail_by_id(url):
 		if summary is not None:
 			mydict['description'] = summary.text
 	except Exception,e:
-		mydict = {'ex_msg': u'Exception'}
 		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
+		return EX()
 	return mydict
 
 
@@ -801,7 +800,7 @@ def get_huawei_detail():
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
 			g = get_huawei_detail_by_id(ret.url)
-			if 'ex_msg' in g:
+			if isinstance(g, EX):
 				error_times += 1
 			if g:
 				count += 1 
@@ -861,9 +860,9 @@ def get_huawei_detail_by_id(url):
 				if m is not None:
 					mydict['comment_num'] = m.group()
 	except Exception,e:
-		mydict = {'ex_msg': u'Exception'}
 		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 		sleep(5)
+		return EX()
 	return mydict
 
 def get_kuaiyong_detail():
@@ -895,7 +894,7 @@ def get_kuaiyong_detail():
 				if count % 100 == 0:
 					mylogger.info("kuaiyong detail commit %s" % count)
 					db_conn.commit()
-			else:
+			if isinstance(g, EX):
 				error_times += 1
 	mylogger.info("get kuaiyong detail %s" % count)
 	db_conn.commit()
@@ -933,6 +932,7 @@ def get_kuaiyong_detail_by_id(URL):
 	except Exception,e:
 		#sleep(3.21)
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+		return EX()
 	return mydict
 
 
@@ -1035,7 +1035,7 @@ def get_wandoujia_detail():
 				if count % 100 == 0:
 					mylogger.info("wandoujia detail commit %s" % count)
 					db_conn.commit()
-			else:
+			if isinstance(g, EX):
 				error_times += 1
 	mylogger.info("get wandoujia detail %s" % count)
 	db_conn.commit()
@@ -1052,6 +1052,7 @@ def get_wandoujia_detail_by_id(url):
 				return detail
 	except Exception,e:
 		mylogger.error("### %s ### %s" % (url.encode('utf-8'), traceback.format_exc()))
+		return EX()
 	return None
 
 
@@ -1060,13 +1061,13 @@ def get_meizu_detail_by_id(gid):
 	URL = "http://api-game.meizu.com/games/public/detail/%s" % gid
 	try:
 		response = requests.get(URL, timeout=10)
+		if response.status_code == 200:
+			j = response.json()
+			if 'value' in j:
+				return j['value']
 	except Exception,e:
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
-		response = T(404)
-	if response.status_code == 200:
-		j = response.json()
-		if 'value' in j:
-			return j['value']
+		return EX()
 	return None
 
 
@@ -1098,7 +1099,7 @@ def get_meizu_detail():
 									'imgs' : u','.join([i.get('image') for i in g.get('images', [])]),
 										})
 				db_conn.merge(item)
-			else:
+			if isinstance(g, EX):
 				error_times += 1
 	mylogger.info("get meizu detail %s" % count)
 	db_conn.commit()
@@ -1127,6 +1128,7 @@ def get_youku_detail_by_id(app_id):
 			return j['app']
 	except Exception,e:
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+		return EX()
 	return None
 
 def get_youku_detail():
@@ -1155,7 +1157,7 @@ def get_youku_detail():
 									'imgs' : u','.join(g.get('screenshot', [])),
 										})
 				db_conn.merge(item)
-			else:
+			if isinstance(g, EX):
 				error_times += 1
 	mylogger.info("get youku detail %s" % count)
 	db_conn.commit()
@@ -1368,7 +1370,7 @@ def get_360_gamebox_detail():
 	mylogger.info("get 360_gamebox app detail %s" % count)
 	db_conn.commit()
 
-def main():
+def step1():
 	get_xiaomi_new_detail()
 	get_xiaomi_rpg_detail()
 	get_open_play_detail()
@@ -1385,5 +1387,16 @@ def main():
 	get_muzhiwan_detail()
 	get_meizu_detail()
 
+def step2():
+	get_huawei_detail()
+	get_wandoujia_detail()
+	get_kuaiyong_detail()
+	get_youku_detail()
+	get_360_app_detail()
+	get_i4_app_detail()
+	get_xyzs_app_detail()
+	get_91play_detail()
+	get_360_gamebox_detail()
+
 if __name__ == '__main__':
-	main()
+	step1()
