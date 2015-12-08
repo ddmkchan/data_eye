@@ -1042,4 +1042,4 @@ def main():
 	store_9game_web_app_rank()
 
 if __name__ == '__main__':
-	#main()
+	main()
