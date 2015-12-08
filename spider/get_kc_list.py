@@ -1468,7 +1468,6 @@ def get_91play_kc():
 		response = requests.post(URL, data=raw_data, timeout=10)
 		if response.status_code == 200:
 			j = response.json() 
-			print j
 			if j['data'] is not None:
 				for rt in json.loads(j['data']):
 					gid = rt.get('id', 0)
