@@ -406,6 +406,7 @@ def get_dangle_app_rank():
 					downloads = app.get('downs', u'')
 					game_type = app.get('categoryName', u'')
 					source = source_map.get('dangle_new_game')
+					url = app.get('id', u'')
 					store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 	except Exception,e:
 		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
@@ -899,6 +900,8 @@ def store_data(ret):
 						"dt"			: dt
 						})
 		db_conn.merge(item)
+	else:
+		ins.url = url
 	db_conn.commit()
 
 def get_xyzs_app_rank():
