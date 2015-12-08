@@ -406,7 +406,7 @@ def get_dangle_app_rank():
 					downloads = app.get('downs', u'')
 					game_type = app.get('categoryName', u'')
 					source = source_map.get('dangle_new_game')
-					url = app.get('id', u'')
+					url = u"%s\t%s" % (app.get('resourceType', u''), app.get('id', u''))
 					store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 	except Exception,e:
 		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
@@ -881,29 +881,6 @@ def get_itools_detail(URL):
 	return mydict
 
 
-def store_data(ret):
-	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
-	dt = unicode(datetime.date.today())
-	ins = db_conn.query(HotGames).filter(HotGames.name==game_name).filter(HotGames.source==source).filter(HotGames.dt==dt).filter(HotGames.rank==rank).first()
-	if ins is None:
-		item = HotGames(**{
-						"name"			: game_name,
-						"src"			: img,
-						"download_count"		: downloads,
-						"size"			: size,
-						"source"		: source,
-						"rank"			: rank,
-						"popular"		: popular,
-						"game_type"		: game_type,
-						"status"		: status,
-						"url"			: url,
-						"dt"			: dt
-						})
-		db_conn.merge(item)
-	else:
-		ins.url = url
-	db_conn.commit()
-
 def get_xyzs_app_rank():
 	rank = 0
 	URL = "http://interface.xyzs.com/v2/ios/c01/rank/game?p=1&ps=20"
@@ -1018,6 +995,29 @@ def get_18183_top_app_rank(gtype, url):
 	except Exception,e:
 		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 
+def store_data(ret):
+	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
+	dt = unicode(datetime.date.today())
+	ins = db_conn.query(HotGames).filter(HotGames.name==game_name).filter(HotGames.source==source).filter(HotGames.dt==dt).filter(HotGames.rank==rank).first()
+	if ins is None:
+		item = HotGames(**{
+						"name"			: game_name,
+						"src"			: img,
+						"download_count"		: downloads,
+						"size"			: size,
+						"source"		: source,
+						"rank"			: rank,
+						"popular"		: popular,
+						"game_type"		: game_type,
+						"status"		: status,
+						"url"			: url,
+						"dt"			: dt
+						})
+		db_conn.merge(item)
+	else:
+		ins.url = url
+	db_conn.commit()
+
 def main():
 	get_data(get_baidu_hot_games)
 	get_data(get_360_online_games)
@@ -1045,4 +1045,5 @@ def main():
 	store_9game_web_app_rank()
 
 if __name__ == '__main__':
-	main()
+	get_dangle_app_rank()
+	#main()
