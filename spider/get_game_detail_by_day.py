@@ -430,7 +430,9 @@ def get_coolpad_detail():
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
 			g =  get_coolpad_detail_by_id(ret.title2)
-			if g is not None:
+			if isinstance(g, EX):
+				error_times += 1
+			elif g is not None:
 				count += 1 
 				imgs = u''
 				if g['pics'] is not None and g['pics']['picurl'] is not None:
@@ -448,8 +450,6 @@ def get_coolpad_detail():
 											'imgs' : imgs,
 												})
 				db_conn.merge(item)
-			if isinstance(g, EX):
-				error_times += 1
 	mylogger.info("get coolpad detail %s" % count)
 	db_conn.commit()
 
@@ -563,27 +563,23 @@ def get_iqiyi_detail():
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
 			d =  get_iqiyi_detail_by_id(ret.title2)
-			try:
-				if d is not None:
-					g = d['app']
-					count += 1 
-					item = GameDetailByDay(**{
-												'kc_id': ret.id,
-												'summary' : g.get('desc', u''),
-												'game_type' : g.get('cate_name', u''),
-												'version' : g.get('version', u''),
-												'download_num' : g.get('cnt', u''),
-												'author' : g.get('author', u''),
-												'pkg_size' : g.get('l_size' u''),
-												'dt' : dt,
-												'imgs' : u",".join([i.get('full_img', u'') for i in d['medias']]),
-													})
-					db_conn.merge(item)
-				if isinstance(d, EX):
-					error_times += 1
-			except Exception,e:
+			if isinstance(d, EX):
 				error_times += 1
-				mylogger.error("%s\t%s" % (ret.title2.encode('utf-8'), traceback.format_exc()))
+			elif d is not None:
+				g = d['app']
+				count += 1 
+				item = GameDetailByDay(**{
+											'kc_id': ret.id,
+											'summary' : g.get('desc', u''),
+											'game_type' : g.get('cate_name', u''),
+											'version' : g.get('version', u''),
+											'download_num' : g.get('cnt', u''),
+											'author' : g.get('author', u''),
+											'pkg_size' : g.get('l_size' u''),
+											'dt' : dt,
+											'imgs' : u",".join([i.get('full_img', u'') for i in d['medias']]),
+												})
+				db_conn.merge(item)
 	mylogger.info("get iqiyi detail %s" % count)
 	db_conn.commit()
 
@@ -651,7 +647,9 @@ def get_dangle_detail():
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
 			g =  get_dangle_detail_by_id(ret.title2)
-			if g is not None:
+			if isinstance(g, EX):
+				error_times += 1
+			elif g is not None:
 				count += 1 
 				packageTOs = {}
 				if 'packageTOs' in g:
@@ -671,8 +669,6 @@ def get_dangle_detail():
 											'imgs' : u','.join(g['snapshotUrls']),
 												})
 				db_conn.merge(item)
-			if isinstance(g, EX):
-				error_times += 1
 	mylogger.info("get dangle detail %s" % count)
 	db_conn.commit()
 
@@ -726,7 +722,9 @@ def get_muzhiwan_detail():
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
 			g = get_muzhiwan_detail_by_id(ret.url)
-			if g:
+			if isinstance(g, EX):
+				error_times += 1
+			elif g:
 				#m = re.search(u'(\d+)个', g.get(u'评论数', u''))
 				#comment_num = m.group(1) if m is not None else u''
 				count += 1 
@@ -744,8 +742,6 @@ def get_muzhiwan_detail():
 				if count % 100 == 0:
 					sleep(1.23)
 					mylogger.info("muzhiwan detail %s commit ... " % count)
-			if isinstance(g, EX):
-				error_times += 1
 	mylogger.info("get muzhiwan detail %s" % count)
 	db_conn.commit()
 
@@ -802,7 +798,7 @@ def get_huawei_detail():
 			g = get_huawei_detail_by_id(ret.url)
 			if isinstance(g, EX):
 				error_times += 1
-			if g:
+			elif g:
 				count += 1 
 				item = GameDetailByDay(**{
 											'kc_id': ret.id,
@@ -877,7 +873,9 @@ def get_kuaiyong_detail():
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
 			g = get_kuaiyong_detail_by_id(ret.url)
-			if g:
+			if isinstance(g, EX):
+				error_times += 1
+			elif g:
 				count += 1 
 				item = GameDetailByDay(**{
 											'kc_id': ret.id,
@@ -894,8 +892,6 @@ def get_kuaiyong_detail():
 				if count % 100 == 0:
 					mylogger.info("kuaiyong detail commit %s" % count)
 					db_conn.commit()
-			if isinstance(g, EX):
-				error_times += 1
 	mylogger.info("get kuaiyong detail %s" % count)
 	db_conn.commit()
 
@@ -1010,7 +1006,9 @@ def get_wandoujia_detail():
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
 			g = get_wandoujia_detail_by_id(ret.url)
-			if g is not None:
+			if isinstance(g, EX):
+				error_times += 1
+			elif g is not None:
 				count += 1 
 				categories = g.get('categories', [])
 				game_type = u",".join([c['name'] for c in categories if c['level']==2])
@@ -1035,8 +1033,6 @@ def get_wandoujia_detail():
 				if count % 100 == 0:
 					mylogger.info("wandoujia detail commit %s" % count)
 					db_conn.commit()
-			if isinstance(g, EX):
-				error_times += 1
 	mylogger.info("get wandoujia detail %s" % count)
 	db_conn.commit()
 
@@ -1083,7 +1079,9 @@ def get_meizu_detail():
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
 			g = get_meizu_detail_by_id(ret.title2)
-			if g is not None:	
+			if isinstance(g, EX):
+				error_times += 1
+			elif g is not None:	
 				count += 1 
 				item = GameDetailByDay(**{
 									'kc_id': ret.id,
@@ -1099,8 +1097,6 @@ def get_meizu_detail():
 									'imgs' : u','.join([i.get('image') for i in g.get('images', [])]),
 										})
 				db_conn.merge(item)
-			if isinstance(g, EX):
-				error_times += 1
 	mylogger.info("get meizu detail %s" % count)
 	db_conn.commit()
 
@@ -1143,7 +1139,9 @@ def get_youku_detail():
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
 			g = get_youku_detail_by_id(ret.title2)
-			if g is not None:	
+			if isinstance(g, EX):
+				error_times += 1
+			elif g is not None:	
 				count += 1 
 				item = GameDetailByDay(**{
 									'kc_id': ret.id,
@@ -1157,8 +1155,6 @@ def get_youku_detail():
 									'imgs' : u','.join(g.get('screenshot', [])),
 										})
 				db_conn.merge(item)
-			if isinstance(g, EX):
-				error_times += 1
 	mylogger.info("get youku detail %s" % count)
 	db_conn.commit()
 
