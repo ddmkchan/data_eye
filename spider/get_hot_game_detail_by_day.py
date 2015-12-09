@@ -1394,7 +1394,6 @@ def get_91play_detail(channel_id):
 				response = requests.post(url, data=raw_data, timeout=10)
 				if response.status_code == 200:
 					j = response.json() 
-					print j['code'], j['code']==0
 					if j['code']==0 and j['data'] is not None and json.loads(j['data']) !=u'没有更多数据了':
 						g = json.loads(j['data'])
 						#break
