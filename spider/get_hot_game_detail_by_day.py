@@ -450,25 +450,32 @@ def get_vivo_detail(channel_id):
 	db_conn.commit()
 
 
-def get_coolpad_detail():
+def get_coolpad_detail(channel_id):
 	count = 0
 	error_times = 0
 	mylogger.info("get coolpad detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==9):
+	ids = channel_map.get(channel_id)
+	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
+	mylogger.info("### %s ###" % _sql)
+	for ret in db_conn.execute(_sql):
+		name, pkg = ret
 		if error_times >= 20:
 			mylogger.info("coolpad reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.kc_id==ret.id).filter(HotGameDetailByDay.dt==dt).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
-			g =  get_coolpad_detail_by_id(ret.title2)
-			if g is not None:
+			g =  get_coolpad_detail_by_id(pkg.split('\t')[1])
+			if isinstance(g, EX):
+				error_times += 1
+			elif g is not None:
 				count += 1 
 				imgs = u''
 				if g['pics'] is not None and g['pics']['picurl'] is not None:
 					imgs =  u','.join([i for i in g['pics']['picurl'] if i is not None])
 				item = HotGameDetailByDay(**{
-											'kc_id': ret.id,
+											'name': name,
+											'channel': channel_id,
 											'summary' : g.get('summary', u''),
 											'rating' : g.get('score', u''),
 											'game_type' : g.get('levelname', u''),
@@ -480,8 +487,6 @@ def get_coolpad_detail():
 											'imgs' : imgs,
 												})
 				db_conn.merge(item)
-			else:
-				error_times += 1
 	mylogger.info("get coolpad detail %s" % count)
 	db_conn.commit()
 
@@ -492,46 +497,48 @@ def get_coolpad_detail_by_id(resid):
 <request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064">
   <resid>%s</resid>
 </request>""" % resid
-	msg = 'fail'
 	try:
 		r = requests.post(url, data=raw_data, headers={'Content-Type': 'application/xml'})
+		if r.status_code == 200:
+			t = re.sub(u'\r|\n', '', r.text)
+			doc = xmltodict.parse(t)
+			d = doc['response']['reslist']['res']
+			if d['@rid'] != u'':
+				return d
 	except Exception,e:
 		mylogger.error("%s\t%s" % (resid.encode('utf-8'), traceback.format_exc()))
-		r = T(404)
-	if r.status_code == 200:
-		t = re.sub(u'\r|\n', '', r.text)
-		doc = xmltodict.parse(t)
-		d = doc['response']['reslist']['res']
-		if d['@rid'] != u'':
-			return d
-		else:
-			msg = 'expire'
-	mylogger.info("get %s coolpad detail %s" % (resid, msg))
+		return EX()
 	return None
 
-def get_gionee_detail():
+def get_gionee_detail(channel_id):
 	count = 0
 	error_times = 0
 	sess = requests.session()
 	mylogger.info("get gionee detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==10):
-		if error_times >= 10:
+	ids = channel_map.get(channel_id)
+	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
+	mylogger.info("### %s ###" % _sql)
+	for ret in db_conn.execute(_sql):
+		name, pkg = ret
+		if error_times >= 20:
 			mylogger.info("gionee reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.kc_id==ret.id).filter(HotGameDetailByDay.dt==dt).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
-			_url = u"http://game.gionee.com/Api/Local_Gameinfo/getDetails?gameId=%s" % ret.title2
 			try:
+				_url = u"http://game.gionee.com/Api/Local_Gameinfo/getDetails?gameId=%s" % pkg.split('\t')[1]
 				r = sess.get(_url, timeout=10)
 				if r.status_code == 200:
 					d = r.json()
-					if 'success' in d and d['success']:
+					if d['success']:
 						g = d['data']
 						count += 1 
 						item = HotGameDetailByDay(**{
-													'kc_id': ret.id,
+													'name': name,
+													'channel': channel_id,
 													'rating' : g.get('score', u''),
+													'download_num' : g.get('downloadCount', u''),
 													'author' : g.get('publisher', u''),
 													'game_type' : g.get('category', u''),
 													'version' : g.get('versionName', u''),
@@ -542,7 +549,7 @@ def get_gionee_detail():
 						db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
-				mylogger.error("%s\t%s" % (_url.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("%s\t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get gionee play detail %s" % count)
 	db_conn.commit()
 
@@ -1361,28 +1368,35 @@ def get_xyzs_app_detail(channel_id):
 	db_conn.commit()
 
 
-def get_91play_detail():
+def get_91play_detail(channel_id):
 	count = 0
 	error_times = 0
 	mylogger.info("get 91play app detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==27):
-		if error_times >= 10:
+	ids = channel_map.get(channel_id)
+	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
+	mylogger.info("### %s ###" % _sql)
+	for ret in db_conn.execute(_sql):
+		name, pkg = ret
+		if error_times >= 20:
 			mylogger.info("91play reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.kc_id==ret.id).filter(HotGameDetailByDay.dt==dt).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
 				url = "http://play.91.com/api.php/Api/index"
-				raw_data = {"id": int(ret.title2),"firmware":"19","time":1449458211590,"device":1,"action":30005,"app_version":302,"action_version":4,"mac":"7b715ce093480b34d6987","debug":0}
+				raw_data = {"id": int(pkg.split('\t')[1]),"firmware":"19","time":1449458211590,"device":1,"action":30005,"app_version":302,"action_version":4,"mac":"7b715ce093480b34d6987","debug":0}
 				response = requests.post(url, data=raw_data, timeout=10)
 				if response.status_code == 200:
 					j = response.json() 
-					if j['data'] is not None:
+					print j['code'], j['code']==0
+					if j['code']==0 and j['data'] is not None and json.loads(j['data']) !=u'没有更多数据了':
 						g = json.loads(j['data'])
+						#break
 						count += 1 
 						item = HotGameDetailByDay(**{
-									'kc_id': ret.id,
+									'name': name,
+									'channel': channel_id,
 									'summary' : g.get('content', u''),
 									'rating' : g.get('score', u''),
 									'version' : g.get('version', u''),
@@ -1396,7 +1410,7 @@ def get_91play_detail():
 						db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
-				mylogger.error("91play app detail #### %s #### \t%s" % (ret.title2.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("91play app detail #### %s #### \t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get 91play app detail %s" % count)
 	db_conn.commit()
 
@@ -1543,7 +1557,10 @@ def main():
 	#get_i4_app_detail(16)
 	#get_open_play_detail(7)
 	#get_m_baidu_detail(29)
-	get_wandoujia_detail(23)
+	#get_wandoujia_detail(23)
+	#get_coolpad_detail(9)
+	#get_91play_detail(27)
+	get_gionee_detail(10)
 	
 
 def get_muzhiwan_detail():

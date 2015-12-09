@@ -495,6 +495,7 @@ def get_gionee_detail():
 					item = GameDetailByDay(**{
 												'kc_id': ret.id,
 												'rating' : g.get('score', u''),
+												'download_num' : g.get('downloadCount', u''),
 												'author' : g.get('publisher', u''),
 												'game_type' : g.get('category', u''),
 												'version' : g.get('versionName', u''),
