@@ -92,5 +92,3 @@ def get_proxies():
 		
 if __name__ == '__main__':
 	get_pp_detail()
-	from get_game_detail_by_day import step2
-	step2()

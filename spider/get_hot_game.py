@@ -81,6 +81,8 @@ source_map = {
 			"360_stg"		: "57", #飞行射击
 			"360_strategy"	: "58", 
 			"360_chess"		: "59", 
+			"xiaomi_app_download"		: "60", 
+			"xiaomi_app_hot"		: "61", #畅销榜 
 				}
 
 def get_baidu_hot_games():
@@ -189,7 +191,7 @@ def get_xiaomi_app_rank(gtype, rank_id):
 				source = source_map.get(gtype)
 				yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
 
-def store_xiaomi_app_rank():
+def store_xiaomi_web_rank():
 	type_2_source = {
 						"xiaomi_active": 12,
 						"xiaomi_new_webganme": 13,
@@ -989,6 +991,11 @@ def store_360_gamebox_app_rank():
 		for data in get_360_gamebox_app_rank(gtype, url):
 			store_data(data)
 
+def store_xiaomi_app_rank():
+	_dict = {"xiaomi_app_download": "http://app.migc.xiaomi.com/cms/interface/v5/rankgamelist1.php?uid=20150905_132380697&platform=android&os=V6.7.1.0.KXDCNCH&stampTime=1449557687000&density=480&imei=865931027730878&pageSize=20&versionCode=1822&cid=gamecenter_100_1_android%7C865931027730878&clientId=40b53f3e316bda9f83c2e0c094d5b7f6&vn=MIGAMEAPPSTAND_1.8.22&co=CN&page=1&macWifi=3480B34D6987&la=zh&ua=Xiaomi%257CMI%2B4LTE%257C4.4.4%257CKTU84P%257C19%257Ccancro&carrier=unicom&rankId=17&mnc=46001&fuid=&mid=&imsi=460015776509846&sdk=19&mac3g=&bid=701",
+			"xiaomi_app_hot": "http://app.migc.xiaomi.com/cms/interface/v5/rankgamelist1.php?uid=20150905_132380697&platform=android&os=V6.7.1.0.KXDCNCH&stampTime=1449557980000&density=480&imei=865931027730878&pageSize=20&versionCode=1822&cid=gamecenter_100_1_android%7C865931027730878&clientId=40b53f3e316bda9f83c2e0c094d5b7f6&vn=MIGAMEAPPSTAND_1.8.22&co=CN&page=1&macWifi=3480B34D6987&la=zh&ua=Xiaomi%257CMI%2B4LTE%257C4.4.4%257CKTU84P%257C19%257Ccancro&carrier=unicom&rankId=18&mnc=46001&fuid=&mid=&imsi=460015776509846&sdk=19&mac3g=&bid=701"}
+	
+
 def store_18183_top_app_rank():
 	_dict = {'18183_top': 'http://top.18183.com/', '18183_hot': 'http://top.18183.com/hot.html'}
 	for gtype, url in _dict.iteritems():
@@ -1051,7 +1058,7 @@ def main():
 	store_m5qq_app_rank()
 	store_m_baidu_app_rank()
 	get_dangle_app_rank()
-	store_xiaomi_app_rank()
+	store_xiaomi_web_rank()
 	store_vivo_app_rank()
 	store_gionee_app_rank()
 	store_coolpad_app_rank()
