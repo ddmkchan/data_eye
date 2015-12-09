@@ -220,29 +220,30 @@ def get_appicsh_detail(channel_id):
 		if not ins:
 			try:
 				url = "http://m5.qq.com/app/getappdetail.htm?pkgName=%s&sceneId=0" % pkg.split('\t')[0]
-				response = sess.get(url, timeout=10)
-				d = response.json()
-				if d['obj'] is not None and d['obj']['appInfo'] is not None:
-					appinfo = d['obj']['appInfo']
-					count += 1
-					publishtime = appinfo.get('apkPublishTime', u"")
-					update_time = unicode(datetime.date.fromtimestamp(publishtime)) if publishtime else u""
+				r = sess.get(url, timeout=10)
+				if r.status_code == 200:
+					d = r.json()
+					if d['obj'] is not None and d['obj']['appInfo'] is not None:
+						appinfo = d['obj']['appInfo']
+						count += 1
+						publishtime = appinfo.get('apkPublishTime', u"")
+						update_time = unicode(datetime.date.fromtimestamp(publishtime)) if publishtime else u""
 
-					item = HotGameDetailByDay(**{'name': name,
-												'channel' : channel_id,
-												'dt' : dt,
-												'imgs' : u','.join([i for i in appinfo['screenshots']]),
-												'summary' : appinfo.get('description', u''),
-												'pkg_size' : appinfo.get('fileSize', u''),
-												'version' : appinfo.get('versionName', u''),
-												'rating' : appinfo.get('averageRating', u''),
-												'download_num' : appinfo.get('appDownCount', u''),
-												'author' : appinfo.get('authorName', u''),
-												'update_time' : update_time
-												})
-					db_conn.merge(item)
-					if count % 100 == 0:
-						db_conn.commit()
+						item = HotGameDetailByDay(**{'name': name,
+													'channel' : channel_id,
+													'dt' : dt,
+													'imgs' : u','.join([i for i in appinfo['screenshots']]),
+													'summary' : appinfo.get('description', u''),
+													'pkg_size' : appinfo.get('fileSize', u''),
+													'version' : appinfo.get('versionName', u''),
+													'rating' : appinfo.get('averageRating', u''),
+													'download_num' : appinfo.get('appDownCount', u''),
+													'author' : appinfo.get('authorName', u''),
+													'update_time' : update_time
+													})
+						db_conn.merge(item)
+						if count % 100 == 0:
+							db_conn.commit()
 			except Exception,e:
 				error_times += 1
 				mylogger.error("%s\t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
@@ -350,49 +351,54 @@ def get_xiaomi_rpg_detail():
 	db_conn.commit()
 							
 
-def get_open_play_detail():
+def get_open_play_detail(channel_id):
 	count = 0
 	error_times = 0
 	sess = requests.session()
 	mylogger.info("get open play detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==7):
-		if error_times >= 10:
+	ids = channel_map.get(channel_id)
+	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
+	mylogger.info("### %s ###" % _sql)
+	for ret in db_conn.execute(_sql):
+		name, url = ret
+		if error_times >= 20:
 			mylogger.info("open play detail reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.kc_id==ret.id).filter(HotGameDetailByDay.dt==dt).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
-			_url = u'http://open.play.cn/api/v2/mobile/game_detail.json?game_id=%s' % ret.title2
 			try:
-				response = sess.get(_url, timeout=10)
-				d = response.json()
-				if d.get('text', u'') == u'success':
-					count += 1 
-					g = d['ext']['game_detail']
-					topic_num_total = u''
-					ref_vote_info = d['ext']['ref_vote_info']
-					if ref_vote_info['vote_state'] == 1:
-						topic_num_total = ref_vote_info['vote_up_count'] + ref_vote_info['vote_dn_count']
-					item = HotGameDetailByDay(**{
-												'kc_id': ret.id,
-												'summary' : g.get('game_introduction', u''),
-												'author' : g.get('cp_name', u''),
-												'game_type' : g.get('game_class', u''),
-												'version' : g.get('version', u''),
-												'download_num' : g.get('game_download_count', u''),
-												'pkg_size' : g.get('game_size' u''),
-												'dt' : dt,
-												'imgs' : u','.join(g['game_view_images']),
-												'topic_num_total' : topic_num_total,
-													})
-					db_conn.merge(item)
-					if count % 100 == 0:
-						sleep(3)
-						mylogger.info("open play detail commit %s" % count)
-						db_conn.commit()
+				response = sess.get(url, timeout=10)
+				if response.status_code == 200:
+					d = response.json()
+					if d.get('text', u'') == u'success':
+						count += 1 
+						g = d['ext']['game_detail']
+						topic_num_total = u''
+						ref_vote_info = d['ext']['ref_vote_info']
+						if ref_vote_info['vote_state'] == 1:
+							topic_num_total = ref_vote_info['vote_up_count'] + ref_vote_info['vote_dn_count']
+						item = HotGameDetailByDay(**{
+													'channel': channel_id,
+													'name': name,
+													'summary' : g.get('game_introduction', u''),
+													'author' : g.get('cp_name', u''),
+													'game_type' : g.get('game_class', u''),
+													'version' : g.get('version', u''),
+													'download_num' : g.get('game_download_count', u''),
+													'pkg_size' : g.get('game_size' u''),
+													'dt' : dt,
+													'imgs' : u','.join(g['game_view_images']),
+													'topic_num_total' : topic_num_total,
+														})
+						db_conn.merge(item)
+						if count % 100 == 0:
+							sleep(3)
+							mylogger.info("open play detail commit %s" % count)
+							db_conn.commit()
 			except Exception,e:
 				error_times += 1
-				mylogger.error("%s\t%s" % (_url.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("%s\t%s" % (url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get open play detail %s" % count)
 	db_conn.commit()
 
@@ -414,28 +420,29 @@ def get_vivo_detail(channel_id):
 		if not ins:
 			try:
 				detail_url = "http://info.gamecenter.vivo.com.cn/clientRequest/gameDetail?id=%s&adrVerName=4.4.4&appVersion=37" % pkg.split('\t')[1]
-				response = sess.get(detail_url, timeout=10)
-				d = response.json()
-				if d is not None and 'result' in d and d['result']:
-					g = d.get('game')
-					if g is not None:
-						count += 1 
-						item = HotGameDetailByDay(**{
-												'channel': channel_id,
-												'name': name,
-												'summary' : g.get('desc', u''),
-												'rating' : g.get('comment', u''),
-												'author' : g.get('gameDeveloper', u''),
-												'game_type' : g.get('type', u''),
-												'version' : g.get('versonName', u''),
-												'download_num' : g.get('download', u''),
-												'comment_num' : g.get('commentNum', u''),
-												'pkg_size' : g.get('size' u''),
-												'dt' : dt,
-												'update_time' : g.get('date', u''),
-												'imgs' : u','.join(g['screenshot'].split(u'###')),
-													})
-						db_conn.merge(item)
+				r = sess.get(detail_url, timeout=10)
+				if r.status_code == 200:
+					d = r.json()
+					if d is not None and 'result' in d and d['result']:
+						g = d.get('game')
+						if g is not None:
+							count += 1 
+							item = HotGameDetailByDay(**{
+													'channel': channel_id,
+													'name': name,
+													'summary' : g.get('desc', u''),
+													'rating' : g.get('comment', u''),
+													'author' : g.get('gameDeveloper', u''),
+													'game_type' : g.get('type', u''),
+													'version' : g.get('versonName', u''),
+													'download_num' : g.get('download', u''),
+													'comment_num' : g.get('commentNum', u''),
+													'pkg_size' : g.get('size' u''),
+													'dt' : dt,
+													'update_time' : g.get('date', u''),
+													'imgs' : u','.join(g['screenshot'].split(u'###')),
+														})
+							db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
 				mylogger.error("%s\t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
@@ -516,22 +523,23 @@ def get_gionee_detail():
 		if not ins:
 			_url = u"http://game.gionee.com/Api/Local_Gameinfo/getDetails?gameId=%s" % ret.title2
 			try:
-				response = sess.get(_url, timeout=10)
-				d = response.json()
-				if 'success' in d and d['success']:
-					g = d['data']
-					count += 1 
-					item = HotGameDetailByDay(**{
-												'kc_id': ret.id,
-												'rating' : g.get('score', u''),
-												'author' : g.get('publisher', u''),
-												'game_type' : g.get('category', u''),
-												'version' : g.get('versionName', u''),
-												'pkg_size' : g.get('fileSize' u''),
-												'dt' : dt,
-												'imgs' : u','.join(g['bannerList']['fullPicture']),
-													})
-					db_conn.merge(item)
+				r = sess.get(_url, timeout=10)
+				if r.status_code == 200:
+					d = r.json()
+					if 'success' in d and d['success']:
+						g = d['data']
+						count += 1 
+						item = HotGameDetailByDay(**{
+													'kc_id': ret.id,
+													'rating' : g.get('score', u''),
+													'author' : g.get('publisher', u''),
+													'game_type' : g.get('category', u''),
+													'version' : g.get('versionName', u''),
+													'pkg_size' : g.get('fileSize' u''),
+													'dt' : dt,
+													'imgs' : u','.join(g['bannerList']['fullPicture']),
+														})
+						db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
 				mylogger.error("%s\t%s" % (_url.encode('utf-8'), traceback.format_exc()))
@@ -555,23 +563,24 @@ def get_leveno_detail():
 			_url = u"http://yx.lenovomm.com/business/app!getAppDetail5.action?dpi=480&height=1920&dev=ph&width=1080&cpu=armeabi-v7a&pn=%s&uid=72DB07100FC223A2EDE82F4A44AE96B4&os=4.4.4&perf=hp&model=MI 4LTE&type=0&density=xx&mac=7A031DAB40535B3F5E204582EB961FC5" % ret.title2
 			try:
 				p = proxies[random.randrange(len(proxies))]
-				response = sess.get(_url, timeout=10, proxies=p)
-				d = response.json()
-				if 'app' in d:
-					g = d['app']
-					count += 1 
-					item = HotGameDetailByDay(**{
-												'kc_id': ret.id,
-												'rating' : g.get('averageStar', u''),
-												'game_type' : g.get('categoryName', u''),
-												'version' : g.get('version', u''),
-												'pkg_size' : g.get('size' u''),
-												'dt' : dt,
-												'download_num' : g.get('downloadCount', u''),
-												'summary' : g.get('description', u''),
-												'imgs' : g['snapList'],
-													})
-					db_conn.merge(item)
+				r = sess.get(_url, timeout=10, proxies=p)
+				if r.status_code == 200:
+					d = r.json()
+					if 'app' in d:
+						g = d['app']
+						count += 1 
+						item = HotGameDetailByDay(**{
+													'kc_id': ret.id,
+													'rating' : g.get('averageStar', u''),
+													'game_type' : g.get('categoryName', u''),
+													'version' : g.get('version', u''),
+													'pkg_size' : g.get('size' u''),
+													'dt' : dt,
+													'download_num' : g.get('downloadCount', u''),
+													'summary' : g.get('description', u''),
+													'imgs' : g['snapList'],
+														})
+						db_conn.merge(item)
 			except Exception,e:
 				sleep(1.23)
 				error_times += 1
@@ -614,7 +623,6 @@ def get_iqiyi_detail(channel_id):
 											'imgs' : u",".join([i.get('full_img', u'') for i in d['medias']]),
 												})
 				db_conn.merge(item)
-				break
 	mylogger.info("get iqiyi detail %s" % count)
 	db_conn.commit()
 
@@ -646,23 +654,24 @@ def get_sogou_detail():
 		if not ins:
 			_url = u"http://mobile.zhushou.sogou.com/m/appDetail.html?id=%s" % ret.title2
 			try:
-				response = sess.get(_url, timeout=10)
-				d = response.json()
-				g = d['ainfo']
-				count += 1 
-				item = HotGameDetailByDay(**{
-											'kc_id': ret.id,
-											'rating' : g.get('score', u''),
-											'summary' : g.get('desc', u''),
-											'version' : g.get('vn', u''),
-											'game_type' : d['tgroup'].get('name', u''),
-											'download_num' : g.get('dc', u''),
-											'author' : g.get('author', u''),
-											'pkg_size' : g.get('size' u''),
-											'dt' : dt,
-											'imgs' : u",".join([i.get('url', u'') for i in d['images']]),
-												})
-				db_conn.merge(item)
+				r = sess.get(_url, timeout=10)
+				if r.status_code == 200:
+					d = r.json()
+					g = d['ainfo']
+					count += 1 
+					item = HotGameDetailByDay(**{
+												'kc_id': ret.id,
+												'rating' : g.get('score', u''),
+												'summary' : g.get('desc', u''),
+												'version' : g.get('vn', u''),
+												'game_type' : d['tgroup'].get('name', u''),
+												'download_num' : g.get('dc', u''),
+												'author' : g.get('author', u''),
+												'pkg_size' : g.get('size' u''),
+												'dt' : dt,
+												'imgs' : u",".join([i.get('url', u'') for i in d['images']]),
+													})
+					db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
 				mylogger.error("%s\t%s" % (_url.encode('utf-8'), traceback.format_exc()))
@@ -1270,28 +1279,32 @@ def get_360_app_detail(channel_id):
 	db_conn.commit()
 
 
-def get_i4_app_detail():
+def get_i4_app_detail(channel_id):
 	count = 0
 	error_times = 0
 	mylogger.info("get i4 app detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==16):
-		if error_times >= 10:
+	ids = channel_map.get(channel_id)
+	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
+	mylogger.info("### %s ###" % _sql)
+	for ret in db_conn.execute(_sql):
+		name, pkg = ret
+		if error_times >= 20:
 			mylogger.info("i4 reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.kc_id==ret.id).filter(HotGameDetailByDay.dt==dt).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
-			url = "http://app3.i4.cn/controller/action/online.go?store=3&module=1&id=%s&reqtype=5" % ret.title2
+			url = "http://app3.i4.cn/controller/action/online.go?store=3&module=1&id=%s&reqtype=5" % pkg.split('\t')[1]
 			try:
 				r = requests.get(url, timeout=10)
 				if r.status_code == 200:
-
 					j = r.json()
 					if j['result']['list'] is not None and len(j['result']['list']) >= 1:
 						g = j['result']['list'][0]
 						count += 1 
 						item = HotGameDetailByDay(**{
-									'kc_id': ret.id,
+									'channel': channel_id,
+									'name': name,
 									'summary' : g.get('shortNote', u''),
 									'version' : g.get('shortVersion', u''),
 									'game_type' : g.get('typeName', u''),
@@ -1304,7 +1317,7 @@ def get_i4_app_detail():
 						db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
-				mylogger.error("i4 app #### %s #### \t%s" % (url, traceback.format_exc()))
+				mylogger.error("i4 app #### %s #### \t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get i4 app detail %s" % count)
 	db_conn.commit()
 
@@ -1434,6 +1447,58 @@ def get_360_gamebox_detail(channel_id):
 	mylogger.info("get 360_gamebox app detail %s" % count)
 	db_conn.commit()
 
+def get_m_baidu_detail(channel_id):
+	count = 0
+	error_times = 0
+	sess = requests.session()
+	mylogger.info("get baidu zhushou app detail start ...")
+	ids = channel_map.get(channel_id)
+	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
+	mylogger.info("### %s ###" % _sql)
+	for ret in db_conn.execute(_sql):
+		name, pkg = ret
+		print name, pkg
+		if error_times >= 20:
+			mylogger.info("baidu zhoushou app detail reach max error times ... ")
+			break
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		if not ins:
+			try:
+				pkg_name, pkg_id = pkg.split('\t')
+				url = u"http://m.baidu.com/appsrv?native_api=1&psize=3&pkname=%s&action=detail&docid=%s" % (pkg_name, pkg_id)
+				r = sess.get(url, timeout=10)
+				if r.status_code == 200:
+					d = r.json()
+					if d['error_no'] == 0:
+						if d['result'] is not None and d['result']['data'] is not None:
+							g = d['result']['data']
+							count +=1
+							item = HotGameDetailByDay(**{
+										'channel': channel_id,
+										'name': name,
+										'summary' : g.get('brief', u''),
+										'rating' : g.get('display_score', u''),
+										'version' : g.get('versionname', u''),
+										'game_type' : g.get('catename', u''),
+										'pkg_size' : g.get('packagesize', u''),
+										'author' : g.get('sourcename', u''),
+										'download_num' : g.get('all_download_pid', u''),
+										'download_num_day' : g.get('today_download_pid', u''),
+										'comment_num' : g.get('display_count', u''),
+										'dt' : dt,
+										'imgs' : u",".join(g.get('screenshots', []))
+											})
+							db_conn.merge(item)
+							if count % 50:
+								db_conn.commit()
+			except Exception,e:
+				error_times += 1
+				mylogger.error("%s\t%s" % (url.encode('utf-8'), traceback.format_exc()))
+	mylogger.info("get baidu zhushou app detail %s" % count)
+	db_conn.commit()
+
+
 channel_map = {
 			2	: [46, 47], #18183
 			4 	: [5, 6, 7, 48], #360助手app
@@ -1479,7 +1544,12 @@ def main():
 	#get_appicsh_detail(3)
 	#get_dangle_detail(15)
 	#get_kuaiyong_detail(19)
-	get_iqiyi_detail(12)
+	#get_iqiyi_detail(12)
+	#get_i4_app_detail(16)
+	#get_open_play_detail(7)
+	#get_m_baidu_detail(29)
+	get_wandoujia_detail(23)
+	
 
 def get_muzhiwan_detail():
 	pass	

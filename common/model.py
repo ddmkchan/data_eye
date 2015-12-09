@@ -155,7 +155,7 @@ class HotGameDetailByDay(Base):
 	comment_num = Column(Unicode(50), nullable=False, default=u'')
 	rating = Column(Unicode(50), nullable=False, default=u'')
 	rank = Column(Unicode(50), nullable=False, default=u'')
-	topic_num_day = Column(Unicode(50), nullable=False, default=u'')
+	download_num_day = Column(Unicode(50), nullable=False, default=u'')
 	topic_num_total = Column(Unicode(50), nullable=False, default=u'')
 	pkg_size = Column(Unicode(50), nullable=False, default=u'')
 	company = Column(Unicode(100), nullable=False, default=u'')
