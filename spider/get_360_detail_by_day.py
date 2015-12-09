@@ -15,14 +15,11 @@ import datetime
 import random
 db_conn = new_session()
 
-
 from get_hot_game_detail_by_day import channel_map, mylogger
 
 
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'}
 
-def get_proxies():
-	return [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in db_conn.query(ProxyList)]
 
 def get_360zhushou_web_detail(channel_id):
 	count = 0

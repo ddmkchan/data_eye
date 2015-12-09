@@ -17,7 +17,6 @@ db_conn = new_session()
 from get_game_detail_by_day import mylogger, step2
 
 import random
-proxies = [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in db_conn.query(ProxyList)]
 
 class T:
 	
