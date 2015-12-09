@@ -99,8 +99,9 @@ def get_9game_today_kc():
 							#game_type 	= type_div[1].find('td')
 							#print type_div
 							#print re.split(u"：| ", time)[1], status, game_type
-					if title != "" and status !="":
-						ins = db_conn.query(KC_LIST).filter(KC_LIST.source==source_map.get('9game')).filter(KC_LIST.title==title).filter(KC_LIST.status==status).filter(KC_LIST.publish_date==publish_date).first()
+					if title != u"" and url != u"":
+						ins = db_conn.query(KC_LIST).filter(KC_LIST.source==source_map.get('9game')).filter(KC_LIST.url==url).first()
+						#ins = db_conn.query(KC_LIST).filter(KC_LIST.source==source_map.get('9game')).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).first()
 						if not ins:
 							item = KC_LIST(**{
 								"time"		: re.split(u"：| ", time)[1],
@@ -153,8 +154,8 @@ def get_18183_kc():
 							time = t.find("div", class_="pt").find("div", class_="time fl").find("i").text
 							devices = [i.get("class")[0] for i in t.find("div", class_="pt").find("div", class_="xy fl").find_all("span") if i.get("class") is not None]
 							status = t.find("div", class_="pt m6").find("code").text
-						#print title, status
-							ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.status==status).filter(KC_LIST.source==source_map.get('18183')).first()
+							ins = db_conn.query(KC_LIST).filter(KC_LIST.device==",".join(devices)).filter(KC_LIST.url==url).filter(KC_LIST.source==source_map.get('18183')).first()
+							#ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.status==status).filter(KC_LIST.source==source_map.get('18183')).first()
 							if not ins:
 								item = KC_LIST(**{
 										"title"		: 	title,
@@ -207,8 +208,8 @@ def get_360_kc():
 							url = u"" if tds[0].find("a") is None else tds[0].find("a").get("href")
 							status = tds[1].text
 							game_type = tds[3].text
-						#print title, url, status, game_type
-							ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.status==status).filter(KC_LIST.source==source_map.get('u360')).first()
+							ins = db_conn.query(KC_LIST).filter(KC_LIST.url==url).filter(KC_LIST.source==source_map.get('u360')).first()
+							#ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.status==status).filter(KC_LIST.source==source_map.get('u360')).first()
 							if not ins:
 								count += 1								
 								item = KC_LIST(**{
@@ -1576,6 +1577,3 @@ def main():
 
 if __name__ == '__main__':
 	main()
-	#for p in xrange(200, 400, 20):
-	#get_itools_kc()
-		#get_xyzs_kc(p)

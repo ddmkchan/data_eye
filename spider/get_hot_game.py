@@ -173,7 +173,7 @@ def get_xiaomi_game_rank(page, rank_id):
 	return None
 
 
-def get_xiaomi_app_rank(gtype, rank_id):
+def get_xiaomi_web_rank(gtype, rank_id):
 	rank = 0
 	for page in xrange(1):
 		detail = get_xiaomi_game_rank(page, rank_id)
@@ -199,7 +199,7 @@ def store_xiaomi_web_rank():
 						"xiaomi_new_game": 3,
 					}
 	for gtype, rank_id in type_2_source.iteritems():
-		for data in get_xiaomi_app_rank(gtype, rank_id):
+		for data in get_xiaomi_web_rank(gtype, rank_id):
 			store_data(data)
 
 

@@ -89,7 +89,6 @@ def get_9game_detail(channel_id):
 													'imgs' : imgs,
 													'summary' : summary,
 													'game_type' : game_type,
-													'topic_num_day' : topic_num_day,
 													'topic_num_total' : topic_num_total,
 													'rating' : rating ,
 													'comment_num' : comments_num,
@@ -1631,7 +1630,7 @@ def main():
 	get_kuaiyong_detail(19)
 	get_iqiyi_detail(12)
 	get_i4_app_detail(16)
-	et_sogou_detail(14)
+	get_sogou_detail(14)
 	get_open_play_detail(7)
 	get_m_baidu_detail(29)
 	get_wandoujia_detail(23)
