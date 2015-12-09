@@ -1052,61 +1052,57 @@ def get_anzhi_detail_by_id(URL):
 			mydict['imgs'] = [u"http://www.anzhi.com%s" % i.get('src') for i in section_body.find_all('img')]
 	return mydict
 
-def get_wandoujia_detail():
+def get_wandoujia_detail(channel_id):
 	count = 0
 	error_times = 0
 	mylogger.info("get wandoujia detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==23):
+	ids = channel_map.get(channel_id)
+	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
+	mylogger.info("### %s ###" % _sql)
+	for ret in db_conn.execute(_sql):
+		name, url = ret
 		if error_times >= 20:
 			mylogger.info("wandoujia reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.kc_id==ret.id).filter(HotGameDetailByDay.dt==dt).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
-			g = get_wandoujia_detail_by_id(ret.url)
-			if g is not None:
-				count += 1 
-				categories = g.get('categories', [])
-				game_type = u",".join([c['name'] for c in categories if c['level']==2])
-				apk = {}
-				apk_list = g.get('apk', [])
-				if len(apk_list) >= 1:
-					apk = apk_list[0]
-				developer = g.get('developer', {})
-				item = HotGameDetailByDay(**{
-											'kc_id': ret.id,
-											'summary' : g.get('description', u''),
-											'version' : apk.get('versionName', u''),
-											'game_type' : game_type,
-											'pkg_size' : apk.get('size', u''),
-											'comment_num' : g.get('commentsCount', u''),
-											'download_num' : g.get('downloadCount', u''),
-											'author' : developer.get('name', u''),
-											'dt' : dt,
-											'imgs' : u','.join(g.get('screenshots',{}).get('normal', [])),
-												})
-				db_conn.merge(item)
-				if count % 100 == 0:
-					mylogger.info("wandoujia detail commit %s" % count)
-					db_conn.commit()
-			else:
+			try:
+				r = requests.get(url, timeout=10)
+				if r.status_code == 200:
+					d = r.json()
+					if d['entity'] is not None and len(d['entity'])>=1:
+						g = d['entity'][0]['detail']['appDetail']
+						count += 1 
+						categories = g.get('categories', [])
+						game_type = u",".join([c['name'] for c in categories if c['level']==2])
+						apk = {}
+						apk_list = g.get('apk', [])
+						if len(apk_list) >= 1:
+							apk = apk_list[0]
+						developer = g.get('developer', {})
+						item = HotGameDetailByDay(**{
+													'name': name,
+													'channel': channel_id,
+													'summary' : g.get('description', u''),
+													'version' : apk.get('versionName', u''),
+													'game_type' : game_type,
+													'pkg_size' : apk.get('size', u''),
+													'comment_num' : g.get('commentsCount', u''),
+													'download_num' : g.get('downloadCount', u''),
+													'author' : developer.get('name', u''),
+													'dt' : dt,
+													'imgs' : u','.join(g.get('screenshots',{}).get('normal', [])),
+														})
+						db_conn.merge(item)
+						if count % 100 == 0:
+							mylogger.info("wandoujia detail commit %s" % count)
+							db_conn.commit()
+			except Exception,e:
 				error_times += 1
+				mylogger.error("### %s ### %s" % (url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get wandoujia detail %s" % count)
 	db_conn.commit()
-
-
-def get_wandoujia_detail_by_id(url):
-	try:
-		r = requests.get(url, timeout=10)
-		if r.status_code == 200:
-			d = r.json()
-			entity = d['entity']
-			if entity:
-				detail = entity[0].get('detail', {})['appDetail']
-				return detail
-	except Exception,e:
-		mylogger.error("### %s ### %s" % (url.encode('utf-8'), traceback.format_exc()))
-	return None
 
 
 
@@ -1457,7 +1453,6 @@ def get_m_baidu_detail(channel_id):
 	mylogger.info("### %s ###" % _sql)
 	for ret in db_conn.execute(_sql):
 		name, pkg = ret
-		print name, pkg
 		if error_times >= 20:
 			mylogger.info("baidu zhoushou app detail reach max error times ... ")
 			break

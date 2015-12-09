@@ -589,6 +589,7 @@ def get_wandoujia_app_rank(gtype, _url):
 						info =  get_wandoujia_detail(item['action']['url'])
 						if info is not None:
 							game_type, downloads = info 
+						url = item['action'].get('url', u'')
 					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
 					#for k, v in item['detail']['appDetail'].iteritems():
 					#	print k, v
