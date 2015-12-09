@@ -23,7 +23,7 @@ proxies = [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in db_conn.query(ProxyL
 source_map = {
 			"baidu"	: 0,
 			"xiaomi_active": 1,
-			"360"	: 2,
+			"360_webgame"	: 2,
 			"9game"	: 3,
 			"9game_hot_wanted"	: 4,
 			"360_app_single"	: 5,
@@ -73,6 +73,14 @@ source_map = {
 			"xiaomi_downloads": 49,
 			"xiaomi_new_webganme": 50,
 			"sogou_download"	: 51,
+			"360_child"		: "52", 
+			"360_rpg"		: "53", 
+			"360_act"		: "54", 
+			"360_puz"		: "55", #休闲益智
+			"360_sport"		: "56", 
+			"360_stg"		: "57", #飞行射击
+			"360_strategy"	: "58", 
+			"360_chess"		: "59", 
 				}
 
 def get_baidu_hot_games():
@@ -191,28 +199,44 @@ def store_xiaomi_app_rank():
 	for gtype, rank_id in type_2_source.iteritems():
 		for data in get_xiaomi_app_rank(gtype, rank_id):
 			store_data(data)
-			#rank, game_name, img, downloads, size, source, popular, game_type, status, url = data
-			#print gtype, game_name
-		#print 
 
-def get_360_online_games():
-	for page in xrange(1,2):
-		r = s.get('http://zhushou.360.cn/list/index/cid/100451/order/download/?page=%s' % page)
-		if r.status_code == 200:
-			soup = BeautifulSoup(r.text)
-			for i in soup.find("ul", class_="iconList").find_all("li"):
-				popular 	= u""
-				game_type 	= u""
-				status 		= u""
-				item = i.find('h3').find('a')
-				url 		= u"http://zhushou.360.cn/detail/index/soft_id/%s" % item.get('sid')
-				game_name = item.text
-				img = i.find("a", sid="%s" % item.get("sid")).find("img").get("_src")
-				downloads = i.find("span").text
-				size 		= u""
-				source 		= source_map.get("360")
-				yield game_name, img, downloads, size, source, popular, game_type, status, url
 
+def get_360zhushou_web_rank():
+	_dict = {
+				"360_webgame"	: "100451", 
+				"360_child"		: "102238", 
+				"360_rpg"		: "101587", 
+				"360_act"		: "20", 
+				"360_puz"		: "19", #休闲益智
+				"360_sport"		: "51", 
+				"360_stg"		: "52", #飞行射击
+				"360_strategy"	: "53", 
+				"360_chess"		: "54", 
+			}
+	for gtype, id in _dict.iteritems():
+		try:
+			r = s.get('http://zhushou.360.cn/list/index/cid/%s/order/download/?page=1' % id)
+			if r.status_code == 200:
+				soup = BeautifulSoup(r.text)
+				icon_list = soup.find("ul", class_="iconList")
+				if icon_list is not None:
+					rank = 0
+					for i in icon_list.find_all("li"):
+						rank += 1
+						game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+						if i.find('h3') is not None and i.find('h3').find('a') is not None:
+							item = i.find('h3').find('a')
+							url 		= u"http://zhushou.360.cn/detail/index/soft_id/%s" % item.get('sid')
+							game_name = item.text
+							img = i.find("a", sid="%s" % item.get("sid")).find("img").get("_src")
+							downloads = i.find("span").text
+							size 		= u""
+							source 		= source_map.get(gtype)
+							#print rank, game_name, img, downloads, size, source, popular, game_type, status, url
+							store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+		except Exception,e:
+			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
+			
 
 def store_9game_web_app_rank():
 	_dict = {'9game': "http://www.9game.cn/xyrb/", '9game_hot_wanted':"http://www.9game.cn/xyqdb/"}
@@ -1023,7 +1047,6 @@ def store_data(ret):
 
 def main():
 	get_data(get_baidu_hot_games)
-	get_data(get_360_online_games)
 	store_360_app_rank()
 	store_m5qq_app_rank()
 	store_m_baidu_app_rank()
@@ -1046,6 +1069,7 @@ def main():
 	store_360_gamebox_app_rank()
 	store_18183_top_app_rank()
 	store_9game_web_app_rank()
+	get_360zhushou_web_rank()
 
 if __name__ == '__main__':
 	main()
