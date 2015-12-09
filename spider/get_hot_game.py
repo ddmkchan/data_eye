@@ -639,6 +639,7 @@ def get_iqiyi_app_rank(gtype, _url):
 						img = app.get('icon', u'')
 						size = app.get('size', u'')
 						downloads = app.get('cnt', u'')
+						url = app.get('qipu_id', u'')
 						game_type = app.get('cate_name', u'')
 						source = source_map.get(gtype)
 						yield rank, game_name, img, downloads, size, source, popular, game_type, status, url

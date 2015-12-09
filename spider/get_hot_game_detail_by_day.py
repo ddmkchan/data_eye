@@ -101,7 +101,7 @@ def get_9game_detail(channel_id):
 						db_conn.commit()
 			except Exception,e:
 				error_times += 1
-				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("%s\t%s" % (url.encode('utf-8'), traceback.format_exc()))
 
 	mylogger.info("get 9game detail %s" % count)
 	db_conn.commit()
@@ -197,7 +197,7 @@ def get_18183_detail(channel_id):
 					db_conn.commit()
 			except Exception,e:
 				error_times += 1
-				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("%s\t%s" % (url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get 18183 detail %s" % count)
 	db_conn.commit()
 
@@ -245,7 +245,7 @@ def get_appicsh_detail(channel_id):
 						db_conn.commit()
 			except Exception,e:
 				error_times += 1
-				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("%s\t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get appicsh detail %s" % count)
 	db_conn.commit()
 			
@@ -438,7 +438,7 @@ def get_vivo_detail(channel_id):
 						db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
-				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("%s\t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get vivo play detail %s" % count)
 	db_conn.commit()
 
@@ -580,39 +580,41 @@ def get_leveno_detail():
 	db_conn.commit()
 
 
-def get_iqiyi_detail():
+def get_iqiyi_detail(channel_id):
 	count = 0
 	error_times = 0
 	mylogger.info("get iqiyi detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==12):
+	ids = channel_map.get(channel_id)
+	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
+	mylogger.info("### %s ###" % _sql)
+	for ret in db_conn.execute(_sql):
+		name, qipu_id = ret
 		if error_times >= 20:
 			mylogger.info("iqiyi reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.kc_id==ret.id).filter(HotGameDetailByDay.dt==dt).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
-			d =  get_iqiyi_detail_by_id(ret.title2)
-			try:
-				if d is not None:
-					g = d['app']
-					count += 1 
-					item = HotGameDetailByDay(**{
-												'kc_id': ret.id,
-												'summary' : g.get('desc', u''),
-												'game_type' : g.get('cate_name', u''),
-												'version' : g.get('version', u''),
-												'download_num' : g.get('cnt', u''),
-												'author' : g.get('author', u''),
-												'pkg_size' : g.get('l_size' u''),
-												'dt' : dt,
-												'imgs' : u",".join([i.get('full_img', u'') for i in d['medias']]),
-													})
-					db_conn.merge(item)
-				else:
-					error_times += 1
-			except Exception,e:
+			d =  get_iqiyi_detail_by_id(qipu_id)
+			if isinstance(d, EX):
 				error_times += 1
-				mylogger.error("%s\t%s" % (ret.title2.encode('utf-8'), traceback.format_exc()))
+			elif d is not None:
+				g = d['app']
+				count += 1 
+				item = HotGameDetailByDay(**{
+											'channel': channel_id,
+											'name': name,
+											'summary' : g.get('desc', u''),
+											'game_type' : g.get('cate_name', u''),
+											'version' : g.get('version', u''),
+											'download_num' : g.get('cnt', u''),
+											'author' : g.get('author', u''),
+											'pkg_size' : g.get('l_size' u''),
+											'dt' : dt,
+											'imgs' : u",".join([i.get('full_img', u'') for i in d['medias']]),
+												})
+				db_conn.merge(item)
+				break
 	mylogger.info("get iqiyi detail %s" % count)
 	db_conn.commit()
 
@@ -627,6 +629,7 @@ def get_iqiyi_detail_by_id(qipu_id):
 				return json.loads(m.group(1))
 	except Exception, e:
 		mylogger.error("### %s ###\t%s" % (qipu_id.encode('utf-8'), traceback.format_exc()))
+		return EX()
 	return None
 
 def get_sogou_detail():
@@ -676,7 +679,7 @@ def get_dangle_detail(channel_id):
 	mylogger.info("### %s ###" % _sql)
 	for ret in db_conn.execute(_sql):
 		name, url = ret
-		if error_times >= 10:
+		if error_times >= 20:
 			mylogger.info("dangle reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
@@ -902,22 +905,29 @@ def get_huawei_detail_by_id(url):
 		sleep(5)
 	return mydict
 
-def get_kuaiyong_detail():
+def get_kuaiyong_detail(channel_id):
 	count = 0
 	error_times = 0
 	mylogger.info("get kuaiyong detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==19):
+	ids = channel_map.get(channel_id)
+	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
+	mylogger.info("### %s ###" % _sql)
+	for ret in db_conn.execute(_sql):
+		name, url = ret
 		if error_times >= 20:
 			mylogger.info("kuaiyong reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.kc_id==ret.id).filter(HotGameDetailByDay.dt==dt).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
-			g = get_kuaiyong_detail_by_id(ret.url)
-			if g:
+			g = get_kuaiyong_detail_by_id(url)
+			if isinstance(g, EX):
+				error_times += 1
+			elif g:
 				count += 1 
 				item = HotGameDetailByDay(**{
-											'kc_id': ret.id,
+											'channel': channel_id,
+											'name': name,
 											'summary' : g.get('description', u''),
 											'version' : g.get(u'版　　本', u''),
 											'game_type' : g.get(u'类　　别', u''),
@@ -931,8 +941,6 @@ def get_kuaiyong_detail():
 				if count % 100 == 0:
 					mylogger.info("kuaiyong detail commit %s" % count)
 					db_conn.commit()
-			else:
-				error_times += 1
 	mylogger.info("get kuaiyong detail %s" % count)
 	db_conn.commit()
 
@@ -967,8 +975,9 @@ def get_kuaiyong_detail_by_id(URL):
 		if detail_content is not None:
 			mydict['description'] = detail_content.text
 	except Exception,e:
-		#sleep(3.21)
+		sleep(1.21)
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+		return EX()
 	return mydict
 
 
@@ -1255,7 +1264,7 @@ def get_360_app_detail(channel_id):
 							db_conn.commit()
 			except Exception,e:
 				error_times += 1
-				mylogger.error("360 app #### %s #### \t%s" % (url, traceback.format_exc()))
+				mylogger.error("360 app #### %s #### \t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
 				
 	mylogger.info("get 360 app detail %s" % count)
 	db_conn.commit()
@@ -1338,7 +1347,7 @@ def get_xyzs_app_detail(channel_id):
 						db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
-				mylogger.error("xyzs app #### %s #### \t%s" % (url, traceback.format_exc()))
+				mylogger.error("xyzs app #### %s #### \t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get xyzs app detail %s" % count)
 	db_conn.commit()
 
@@ -1421,7 +1430,7 @@ def get_360_gamebox_detail(channel_id):
 						db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
-				mylogger.error("360_gamebox app detail #### %s #### \t%s" % (ret.title2.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("360_gamebox app detail #### %s #### \t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get 360_gamebox app detail %s" % count)
 	db_conn.commit()
 
@@ -1460,16 +1469,21 @@ channel_map = {
 				}
 
 def main():
-	get_18183_detail(2)
-	get_360_app_detail(4)
-	get_360_gamebox_detail(28)
-	get_9game_detail(0)
-	get_vivo_detail(8)
-	get_xyzs_app_detail(26)
-	get_youku_detail(13)
-	get_appicsh_detail(3)
-	get_dangle_detail(15)
-	
+	#get_18183_detail(2)
+	#get_360_app_detail(4)
+	#get_360_gamebox_detail(28)
+	#get_9game_detail(0)
+	#get_vivo_detail(8)
+	#get_xyzs_app_detail(26)
+	#get_youku_detail(13)
+	#get_appicsh_detail(3)
+	#get_dangle_detail(15)
+	#get_kuaiyong_detail(19)
+	get_iqiyi_detail(12)
+
+def get_muzhiwan_detail():
+	pass	
+
 def get_itools_detail():
 	pass
 
