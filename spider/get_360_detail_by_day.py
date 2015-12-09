@@ -78,12 +78,13 @@ def get_360zhushou_web_detail(channel_id):
 						icons = [img.get('src') for img in breif.find_all('img')]
 					if icons:
 						imgs = u','.join(icons)
-					base_info = soup.find('div', class_="base-info")
 					mydict = {}
-					for td in base_info.find_all('td'):
-						segs = td.text.split(u'：')
-						if len(segs) == 2:
-							mydict[segs[0]] = segs[1]
+					base_info = soup.find('div', class_="base-info")
+					if base_info is not None:
+						for td in base_info.find_all('td'):
+							segs = td.text.split(u'：')
+							if len(segs) == 2:
+								mydict[segs[0]] = segs[1]
 					count += 1
 					item = HotGameDetailByDay(**{
 												'name': name,

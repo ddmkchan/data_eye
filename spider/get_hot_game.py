@@ -238,6 +238,7 @@ def get_360zhushou_web_rank():
 							store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 		except Exception,e:
 			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
+	mylogger.info("get 360zhushou web done!")
 			
 
 def store_9game_web_app_rank():
