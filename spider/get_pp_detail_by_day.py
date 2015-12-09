@@ -13,9 +13,8 @@ import xmltodict
 import datetime
 
 db_conn = new_session()
-s = requests.session()
-mylogger = get_logger('get_game_detail')
 
+from get_game_detail_by_day import mylogger, step2
 
 import random
 proxies = [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in db_conn.query(ProxyList)]
@@ -85,10 +84,6 @@ def get_pp_comments_by_id(gid):
 		mylogger.error("get %s comments \t%s" % (gid.encode('utf-8'), traceback.format_exc()))
 	return {}
 
-def get_proxies():
-	import random
-	proxies = [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in db_conn.query(ProxyList)]
-	return proxies[random.randrange(len())]
-		
 if __name__ == '__main__':
 	get_pp_detail()
+	step2()

@@ -14,16 +14,9 @@ import datetime
 
 import random
 db_conn = new_session()
-s = requests.session()
-mylogger = get_logger('get_hot_game_detail')
 
 
-from get_hot_game_detail_by_day import channel_map
-
-class T:
-	
-	def __init__(self, status_code):
-		self.status_code = status_code
+from get_hot_game_detail_by_day import channel_map, mylogger
 
 
 headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'}
@@ -34,6 +27,7 @@ def get_proxies():
 def get_360zhushou_web_detail(channel_id):
 	count = 0
 	error_times = 0
+	sess = requests.session()
 	mylogger.info("get 360zhushou web detail start ...")
 	ids = channel_map.get(channel_id)
 	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
@@ -48,7 +42,7 @@ def get_360zhushou_web_detail(channel_id):
 		if not ins:
 			try:
 				p = proxies[random.randrange(len(proxies))]
-				r = s.get(url, timeout=20, headers=headers, proxies=p)
+				r = sess.get(url, timeout=20, headers=headers, proxies=p)
 				if r.status_code == 200:
 					soup = BeautifulSoup(r.text)
 					imgs = u''
