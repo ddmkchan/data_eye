@@ -647,27 +647,32 @@ def get_iqiyi_detail_by_id(qipu_id):
 		return EX()
 	return None
 
-def get_sogou_detail():
+def get_sogou_detail(channel_id):
 	count = 0
 	error_times = 0
 	sess = requests.session()
 	mylogger.info("get sogou detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==14):
-		if error_times >= 10:
+	ids = channel_map.get(channel_id)
+	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
+	mylogger.info("### %s ###" % _sql)
+	for ret in db_conn.execute(_sql):
+		name, pkg = ret
+		if error_times >= 20:
 			mylogger.info("sogou reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.kc_id==ret.id).filter(HotGameDetailByDay.dt==dt).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
-			_url = u"http://mobile.zhushou.sogou.com/m/appDetail.html?id=%s" % ret.title2
 			try:
+				_url = u"http://mobile.zhushou.sogou.com/m/appDetail.html?id=%s" % pkg.split('\t')[1]
 				r = sess.get(_url, timeout=10)
 				if r.status_code == 200:
 					d = r.json()
 					g = d['ainfo']
 					count += 1 
 					item = HotGameDetailByDay(**{
-												'kc_id': ret.id,
+												'name': name,
+												'channel': channel_id,
 												'rating' : g.get('score', u''),
 												'summary' : g.get('desc', u''),
 												'version' : g.get('vn', u''),
@@ -679,9 +684,10 @@ def get_sogou_detail():
 												'imgs' : u",".join([i.get('url', u'') for i in d['images']]),
 													})
 					db_conn.merge(item)
+					break
 			except Exception,e:
 				error_times += 1
-				mylogger.error("%s\t%s" % (_url.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("%s\t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get sogou detail %s" % count)
 	db_conn.commit()
 
@@ -1507,6 +1513,75 @@ def get_m_baidu_detail(channel_id):
 	mylogger.info("get baidu zhushou app detail %s" % count)
 	db_conn.commit()
 
+def get_pp_detail_by_id(gid):
+	try:
+		d = {"site":1, "id": gid}
+		p = proxies[random.randrange(len(proxies))]
+		r = requests.post('http://pppc2.25pp.com/pp_api/ios_appdetail.php', data=d, proxies=p)
+		return r.json()
+	except Exception,e:
+		mylogger.error("get %s detail \t%s" % (gid.encode('utf-8'), traceback.format_exc()))
+		return EX()
+	return None
+
+def get_pp_comments_by_id(gid):
+	try:
+		d = {"s":1, "a":101, "i": gid, "p":1, "l":1}
+		p = proxies[random.randrange(len(proxies))]
+		r = requests.post('http://pppc2.25pp.com/pp_api/comment.php', data=d, proxies=p)
+		if r.status_code == 200:
+			return r.json()
+	except Exception,e:
+		mylogger.error("get %s comments \t%s" % (gid.encode('utf-8'), traceback.format_exc()))
+	return {}
+
+def get_pp_detail(channel_id):
+	count = 0
+	error_times = 0
+	sess = requests.session()
+	mylogger.info("get pp detail start ...")
+	ids = channel_map.get(channel_id)
+	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
+	mylogger.info("### %s ###" % _sql)
+	for ret in db_conn.execute(_sql):
+		name, pkg = ret
+		if error_times >= 10:
+			mylogger.info("pp detail reach max error times ... ")
+			break
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		if not ins:
+			pkg_name, pkg_id = pkg.split('\t')
+			g = get_pp_detail_by_id(int(pkg_id))
+			if isinstance(g, EX):
+				error_times += 1
+			elif g is not None:	
+				comments_info = get_pp_comments_by_id(int(pkg_id))
+				count += 1 
+				item = HotGameDetailByDay(**{
+											'name': name,
+											'channel': channel_id,
+											'summary' : g.get('content', u''),
+											'version' : g.get('ver', u''),
+											'game_type' : g.get('catName', u''),
+											'pkg_size' : g.get('fileSize', u''),
+											'comment_num' : comments_info.get('commentCount', u''),
+											'download_num' : g.get('downCount', u''),
+											'topic_num_total' : g.get('collectCount', u''),
+											'rating' : g.get('allVerStar', u''),
+											'dt' : dt,
+											'imgs' : g.get('ipadImgs', u''),
+												})
+				db_conn.merge(item)
+				if count % 50 == 0:
+					sleep(3)
+					mylogger.info("pp detail commit %s" % count)
+					db_conn.commit()
+				if count % 20 == 0:
+					sleep(1.23)
+	mylogger.info("get pp detail %s" % count)
+	db_conn.commit()
+
 
 channel_map = {
 			2	: [46, 47], #18183
@@ -1528,7 +1603,7 @@ channel_map = {
 			15	: [14], #dangle
 			19	: [37], # kuaiyong
 			17	: [], #muzhiwan
-			14	: [33, 34], #sougou
+			14	: [33, 34, 51], #sougou
 			12	: [29, 30], # aiqiyi
 			16	: [35], # i4
 			7	: [24, 25, 26, 45], #爱游戏
@@ -1543,25 +1618,28 @@ channel_map = {
 				}
 
 def main():
-	#get_18183_detail(2)
-	#get_360_app_detail(4)
-	#get_360_gamebox_detail(28)
-	#get_9game_detail(0)
-	#get_vivo_detail(8)
-	#get_xyzs_app_detail(26)
-	#get_youku_detail(13)
-	#get_appicsh_detail(3)
-	#get_dangle_detail(15)
-	#get_kuaiyong_detail(19)
-	#get_iqiyi_detail(12)
-	#get_i4_app_detail(16)
-	#get_open_play_detail(7)
-	#get_m_baidu_detail(29)
-	#get_wandoujia_detail(23)
-	#get_coolpad_detail(9)
-	#get_91play_detail(27)
+	get_18183_detail(2)
+	get_360_app_detail(4)
+	get_360_gamebox_detail(28)
+	get_9game_detail(0)
+	get_pp_detail(24)
+	get_vivo_detail(8)
+	get_xyzs_app_detail(26)
+	get_youku_detail(13)
+	get_appicsh_detail(3)
+	get_dangle_detail(15)
+	get_kuaiyong_detail(19)
+	get_iqiyi_detail(12)
+	get_i4_app_detail(16)
+	et_sogou_detail(14)
+	get_open_play_detail(7)
+	get_m_baidu_detail(29)
+	get_wandoujia_detail(23)
+	get_coolpad_detail(9)
+	get_91play_detail(27)
 	get_gionee_detail(10)
 	
+
 
 def get_muzhiwan_detail():
 	pass	
@@ -1573,9 +1651,6 @@ def get_360_web_detail():
 	pass
 
 def get_360_gamebox_web_detail():
-	pass
-
-def get_itools_detail():
 	pass
 
 if __name__ == '__main__':

@@ -72,6 +72,7 @@ source_map = {
 			"360_app_expect"	: 48,
 			"xiaomi_downloads": 49,
 			"xiaomi_new_webganme": 50,
+			"sogou_download"	: 51,
 				}
 
 def get_baidu_hot_games():
@@ -708,7 +709,7 @@ def get_sogou_app_rank(gtype, _url):
 
 
 def store_sogou_app_rank():
-	_dict = {"sogou_single": 'http://mobile.zhushou.sogou.com/android/rank/toplist.html?id=12&limit=25&group=2&start=0&iv=41&uid=f3c2ed94d7d2272de87a8ef3abab2409&vn=4.1.3&channel=baidu&sogouid=a7f30d60a6b1aed168a8c9d7c46bbac5&stoken==SnxL9KjGT6sBvQ7ZJD4Ghw&cellid=&sc=0', 'sogou_webgame': 'http://mobile.zhushou.sogou.com/android/rank/toplist.html?id=11&limit=25&group=2&start=0&iv=41&uid=f3c2ed94d7d2272de87a8ef3abab2409&vn=4.1.3&channel=baidu&sogouid=a7f30d60a6b1aed168a8c9d7c46bbac5&stoken==SnxL9KjGT6sBvQ7ZJD4Ghw&cellid=&sc=0'}
+	_dict = {"sogou_single": 'http://mobile.zhushou.sogou.com/android/rank/toplist.html?id=12&limit=25&group=2&start=0&iv=41&uid=f3c2ed94d7d2272de87a8ef3abab2409&vn=4.1.3&channel=baidu&sogouid=a7f30d60a6b1aed168a8c9d7c46bbac5&stoken==SnxL9KjGT6sBvQ7ZJD4Ghw&cellid=&sc=0', 'sogou_webgame': 'http://mobile.zhushou.sogou.com/android/rank/toplist.html?id=11&limit=25&group=2&start=0&iv=41&uid=f3c2ed94d7d2272de87a8ef3abab2409&vn=4.1.3&channel=baidu&sogouid=a7f30d60a6b1aed168a8c9d7c46bbac5&stoken==SnxL9KjGT6sBvQ7ZJD4Ghw&cellid=&sc=0', 'sogou_download':'http://mobile.zhushou.sogou.com/android/rank/toplist.html?id=10&limit=25&group=2&start=0&iv=41&uid=f3c2ed94d7d2272de87a8ef3abab2409&vn=4.1.3&channel=baidu&sogouid=a7f30d60a6b1aed168a8c9d7c46bbac5&stoken==SnxL9KjGT6sBvQ7ZJD4Ghw&cellid=&sc=0'}
 	for gtype, _url in _dict.iteritems():
 		for data in get_sogou_app_rank(gtype, _url):
 			store_data(data)
@@ -756,7 +757,7 @@ def get_pp_app_rank():
 					downloads = app.get('downloads', u'')
 					size = app.get('fsize', u'')
 					source = source_map.get('pp_hot')
-					url = u"%s\t%s" % (app.get('buid', u''),  app.get('itemId', u''))
+					url = u"%s\t%s" % (app.get('buid', u''),  app.get('id', u''))
 					out = [rank, game_name, img, downloads, size, source, popular, game_type, status, url]
 					store_data(out)
 	except Exception,e:

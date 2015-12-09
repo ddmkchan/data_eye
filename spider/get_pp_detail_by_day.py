@@ -25,6 +25,10 @@ class T:
 	def __init__(self, status_code):
 		self.status_code = status_code
 
+class EX:
+	
+	msg = ""
+
 def get_pp_detail():
 	count = 0
 	mylogger.info("get pp detail start ...")

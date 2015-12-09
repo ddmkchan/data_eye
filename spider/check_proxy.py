@@ -102,6 +102,7 @@ if __name__ == '__main__':
 			u"360助手app期待榜"	: 48,
 			u"小米游戏下载榜"	: 49,
 			u"小米游戏新网游"	: 50,
+			u"搜狗下载榜"	: 51,
 				}
 	for k,v in source_map.iteritems():
 		ins = db_conn.query(RankingChannel).filter(RankingChannel.id==v).first()
