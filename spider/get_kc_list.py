@@ -67,7 +67,7 @@ def get_9game_today_kc():
 		img 		= u""
 		url 		= u""
 		device 		= u""
-		status 		= u""
+		publish_status 		= u""
 		game_type 	= u""
 		popular 	= u""
 		today_list = soup.find("ul", class_="today-server-list").find_all("li")
@@ -95,7 +95,7 @@ def get_9game_today_kc():
 						type_div = rt.find("div", class_="type").find_all("span", class_="type-con")
 						if type_div is not None:
 							time 		= type_div[0].text
-							status 		= type_div[0].find("span").text
+							publish_status 		= type_div[0].find("span").text
 							#game_type 	= type_div[1].find('td')
 							#print type_div
 							#print re.split(u"：| ", time)[1], status, game_type
@@ -110,7 +110,7 @@ def get_9game_today_kc():
 								"img" 		: img, 
 								"url" 		: url, 		
 								"device" 		: u",".join(device), 		
-								"status" 		: status, 		
+								"publish_status" 		: publish_status, 		
 								"game_type" 	: game_type, 	
 								"popular" 	: popular,
 								"source" 	: source_map.get('9game'),
@@ -153,7 +153,7 @@ def get_18183_kc():
 							img = t.find("img").get("src")
 							time = t.find("div", class_="pt").find("div", class_="time fl").find("i").text
 							devices = [i.get("class")[0] for i in t.find("div", class_="pt").find("div", class_="xy fl").find_all("span") if i.get("class") is not None]
-							status = t.find("div", class_="pt m6").find("code").text
+							publish_status = t.find("div", class_="pt m6").find("code").text
 							ins = db_conn.query(KC_LIST).filter(KC_LIST.device==",".join(devices)).filter(KC_LIST.url==url).filter(KC_LIST.source==source_map.get('18183')).first()
 							#ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.status==status).filter(KC_LIST.source==source_map.get('18183')).first()
 							if not ins:
@@ -163,7 +163,7 @@ def get_18183_kc():
 										"img" 		:	img,
 										"time" 		:	time,
 										"device" 	:	",".join(devices),
-										"status"	:	status,
+										"publish_status"	:	publish_status,
 										"publish_date"	:	publish_date,
 										"source"	:	source_map.get('18183')
 											})
@@ -199,14 +199,14 @@ def get_360_kc():
 						time 	= u""
 						title 	= u""
 						img 	= u""
-						status	= u""
+						publish_status	= u""
 						game_type = u""
 						tds = tr.find_all("td")
 						if tds is not None:
 							title = re.sub(u"\xa0", u"", tds[0].text)
 							img = u"" if tds[0].find("img") is None else tds[0].find("img").get("src")
 							url = u"" if tds[0].find("a") is None else tds[0].find("a").get("href")
-							status = tds[1].text
+							publish_status = tds[1].text
 							game_type = tds[3].text
 							ins = db_conn.query(KC_LIST).filter(KC_LIST.url==url).filter(KC_LIST.source==source_map.get('u360')).first()
 							#ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.status==status).filter(KC_LIST.source==source_map.get('u360')).first()
@@ -217,7 +217,7 @@ def get_360_kc():
 											"time": time,
 											"title": title,
 											"url": url,
-											"status": status,
+											"publish_status": publish_status,
 											"game_type": game_type,
 											"img": img,
 											"source": source_map.get('u360')
@@ -272,63 +272,62 @@ def get_360zhushou_kc():
 	URL = "http://openbox.mobilem.360.cn/gamestart/list?type=2"
 	try:
 		r = s.get(URL)
+		if r.status_code == 200:
+			soup = BeautifulSoup(r.text)
+			item_list = soup.find_all("div", class_="app-item-list")[0]
+			if item_list is not None:
+				app_list = item_list.find_all('div', class_='app-main app-item')
+				#print logo_list
+				#app_list = item_list.find_all('div', class_='app-detail')
+				for app in app_list:
+					logo = app.find('div', class_='app-logo')
+					item = app.find('div', class_='app-detail')
+					title = u""
+					game_type = u""
+					size = u""
+					publish_date = u""
+					publish_status = u""
+					time = u""
+					img = u""
+					if logo is not None:
+						if logo.find('img') is not None:
+							img = logo.find('img').get('src')
+					title_h3 = item.find('h3')
+					if title is not None:
+						title = title_h3.text
+						meta = item.find('div', class_="app-meta text-over")
+						if meta is not None:
+							m2 = re.search(u'[\u4e00-\u9fa5\s]+', meta.text)
+							game_type = m2.group() if m2 is not None else u''
+						meta2 = item.find('div', class_="app-meta2 text-over")
+						if meta2 is not None:
+							spans = meta2.find_all('span')
+							if len(spans) == 2:
+								dt, publish_status = [i.text for i in spans]
+								publish_date, time = dt.split(u' ')
+						#print title, game_type, '****', publish_date, img
+					#print app.get('data-sid'), app.get('data-pname')	
+					if title and publish_date:
+						ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('360zhushou')).first()
+						if ins is None:
+							count += 1
+							item = KC_LIST(**{
+												"title" : title,
+												"game_type" : game_type,
+												"publish_date" : publish_date,
+												"time" : time,
+												"img" : img,
+												"title2" : app.get('data-pname'),
+												"game_id" : app.get('data-sid'),
+												"publish_status" : publish_status,
+												"source" : source_map.get('360zhushou'),
+											})
+							db_conn.merge(item)
+						else:
+							ins.title2 = app.get('data-pname')
+							ins.game_id = app.get('data-sid')
 	except Exception,e:
-		r = T(404)
-		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
-	if r.status_code == 200:
-		soup = BeautifulSoup(r.text)
-		item_list = soup.find_all("div", class_="app-item-list")[0]
-		if item_list is not None:
-			app_list = item_list.find_all('div', class_='app-main app-item')
-			#print logo_list
-			#app_list = item_list.find_all('div', class_='app-detail')
-			for app in app_list:
-				logo = app.find('div', class_='app-logo')
-				item = app.find('div', class_='app-detail')
-				title = u""
-				game_type = u""
-				size = u""
-				publish_date = u""
-				status = u""
-				time = u""
-				img = u""
-				if logo is not None:
-					if logo.find('img') is not None:
-						img = logo.find('img').get('src')
-				title_h3 = item.find('h3')
-				if title is not None:
-					title = title_h3.text
-					meta = item.find('div', class_="app-meta text-over")
-					if meta is not None:
-						m2 = re.search(u'[\u4e00-\u9fa5\s]+', meta.text)
-						game_type = m2.group() if m2 is not None else u''
-					meta2 = item.find('div', class_="app-meta2 text-over")
-					if meta2 is not None:
-						spans = meta2.find_all('span')
-						if len(spans) == 2:
-							dt, status = [i.text for i in spans]
-							publish_date, time = dt.split(u' ')
-					#print title, game_type, '****', publish_date, img
-				#print app.get('data-sid'), app.get('data-pname')	
-				if title and publish_date:
-					ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('360zhushou')).first()
-					if ins is None:
-						count += 1
-						item = KC_LIST(**{
-											"title" : title,
-											"game_type" : game_type,
-											"publish_date" : publish_date,
-											"time" : time,
-											"img" : img,
-											"title2" : app.get('data-pname'),
-											"game_id" : app.get('data-sid'),
-											"status" : status,
-											"source" : source_map.get('360zhushou'),
-										})
-						db_conn.merge(item)
-					else:
-						ins.title2 = app.get('data-pname')
-						ins.game_id = app.get('data-sid')
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
 	mylogger.info("get %s records from 360 zhushou app" % count)
 	db_conn.commit()
 
@@ -394,13 +393,13 @@ def get_xiaomi_rpg_kc(page):
 				game_type = g.get('className', u'')
 				summary = g.get('summary', u'')
 				pubTime = g.get('pubTime', u'')
-				status = u""
+				publish_status = u""
 				publish_date = u""
 				if pubTime:
 					t = unicode(pubTime)[:10]
 					publish_date = unicode(datetime.date.fromtimestamp(int(t)))
 				if summary:
-					dt, status = summary.split(u'|')
+					dt, publish_status = summary.split(u'|')
 				if title and publish_date :
 					ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('xiaomi_rpg')).first()
 					if ins is None:
@@ -413,7 +412,7 @@ def get_xiaomi_rpg_kc(page):
 									"pkg_name": g.get('packageName', u''),
 									"img": img,
 									"popular": popular,
-									"status": status,
+									"publish_status": publish_status,
 									"source": source_map.get('xiaomi_rpg')
 									})
 						db_conn.merge(item)
@@ -895,7 +894,7 @@ def get_dangle_kc():
 		d = r.json()
 		for ret in d['list']:
 			game_type = ret.get('categoryName', u'')
-			status = ret.get('operationStatus', u'')
+			publish_status = ret.get('operationStatus', u'')
 			title = ret.get('name', u'')
 			publishtime = ret.get('activityDate', u'')
 			publish_date = unicode(datetime.date.fromtimestamp(int(unicode(publishtime)[:10]))) if publishtime else u""
@@ -908,7 +907,7 @@ def get_dangle_kc():
 									"title": title,
 									"title2": ret.get('id', u''),
 									"game_type": game_type,
-									"status": status,
+									"publish_status": publish_status,
 									"publish_date": publish_date,
 									"img": img,
 									"source": source_map.get('dangle')
