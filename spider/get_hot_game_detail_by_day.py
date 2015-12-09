@@ -1586,7 +1586,7 @@ def get_pp_detail(channel_id):
 channel_map = {
 			2	: [46, 47], #18183
 			4 	: [5, 6, 7, 48], #360助手app
-			22	: [2],	#360助手web
+			22	: [2, 52, 53, 54, 55, 56, 57, 58, 59],	#360助手web
 			1	: [],	#360游戏大厅web
 			28	: [41, 42],	#360游戏大厅app
 			0	: [3, 4], #9游web
@@ -1640,14 +1640,10 @@ def main():
 	get_gionee_detail(10)
 	
 
-
 def get_muzhiwan_detail():
 	pass	
 
 def get_itools_detail():
-	pass
-
-def get_360_web_detail():
 	pass
 
 def get_360_gamebox_web_detail():
