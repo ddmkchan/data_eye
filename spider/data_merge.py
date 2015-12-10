@@ -142,8 +142,17 @@ def remove_duplicate_record():
 		db_conn.delete(delete_record)
 	db_conn.commit()
 
+
+def func():
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source.in_((7, 9, 10, 12, 14, 15, 25, 13, 16, 26, 27, 24))):
+		ret.game_id = ret.title2
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source.in_((4, 11, 28))):
+		ret.pkg_name = ret.title2
+	db_conn.commit()
+
 if __name__ == '__main__':
-	main()
+	#main()
 	#print get_publish_status(['9247,13786,17106'])
 	#get_game_detail(['12746','12747','12748'])
 	#remove_duplicate_record()
+	func()

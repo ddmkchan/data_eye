@@ -30,13 +30,13 @@ class EX:
 def get_pp_detail():
 	count = 0
 	mylogger.info("get pp detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==24):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.game_id!=u'').filter(KC_LIST.source==24):
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
-			g = get_pp_detail_by_id(ret.title2)
+			g = get_pp_detail_by_id(ret.game_id)
 			if g is not None:	
-				comments_info = get_pp_comments_by_id(ret.title2)
+				comments_info = get_pp_comments_by_id(ret.game_id)
 				count += 1 
 				item = GameDetailByDay(**{
 											'kc_id': ret.id,

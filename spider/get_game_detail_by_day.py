@@ -19,11 +19,6 @@ headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36
 
 import random
 
-class T:
-	
-	def __init__(self, status_code):
-		self.status_code = status_code
-
 class EX:
 	
 	msg = ""
@@ -240,8 +235,8 @@ def get_xiaomi_new_id_map():
 
 def get_xiaomi_new_detail():
 	id_map = get_xiaomi_new_id_map()
+	count += 1
 	for page in xrange(1, 23):
-		mylogger.info("get xiaomi_new detail page %s" % page)
 		url = "http://app.migc.xiaomi.com/cms/interface/v5/subjectgamelist1.php?pageSize=20&page=%s&subId=138" % page
 		try:
 			r = requests.get(url, timeout=10)
@@ -260,6 +255,7 @@ def get_xiaomi_new_detail():
 						if game_id in id_map:
 							ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==id_map[game_id]).filter(GameDetailByDay.dt==dt).first()
 							if not ins:
+								count += 1
 								item = GameDetailByDay(**{
 														'kc_id': id_map.get(game_id),
 														'summary' : g.get('introduction', u''),
@@ -280,6 +276,7 @@ def get_xiaomi_new_detail():
 		except Exception,e:
 			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	db_conn.commit()
+	mylogger.info("get xiaomi_new detail %s" % count)
 							
 
 def get_xiaomi_rpg_id_map():
@@ -290,9 +287,9 @@ def get_xiaomi_rpg_id_map():
 
 
 def get_xiaomi_rpg_detail():
+	count += 1
 	id_map = get_xiaomi_rpg_id_map()
 	for page in xrange(1, 2):
-		mylogger.info("get xiaomi rpg detail %s" % page)
 		url = "http://app.migc.xiaomi.com/cms/interface/v5/subjectgamelist1.php?subId=203&pageSize=150&page=%s" % page
 		try:
 			r = requests.get(url, timeout=10)
@@ -311,6 +308,7 @@ def get_xiaomi_rpg_detail():
 						if game_id in id_map:
 							ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==id_map[game_id]).filter(GameDetailByDay.dt==dt).first()
 							if not ins:
+								count += 1
 								item = GameDetailByDay(**{
 														'kc_id': id_map.get(game_id),
 														'summary' : g.get('introduction', u''),
@@ -329,6 +327,7 @@ def get_xiaomi_rpg_detail():
 		except Exception,e:
 			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	db_conn.commit()
+	mylogger.info("get xiaomi rpg detail %s" % count)
 							
 
 def get_open_play_detail():
@@ -336,14 +335,14 @@ def get_open_play_detail():
 	error_times = 0
 	sess = requests.session()
 	mylogger.info("get open play detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==7):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.game_id!=u'').filter(KC_LIST.source==7):
 		if error_times >= 10:
 			mylogger.info("open play detail reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
-			_url = u'http://open.play.cn/api/v2/mobile/game_detail.json?game_id=%s' % ret.title2
+			_url = u'http://open.play.cn/api/v2/mobile/game_detail.json?game_id=%s' % ret.game_id
 			try:
 				response = sess.get(_url, timeout=10)
 				d = response.json()
@@ -422,14 +421,14 @@ def get_coolpad_detail():
 	count = 0
 	error_times = 0
 	mylogger.info("get coolpad detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==9):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.gamd_id!=u'').filter(KC_LIST.source==9):
 		if error_times >= 20:
 			mylogger.info("coolpad reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
-			g =  get_coolpad_detail_by_id(ret.title2)
+			g =  get_coolpad_detail_by_id(ret.game_id)
 			if isinstance(g, EX):
 				error_times += 1
 			elif g is not None:
@@ -478,14 +477,14 @@ def get_gionee_detail():
 	error_times = 0
 	sess = requests.session()
 	mylogger.info("get gionee detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==10):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.game_id!=u'').filter(KC_LIST.source==10):
 		if error_times >= 10:
 			mylogger.info("gionee reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
-			_url = u"http://game.gionee.com/Api/Local_Gameinfo/getDetails?gameId=%s" % ret.title2
+			_url = u"http://game.gionee.com/Api/Local_Gameinfo/getDetails?gameId=%s" % ret.game_id
 			try:
 				response = sess.get(_url, timeout=10)
 				d = response.json()
@@ -517,14 +516,14 @@ def get_leveno_detail():
 	error_times = 0
 	sess = requests.session()
 	mylogger.info("get lenovo detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==11):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.pkg_name!=u'').filter(KC_LIST.source==11):
 		if error_times >= 10:
 			mylogger.info("leveno reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
-			_url = u"http://yx.lenovomm.com/business/app!getAppDetail5.action?dpi=480&height=1920&dev=ph&width=1080&cpu=armeabi-v7a&pn=%s&uid=72DB07100FC223A2EDE82F4A44AE96B4&os=4.4.4&perf=hp&model=MI 4LTE&type=0&density=xx&mac=7A031DAB40535B3F5E204582EB961FC5" % ret.title2
+			_url = u"http://yx.lenovomm.com/business/app!getAppDetail5.action?dpi=480&height=1920&dev=ph&width=1080&cpu=armeabi-v7a&pn=%s&uid=72DB07100FC223A2EDE82F4A44AE96B4&os=4.4.4&perf=hp&model=MI 4LTE&type=0&density=xx&mac=7A031DAB40535B3F5E204582EB961FC5" % ret.pkg_name
 			try:
 				p = proxies[random.randrange(len(proxies))]
 				response = sess.get(_url, timeout=10, proxies=p)
@@ -556,14 +555,14 @@ def get_iqiyi_detail():
 	count = 0
 	error_times = 0
 	mylogger.info("get iqiyi detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==12):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.game_id!=u'').filter(KC_LIST.source==12):
 		if error_times >= 20:
 			mylogger.info("iqiyi reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
-			d =  get_iqiyi_detail_by_id(ret.title2)
+			d =  get_iqiyi_detail_by_id(ret.game_id)
 			if isinstance(d, EX):
 				error_times += 1
 			elif d is not None:
@@ -603,14 +602,14 @@ def get_sogou_detail():
 	error_times = 0
 	sess = requests.session()
 	mylogger.info("get sogou detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==14):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.game_id!=u'').filter(KC_LIST.source==14):
 		if error_times >= 10:
 			mylogger.info("sogou reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
-			_url = u"http://mobile.zhushou.sogou.com/m/appDetail.html?id=%s" % ret.title2
+			_url = u"http://mobile.zhushou.sogou.com/m/appDetail.html?id=%s" % ret.game_id
 			try:
 				response = sess.get(_url, timeout=10)
 				d = response.json()
@@ -640,14 +639,14 @@ def get_dangle_detail():
 	count = 0
 	error_times = 0
 	mylogger.info("get dangle detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==15):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.game_id!=u'').filter(KC_LIST.source==15):
 		if error_times >= 20:
 			mylogger.info("dangle reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
-			g =  get_dangle_detail_by_id(ret.title2)
+			g =  get_dangle_detail_by_id(ret.game_id)
 			if isinstance(g, EX):
 				error_times += 1
 			elif g is not None:
@@ -675,7 +674,7 @@ def get_dangle_detail():
 
 
 def get_dangle_detail_by_id(gid):
-	url = "http://api2014.digua.d.cn/newdiguaserver/res/detail?id=%s&resourceType=5"% gid
+	url = u"http://api2014.digua.d.cn/newdiguaserver/res/detail?id=%s&resourceType=5"% gid
 	headers = {"HEAD": {
     "stamp":1447747218496,
     "verifyCode":"78492ba9e8569f3b9d9173ac4e4b6cb9",
@@ -707,7 +706,7 @@ def get_dangle_detail_by_id(gid):
 		if r.status_code == 200:
 			return r.json()
 	except Exception,e:
-		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
+		mylogger.error("%s\t%s" % (url.encode('utf-8'), traceback.format_exc()))
 		return EX()
 	return None
 
@@ -780,7 +779,7 @@ def get_muzhiwan_detail_by_id(url):
 		if summary is not None:
 			mydict['description'] = summary.text
 	except Exception,e:
-		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
+		mylogger.error("%s\t%s" % (url.encode('utf-8'), traceback.format_exc()))
 		return EX()
 	return mydict
 
@@ -857,7 +856,7 @@ def get_huawei_detail_by_id(url):
 				if m is not None:
 					mydict['comment_num'] = m.group()
 	except Exception,e:
-		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
+		mylogger.error("%s\t%s" % (url.encode('utf-8'), traceback.format_exc()))
 		sleep(5)
 		return EX()
 	return mydict
@@ -928,15 +927,16 @@ def get_kuaiyong_detail_by_id(URL):
 			mydict['description'] = detail_content.text
 	except Exception,e:
 		#sleep(3.21)
-		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+		mylogger.error("%s\t%s" % (URL.encode('utf-8'), traceback.format_exc()))
 		return EX()
 	return mydict
 
 
 def get_anzhi_detail():
+	
 	count = 0
 	mylogger.info("get kuaiyong detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==19):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==21):
 		count += 1 
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
@@ -966,33 +966,32 @@ def get_anzhi_detail_by_id(URL):
 	mydict = {}
 	try:
 		response = s.get(URL, timeout=10)
+		if response.status_code == 200:
+			soup = BeautifulSoup(response.text)
+			detail_icon = soup.find('div', class_='detail_icon')
+			if detail_icon is not None:
+				img_div = detail_icon.find('img')
+				if img_div is not None:
+					mydict['img'] = u"http://www.anzhi.com%s" % img_div.get('src')
+			detail_line_ul = soup.find('ul', id='detail_line_ul')
+			if detail_line_ul is not None:
+				for li in detail_line_ul.find_all('li'):
+					segs = li.text.split(u'：')
+					if len(segs) == 2:
+						mydict[segs[0]] = segs[1]
+			stars_detail = soup.find('div', id='stars_detail')
+			if stars_detail is not None:
+				m = re.search('(\d+)px', stars_detail.get('style'))
+				if m is not None:
+					mydict['rating'] = round(m.group(1)/30.0, 1)
+			app_detail_infor = soup.find('div', class_='app_detail_infor')
+			if app_detail_infor is not None:
+				mydict['description'] = app_detail_infor.text.strip()
+			section_body = soup.find('div', class_='section-body')
+			if section_body is not None:
+				mydict['imgs'] = [u"http://www.anzhi.com%s" % i.get('src') for i in section_body.find_all('img')]
 	except Exception,e:
-		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
-		response = T(404)
-	if response.status_code == 200:
-		soup = BeautifulSoup(response.text)
-		detail_icon = soup.find('div', class_='detail_icon')
-		if detail_icon is not None:
-			img_div = detail_icon.find('img')
-			if img_div is not None:
-				mydict['img'] = u"http://www.anzhi.com%s" % img_div.get('src')
-		detail_line_ul = soup.find('ul', id='detail_line_ul')
-		if detail_line_ul is not None:
-			for li in detail_line_ul.find_all('li'):
-				segs = li.text.split(u'：')
-				if len(segs) == 2:
-					mydict[segs[0]] = segs[1]
-		stars_detail = soup.find('div', id='stars_detail')
-		if stars_detail is not None:
-			m = re.search('(\d+)px', stars_detail.get('style'))
-			if m is not None:
-				mydict['rating'] = round(m.group(1)/30.0, 1)
-		app_detail_infor = soup.find('div', class_='app_detail_infor')
-		if app_detail_infor is not None:
-			mydict['description'] = app_detail_infor.text.strip()
-		section_body = soup.find('div', class_='section-body')
-		if section_body is not None:
-			mydict['imgs'] = [u"http://www.anzhi.com%s" % i.get('src') for i in section_body.find_all('img')]
+		mylogger.error("%s\t%s" % (URL.encode('utf-8'), traceback.format_exc()))
 	return mydict
 
 def get_wandoujia_detail():
@@ -1053,9 +1052,8 @@ def get_wandoujia_detail_by_id(url):
 	return None
 
 
-
 def get_meizu_detail_by_id(gid):
-	URL = "http://api-game.meizu.com/games/public/detail/%s" % gid
+	URL = u"http://api-game.meizu.com/games/public/detail/%s" % gid
 	try:
 		response = requests.get(URL, timeout=10)
 		if response.status_code == 200:
@@ -1063,7 +1061,7 @@ def get_meizu_detail_by_id(gid):
 			if 'value' in j:
 				return j['value']
 	except Exception,e:
-		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+		mylogger.error("%s\t%s" % (URL.encode('utf-8'), traceback.format_exc()))
 		return EX()
 	return None
 
@@ -1072,14 +1070,14 @@ def get_meizu_detail():
 	count = 0
 	error_times = 0
 	mylogger.info("get meizu detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==25):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.game_id!=u'').filter(KC_LIST.source==25):
 		if error_times >= 20:
 			mylogger.info("meizu reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
-			g = get_meizu_detail_by_id(ret.title2)
+			g = get_meizu_detail_by_id(ret.game_id)
 			if isinstance(g, EX):
 				error_times += 1
 			elif g is not None:	
@@ -1101,30 +1099,16 @@ def get_meizu_detail():
 	mylogger.info("get meizu detail %s" % count)
 	db_conn.commit()
 
-def get_proxies():
-	return [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in db_conn.query(ProxyList)]
-
-def check_proxy(proxy):
-	start = time.time()
-	try:
-		r = requests.get("http://www.sogou.com/", headers=headers)
-		#r = requests.get("http://www.douban.com/", headers=headers, proxies = proxy)
-		if r.status_code == 200:
-			end = time.time()
-			print proxy, end - start
-	except Exception,e:
-		mylogger.error("%s" % (traceback.format_exc()))
-		
 
 def get_youku_detail_by_id(app_id):
-	URL = "http://api.gamex.mobile.youku.com/v2/app/detail?product_id=1&app_id=%s" % app_id
+	URL = u"http://api.gamex.mobile.youku.com/v2/app/detail?product_id=1&app_id=%s" % app_id
 	try:
 		response = requests.get(URL, timeout=10)
 		if response.status_code == 200:
 			j = response.json()
 			return j['app']
 	except Exception,e:
-		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+		mylogger.error("%s\t%s" % (URL.encode('utf-8'), traceback.format_exc()))
 		return EX()
 	return None
 
@@ -1132,14 +1116,14 @@ def get_youku_detail():
 	count = 0
 	error_times = 0
 	mylogger.info("get youku detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==13):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.game_id!=u'').filter(KC_LIST.source==13):
 		if error_times >= 20:
 			mylogger.info("youku reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
-			g = get_youku_detail_by_id(ret.title2)
+			g = get_youku_detail_by_id(ret.game_id)
 			if isinstance(g, EX):
 				error_times += 1
 			elif g is not None:	
@@ -1159,18 +1143,18 @@ def get_youku_detail():
 	mylogger.info("get youku detail %s" % count)
 	db_conn.commit()
 
-def get_360_app_detail():
+def get_360zhushou_app_detail():
 	count = 0
 	error_times = 0
-	mylogger.info("get 360 app detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==4):
+	mylogger.info("get 360zhushou app detail start ...")
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.pkg_name!=u'').filter(KC_LIST.source==4):
 		if error_times >= 10:
-			mylogger.info("360 reach max error times ... ")
+			mylogger.info("360zhushou reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
-			url = "http://125.88.193.234/mintf/getAppInfoByIds?pname=%s" % ret.title2
+			url = "http://125.88.193.234/mintf/getAppInfoByIds?pname=%s" % ret.pkg_name
 			try:
 				r = requests.get(url, timeout=10)
 				if r.status_code == 200:
@@ -1188,7 +1172,7 @@ def get_360_app_detail():
 									if tag.get('title', u'') == u'全部':
 										comments_num = tag.get('num', u'')
 						except Exception,e :
-							mylogger.error("360 app comments #### %s #### \t%s" % (comments_url, traceback.format_exc()))
+							mylogger.error("360zhushou app comments #### #### \t%s" % (traceback.format_exc()))
 						item = GameDetailByDay(**{
 									'kc_id': ret.id,
 									'summary' : g.get('brief', u''),
@@ -1205,7 +1189,7 @@ def get_360_app_detail():
 						db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
-				mylogger.error("360 app #### %s #### \t%s" % (url, traceback.format_exc()))
+				mylogger.error("360zhushou app #### %s #### \t%s" % (ret.pkg_name.encode('utf-8'), traceback.format_exc()))
 				
 	mylogger.info("get 360 app detail %s" % count)
 	db_conn.commit()
@@ -1215,14 +1199,14 @@ def get_i4_app_detail():
 	count = 0
 	error_times = 0
 	mylogger.info("get i4 app detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==16):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.game_id!=u'').filter(KC_LIST.source==16):
 		if error_times >= 10:
 			mylogger.info("i4 reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
-			url = "http://app3.i4.cn/controller/action/online.go?store=3&module=1&id=%s&reqtype=5" % ret.title2
+			url = u"http://app3.i4.cn/controller/action/online.go?store=3&module=1&id=%s&reqtype=5" % ret.game_id
 			try:
 				r = requests.get(url, timeout=10)
 				if r.status_code == 200:
@@ -1245,7 +1229,7 @@ def get_i4_app_detail():
 						db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
-				mylogger.error("i4 app #### %s #### \t%s" % (url, traceback.format_exc()))
+				mylogger.error("i4 app #### %s #### \t%s" % (ret.game_id.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get i4 app detail %s" % count)
 	db_conn.commit()
 
@@ -1254,7 +1238,7 @@ def get_xyzs_app_detail():
 	count = 0
 	error_times = 0
 	mylogger.info("get xyzs app detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==26):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.game_id!=u'').filter(KC_LIST.source==26):
 		if error_times >= 10:
 			mylogger.info("xyzs reach max error times ... ")
 			break
@@ -1263,7 +1247,7 @@ def get_xyzs_app_detail():
 		if not ins:
 			try:
 				url = "http://interface.xyzs.com/v2/ios/c01/app"
-				d = {'itunesid': ret.title2}
+				d = {'itunesid': ret.game_id}
 				r = requests.get(url, params=d, timeout=10)
 				if r.status_code == 200:
 					j = r.json()
@@ -1283,7 +1267,7 @@ def get_xyzs_app_detail():
 						db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
-				mylogger.error("xyzs app #### %s #### \t%s" % (url, traceback.format_exc()))
+				mylogger.error("xyzs app #### %s #### \t%s" % (ret.game_id.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get xyzs app detail %s" % count)
 	db_conn.commit()
 
@@ -1292,7 +1276,7 @@ def get_91play_detail():
 	count = 0
 	error_times = 0
 	mylogger.info("get 91play app detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==27):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.game_id!=u'').filter(KC_LIST.source==27):
 		if error_times >= 10:
 			mylogger.info("91play reach max error times ... ")
 			break
@@ -1301,7 +1285,7 @@ def get_91play_detail():
 		if not ins:
 			try:
 				url = "http://play.91.com/api.php/Api/index"
-				raw_data = {"id": int(ret.title2),"firmware":"19","time":1449458211590,"device":1,"action":30005,"app_version":302,"action_version":4,"mac":"7b715ce093480b34d6987","debug":0}
+				raw_data = {"id": int(ret.game_id),"firmware":"19","time":1449458211590,"device":1,"action":30005,"app_version":302,"action_version":4,"mac":"7b715ce093480b34d6987","debug":0}
 				response = requests.post(url, data=raw_data, timeout=10)
 				if response.status_code == 200:
 					j = response.json() 
@@ -1323,7 +1307,7 @@ def get_91play_detail():
 						db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
-				mylogger.error("91play app detail #### %s #### \t%s" % (ret.title2.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("91play app detail #### %s #### \t%s" % (ret.game_id.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get 91play app detail %s" % count)
 	db_conn.commit()
 
@@ -1331,7 +1315,7 @@ def get_360_gamebox_detail():
 	count = 0
 	error_times = 0
 	mylogger.info("get 360_gamebox app detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==28):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.pkg_name!=u'').filter(KC_LIST.source==28):
 		if error_times >= 10:
 			mylogger.info("360_gamebox reach max error times ... ")
 			break
@@ -1339,7 +1323,7 @@ def get_360_gamebox_detail():
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
 			try:
-				url = "http://next.gamebox.360.cn/7/xgamebox/getappintro?pname=%s" % ret.title2
+				url = "http://next.gamebox.360.cn/7/xgamebox/getappintro?pname=%s" % ret.pkg_name
 				response = requests.get(url, timeout=10)
 				if response.status_code == 200:
 					j = response.json() 
@@ -1363,7 +1347,7 @@ def get_360_gamebox_detail():
 						db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
-				mylogger.error("360_gamebox app detail #### %s #### \t%s" % (ret.title2.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("360_gamebox app detail #### %s #### \t%s" % (ret.pkg_name.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get 360_gamebox app detail %s" % count)
 	db_conn.commit()
 
@@ -1389,7 +1373,7 @@ def step2():
 	get_wandoujia_detail()
 	get_kuaiyong_detail()
 	get_youku_detail()
-	get_360_app_detail()
+	get_360zhushou_app_detail()
 	get_i4_app_detail()
 	get_xyzs_app_detail()
 	get_91play_detail()
