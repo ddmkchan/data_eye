@@ -235,7 +235,7 @@ def get_xiaomi_new_id_map():
 
 def get_xiaomi_new_detail():
 	id_map = get_xiaomi_new_id_map()
-	count += 1
+	count = 0
 	for page in xrange(1, 23):
 		url = "http://app.migc.xiaomi.com/cms/interface/v5/subjectgamelist1.php?pageSize=20&page=%s&subId=138" % page
 		try:
@@ -287,7 +287,7 @@ def get_xiaomi_rpg_id_map():
 
 
 def get_xiaomi_rpg_detail():
-	count += 1
+	count = 0
 	id_map = get_xiaomi_rpg_id_map()
 	for page in xrange(1, 2):
 		url = "http://app.migc.xiaomi.com/cms/interface/v5/subjectgamelist1.php?subId=203&pageSize=150&page=%s" % page
