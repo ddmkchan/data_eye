@@ -421,7 +421,7 @@ def get_coolpad_detail():
 	count = 0
 	error_times = 0
 	mylogger.info("get coolpad detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.gamd_id!=u'').filter(KC_LIST.source==9):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.game_id!=u'').filter(KC_LIST.source==9):
 		if error_times >= 20:
 			mylogger.info("coolpad reach max error times ... ")
 			break
