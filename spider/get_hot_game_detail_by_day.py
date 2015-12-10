@@ -250,104 +250,58 @@ def get_appicsh_detail(channel_id):
 	db_conn.commit()
 			
 
-def get_xiaomi_new_id_map():
+def get_xiaomi_game_detail(channel_id):
+	count = 0
+	xiaomi_app_map = get_xiaomi_app_list()
+	mylogger.info("get xiaomi_game rank detail start ...")
+	ids = channel_map.get(channel_id)
+	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
+	mylogger.info("### %s ###" % _sql)
+	for ret in db_conn.execute(_sql):
+		name, pkg_name = ret
+		if pkg_name in xiaomi_app_map:
+			dt = unicode(datetime.date.today())
+			ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+			if not ins:
+				g = xiaomi_app_map.get(pkg_name)
+				if g is not None:
+					count += 1
+					item = HotGameDetailByDay(**{
+												'channel': channel_id,
+												'name': name,
+												'summary' : g.get('introduction', u''),
+												'author' : g.get('publisherName', u''),
+												'game_type' : g.get('className', u''),
+												'version' : g.get('versionName', u''),
+												'rating' : g.get('ratingScore', u''),
+												'download_num' : g.get('downloadCount', u''),
+												'pkg_size' : g.get('apkSize' u''),
+												'dt' : dt,
+												'imgs' : u','.join([i.get('url') for i in g['screenShot']]),
+												'topic_num_total' : g.get('ratingCount', u''),
+													})
+					db_conn.merge(item)
+	mylogger.info("get xiaomi game  detail %s" % count)
+	db_conn.commit()
+
+
+def get_xiaomi_app_list():
 	mydict = {}
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.game_id!=u'').filter(KC_LIST.source==5):
-		mydict[int(ret.game_id)] = ret.id
+	xiaomi_app_download = "http://app.migc.xiaomi.com/cms/interface/v5/rankgamelist1.php?uid=20150905_132380697&platform=android&os=V6.7.1.0.KXDCNCH&stampTime=1449557687000&density=480&imei=865931027730878&pageSize=50&versionCode=1822&cid=gamecenter_100_1_android%7C865931027730878&clientId=40b53f3e316bda9f83c2e0c094d5b7f6&vn=MIGAMEAPPSTAND_1.8.22&co=CN&page=1&macWifi=3480B34D6987&la=zh&ua=Xiaomi%257CMI%2B4LTE%257C4.4.4%257CKTU84P%257C19%257Ccancro&carrier=unicom&rankId=17&mnc=46001&fuid=&mid=&imsi=460015776509846&sdk=19&mac3g=&bid=701"
+	xiaomi_app_hot = "http://app.migc.xiaomi.com/cms/interface/v5/rankgamelist1.php?uid=20150905_132380697&platform=android&os=V6.7.1.0.KXDCNCH&stampTime=1449557980000&density=480&imei=865931027730878&pageSize=50&versionCode=1822&cid=gamecenter_100_1_android%7C865931027730878&clientId=40b53f3e316bda9f83c2e0c094d5b7f6&vn=MIGAMEAPPSTAND_1.8.22&co=CN&page=1&macWifi=3480B34D6987&la=zh&ua=Xiaomi%257CMI%2B4LTE%257C4.4.4%257CKTU84P%257C19%257Ccancro&carrier=unicom&rankId=18&mnc=46001&fuid=&mid=&imsi=460015776509846&sdk=19&mac3g=&bid=701"
+	try:
+		for url  in [xiaomi_app_download, xiaomi_app_hot]:
+			r = requests.get(url)
+			if r.status_code == 200:
+				j = r.json()
+				for game in j['gameList']:
+					packageName = game.get('packageName', u'')
+					if packageName:
+						mydict[packageName] = game
+	except Exception,e:
+		mylogger.error("get xiaomi app list\t%s" % (traceback.format_exc()))
 	return mydict
 
-
-def get_xiaomi_new_detail():
-	id_map = get_xiaomi_new_id_map()
-	for page in xrange(1, 23):
-		mylogger.info("get xiaomi_new detail page %s" % page)
-		url = "http://app.migc.xiaomi.com/cms/interface/v5/subjectgamelist1.php?pageSize=20&page=%s&subId=138" % page
-		try:
-			r = requests.get(url, timeout=10)
-			if r.status_code == 200:
-				d = r.json()
-				if d['errCode'] == 200:
-					new_games_list = d.get('gameList', [])
-					for g in new_games_list:
-						game_id = g.get('gameId', u'')
-						update_time = u''
-						updateTime = g.get('updateTime', u'')
-						if updateTime:
-							t = unicode(updateTime)[:10]
-							update_time = unicode(datetime.date.fromtimestamp(int(t)))
-						dt = unicode(datetime.date.today())
-						if game_id in id_map:
-							ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.kc_id==id_map[game_id]).filter(HotGameDetailByDay.dt==dt).first()
-							if not ins:
-								item = HotGameDetailByDay(**{
-														'kc_id': id_map.get(game_id),
-														'summary' : g.get('introduction', u''),
-														'author' : g.get('publisherName', u''),
-														'game_type' : g.get('className', u''),
-														'rating' : g.get('ratingScore', u''),
-														'version' : g.get('versionName', u''),
-														'pkg_size' : g.get('apkSize', u''),
-														'download_num' : g.get('downloadCount', u''),
-														'dt' : dt,
-														'imgs' : u','.join([i.get('url') for i in g['screenShot']]),
-														'topic_num_total' : g.get('ratingCount', u''),
-														'update_time' : update_time,
-															})
-								db_conn.merge(item)
-							else:
-								ins.pkg_size = g.get('apkSize', u'')
-		except Exception,e:
-			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
-	db_conn.commit()
-							
-
-def get_xiaomi_rpg_id_map():
-	mydict = {}
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.game_id!=u'').filter(KC_LIST.source==6):
-		mydict[int(ret.game_id)] = ret.id
-	return mydict
-
-
-def get_xiaomi_rpg_detail():
-	id_map = get_xiaomi_rpg_id_map()
-	for page in xrange(1, 2):
-		mylogger.info("get xiaomi rpg detail %s" % page)
-		url = "http://app.migc.xiaomi.com/cms/interface/v5/subjectgamelist1.php?subId=203&pageSize=150&page=%s" % page
-		try:
-			r = requests.get(url, timeout=10)
-			if r.status_code == 200:
-				d = r.json()
-				if d['errCode'] == 200:
-					new_games_list = d.get('gameList', [])
-					for g in new_games_list:
-						game_id = g.get('gameId', u'')
-						update_time = u''
-						updateTime = g.get('updateTime', u'')
-						if updateTime:
-							t = unicode(updateTime)[:10]
-							update_time = unicode(datetime.date.fromtimestamp(int(t)))
-						dt = unicode(datetime.date.today())
-						if game_id in id_map:
-							ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.kc_id==id_map[game_id]).filter(HotGameDetailByDay.dt==dt).first()
-							if not ins:
-								item = HotGameDetailByDay(**{
-														'kc_id': id_map.get(game_id),
-														'summary' : g.get('introduction', u''),
-														'author' : g.get('publisherName', u''),
-														'game_type' : g.get('className', u''),
-														'rating' : g.get('ratingScore', u''),
-														'version' : g.get('versionName', u''),
-														'download_num' : g.get('downloadCount', u''),
-														'dt' : dt,
-														'pkg_size' : g.get('apkSize', u''),
-														'imgs' : u','.join([i.get('url') for i in g['screenShot']]),
-														'topic_num_total' : g.get('ratingCount', u''),
-														'update_time' : update_time,
-															})
-								db_conn.merge(item)
-		except Exception,e:
-			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
-	db_conn.commit()
 							
 
 def get_open_play_detail(channel_id):
@@ -1595,8 +1549,8 @@ channel_map = {
 			13	: [31, 32], # youku
 			18	: [], # huawei
 			21	: [], # anzhi
-			6	: [], # xiaomi
-			5	: [], #
+			6	: [], # 小米游戏app
+			5	: [60, 61], #小米游戏app
 			3	: [8, 9, 10, 43], # 应用宝PC
 			15	: [14], #dangle
 			19	: [37], # kuaiyong
@@ -1636,7 +1590,7 @@ def main():
 	get_coolpad_detail(9)
 	get_91play_detail(27)
 	get_gionee_detail(10)
-	
+	get_xiaomi_game_detail(5)
 
 def get_muzhiwan_detail():
 	pass	

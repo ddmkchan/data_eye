@@ -995,7 +995,30 @@ def store_360_gamebox_app_rank():
 def store_xiaomi_app_rank():
 	_dict = {"xiaomi_app_download": "http://app.migc.xiaomi.com/cms/interface/v5/rankgamelist1.php?uid=20150905_132380697&platform=android&os=V6.7.1.0.KXDCNCH&stampTime=1449557687000&density=480&imei=865931027730878&pageSize=20&versionCode=1822&cid=gamecenter_100_1_android%7C865931027730878&clientId=40b53f3e316bda9f83c2e0c094d5b7f6&vn=MIGAMEAPPSTAND_1.8.22&co=CN&page=1&macWifi=3480B34D6987&la=zh&ua=Xiaomi%257CMI%2B4LTE%257C4.4.4%257CKTU84P%257C19%257Ccancro&carrier=unicom&rankId=17&mnc=46001&fuid=&mid=&imsi=460015776509846&sdk=19&mac3g=&bid=701",
 			"xiaomi_app_hot": "http://app.migc.xiaomi.com/cms/interface/v5/rankgamelist1.php?uid=20150905_132380697&platform=android&os=V6.7.1.0.KXDCNCH&stampTime=1449557980000&density=480&imei=865931027730878&pageSize=20&versionCode=1822&cid=gamecenter_100_1_android%7C865931027730878&clientId=40b53f3e316bda9f83c2e0c094d5b7f6&vn=MIGAMEAPPSTAND_1.8.22&co=CN&page=1&macWifi=3480B34D6987&la=zh&ua=Xiaomi%257CMI%2B4LTE%257C4.4.4%257CKTU84P%257C19%257Ccancro&carrier=unicom&rankId=18&mnc=46001&fuid=&mid=&imsi=460015776509846&sdk=19&mac3g=&bid=701"}
-	
+	for gtype, url in _dict.iteritems():
+		get_xiaomi_app_rank(gtype, url)
+		
+
+def get_xiaomi_app_rank(gtype, url):
+	rank = 0
+	try:
+		response = requests.get(url, timeout=10)
+		if response.status_code == 200:
+			j = response.json()
+			if j['gameList'] is not None:
+				for app in j['gameList']:
+					rank += 1
+					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+					game_name = app.get('displayName', u'')
+					img = app.get('icon', u'')
+					size = app.get('apkSize', u'')
+					game_type = app.get('className', u'')
+					downloads = app.get('downloadCount', u'')
+					source = source_map.get(gtype)
+					url = app.get('packageName', u'')
+					store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+	except Exception,e:
+		mylogger.error("xiaomi game app rank\t%s" % (traceback.format_exc()))
 
 def store_18183_top_app_rank():
 	_dict = {'18183_top': 'http://top.18183.com/', '18183_hot': 'http://top.18183.com/hot.html'}
@@ -1078,6 +1101,7 @@ def main():
 	store_18183_top_app_rank()
 	store_9game_web_app_rank()
 	get_360zhushou_web_rank()
+	store_xiaomi_app_rank()
 
 if __name__ == '__main__':
 	main()

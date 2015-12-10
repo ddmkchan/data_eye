@@ -111,6 +111,8 @@ if __name__ == '__main__':
 			"360助手飞行射击"		: "57", #飞行射击
 			"360助手经营策略"		: "58", 
 			"360助手棋牌天地"		: "59", 
+			"小米游戏app下载榜"			: "60", 
+			"小米游戏app畅销榜"			: "61", 
 				}
 	for k,v in source_map.iteritems():
 		ins = db_conn.query(RankingChannel).filter(RankingChannel.id==v).first()
