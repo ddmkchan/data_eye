@@ -983,7 +983,7 @@ def get_muzhiwan_kc():
 					if tag_td is not None and tag_td.find('a') is not None:
 						title = tag_td.find('a').text
 						pkg_name = tag_td.find('a').get('href')
-					fl = soup.find('div', class_='fl')
+					fl = li.find('div', class_='fl')
 					if fl is not None and fl.find('a') is not None:
 						if fl.find('a').find('img') is not None:
 							img = fl.find('a').find('img').get('src')
@@ -1013,6 +1013,8 @@ def get_muzhiwan_kc():
 									"source": source_map.get('muzhiwan')
 									})
 							db_conn.merge(item)
+						else:
+							ins.img = img
 	except Exception,e:
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
 	mylogger.info("get %s records from muzhiwan" % count)
@@ -1633,8 +1635,8 @@ def main():
 	get_xyzs_kc(1)
 	get_91play_kc()
 	get_360_gamebox_kc(0)
+	get_muzhiwan_kc()
 
 if __name__ == '__main__':
-	#main()
-	get_muzhiwan_kc()
+	main()
 	#get_anzhi_kc()
