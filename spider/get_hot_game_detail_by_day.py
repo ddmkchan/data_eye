@@ -139,7 +139,7 @@ def get_18183_detail(channel_id):
 		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
-				response = sess.get(url, timeout=10)
+				response = sess.get(url, timeout=10, proxies=p)
 				count += 1
 				topic_num_total = u''
 				game_type = u''
@@ -637,7 +637,6 @@ def get_sogou_detail(channel_id):
 												'imgs' : u",".join([i.get('url', u'') for i in d['images']]),
 													})
 					db_conn.merge(item)
-					break
 			except Exception,e:
 				error_times += 1
 				mylogger.error("%s\t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
