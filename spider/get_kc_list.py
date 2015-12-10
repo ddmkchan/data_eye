@@ -1579,6 +1579,6 @@ def main():
 	get_360_gamebox_kc(0)
 
 if __name__ == '__main__':
-	#main()
+	main()
 	#get_muzhiwan_kc(1)
 	#get_anzhi_kc()
