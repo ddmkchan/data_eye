@@ -963,7 +963,63 @@ def get_i4_kc(page):
 def get_i4_detail_by_id():
 	url = "http://app3.i4.cn/controller/action/online.go?store=3&module=1&id=253283&reqtype=5"
 
-def get_muzhiwan_kc(page):
+
+def get_muzhiwan_kc():
+	count = 0
+	URL = "http://www.muzhiwan.com/wangyou/kaice/"
+	try:
+		response = s.get(URL, timeout=10)
+		if response.status_code == 200:
+			soup = BeautifulSoup(response.text)
+			today_kc_list = soup.find('ul', class_='td_del hot_list')
+			if today_kc_list is not None:
+				for li in today_kc_list.find_all('li', class_='clearfix li_contents_list'):
+					title = u''
+					pkg_name = u''
+					game_type = u''
+					publish_status = u''
+					img = u''
+					tag_td = li.find('div', class_='tag tag_td')
+					if tag_td is not None and tag_td.find('a') is not None:
+						title = tag_td.find('a').text
+						pkg_name = tag_td.find('a').get('href')
+					fl = soup.find('div', class_='fl')
+					if fl is not None and fl.find('a') is not None:
+						if fl.find('a').find('img') is not None:
+							img = fl.find('a').find('img').get('src')
+					publish_status_div = soup.find('div', class_='fl pl10 ')
+					if publish_status_div is not None:
+						for g in publish_status_div.find_all('p'):
+							segs = re.sub('\s+', u'', g.text).split(':')
+							if len(segs) == 2:
+								if segs[0] == u'游戏状态':
+									publish_status = segs[1]
+								if segs[0] == u'游戏类型':
+									game_type = segs[1]
+					if pkg_name:
+						count += 1
+						url = u"http://www.muzhiwan.com%s" % pkg_name
+						publish_date = unicode(datetime.date.today())
+						ins = db_conn.query(KC_LIST).filter(KC_LIST.url==url).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('muzhiwan')).first()
+						if ins is None:
+							count += 1
+							item = KC_LIST(**{
+									"title": title,
+									"url": url,
+									"game_type": game_type,
+									"publish_status": publish_status,
+									"publish_date": publish_date,
+									"img": img,
+									"source": source_map.get('muzhiwan')
+									})
+							db_conn.merge(item)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+	mylogger.info("get %s records from muzhiwan" % count)
+	db_conn.commit()
+
+
+def get_muzhiwan_kc_v1(page):
 	count = 0
 	#URL = "http://www.muzhiwan.com/category/12/"
 	URL = "http://www.muzhiwan.com/category/12/new-0-0-%s.html" % page
@@ -1579,6 +1635,6 @@ def main():
 	get_360_gamebox_kc(0)
 
 if __name__ == '__main__':
-	main()
-	#get_muzhiwan_kc(1)
+	#main()
+	get_muzhiwan_kc()
 	#get_anzhi_kc()
