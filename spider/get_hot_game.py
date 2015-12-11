@@ -449,7 +449,7 @@ def get_data(f):
 		if ins is None:
 			item = HotGames(**{
 							"name"			: game_name,
-							"src"			: img,
+							"img"			: img,
 							"download_count"		: downloads,
 							"size"			: size,
 							"source"		: source,
@@ -1060,8 +1060,8 @@ def store_data(ret):
 	if ins is None:
 		item = HotGames(**{
 						"name"			: game_name,
-						"src"			: img,
-						"download_count"		: downloads,
+						"img"			: img,
+						"download_num"		: downloads,
 						"size"			: size,
 						"source"		: source,
 						"rank"			: rank,

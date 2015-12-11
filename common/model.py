@@ -40,7 +40,7 @@ class HotGames(Base):
 	
 	id = Column(Integer, primary_key=True, autoincrement=True)
 	name = Column(Unicode(100), nullable=False, default=u'', index=True)
-	src = Column(Unicode(200), nullable=False, default=u'')
+	img = Column(Unicode(200), nullable=False, default=u'')
 	download_count = Column(Unicode(50), nullable=False, default=u'')
 	size = Column(Unicode(100), nullable=False, default=u'')
 	rank = Column(Integer, nullable=False, default=0)
