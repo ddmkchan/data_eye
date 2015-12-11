@@ -122,6 +122,7 @@ class PublishGame(Base):
 
 	id = Column(Integer, primary_key=True, autoincrement=True)
 	name = Column(Unicode(100), nullable=False, default=u'', index=True)
+	logo = Column(Unicode(200), nullable=False, default=u'')
 	imgs = Column(UnicodeText, nullable=False, default=u'')
 	game_type = Column(Unicode(100), nullable=False, default=u'')
 	summary = Column(UnicodeText, nullable=False, default=u'')

@@ -18,7 +18,6 @@ mylogger = get_logger('merge_data')
 
 def main():
 	count = 0
-	db_conn.close()
 	mydict = {}
 	from sqlalchemy import not_
 	for ret in new_session().query(KC_LIST).filter(KC_LIST.title!=u'').filter(not_(KC_LIST.source.in_((21, 22)))).filter(KC_LIST.publish_date>=u'2015-10-01'):
@@ -39,60 +38,69 @@ def main():
 			out[v].append(str(k))
 	for title, ids in out.iteritems():
 		publish_status = get_publish_status(ids)	
-		imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total = get_game_detail(ids)
-		#print title, game_type, ids
-		ins = db_conn.query(PublishGame).filter(PublishGame.name==title).first()
-		if ins is None:
-			count += 1
-			item = PublishGame(**{
-								'name': title,
-								'imgs': imgs,
-								'game_type': game_type,
-								'summary': summary,
-								'download_num': download_num,
-								'comment_num': comment_num,
-								'rating': rating,
-								'pkg_size': pkg_size,
-								'author': author,
-								'version': version,
-								'topic_num': topic_num_total,
-								'kc_list_ids': publish_status.get('kc_list_ids', u''),
-								'channels': publish_status.get('channel_list', u''),
-								'publish_dates': publish_status.get('publish_date_list', u''),
-								})
-			db_conn.merge(item)
-			if count % 500 == 0:
-				db_conn.commit()
-				mylogger.info("merge data %s commit ..." % count)		
-		else:
-			ins.imgs = imgs
-			ins.game_type = game_type
-			ins.summary = summary
-			ins.download_num = download_num
-			ins.comment_num = comment_num
-			ins.rating = rating
-			ins.pkg_size = pkg_size
-			ins.author = author
-			ins.version = version
-			ins.topic_num = topic_num_total
-			ins.channels = publish_status.get('channel_list', u'')
-			ins.publish_dates = publish_status.get('publish_date_list', u'')
-			ins.kc_list_ids = publish_status.get('kc_list_ids', u'')
-			ins.last_update = datetime.datetime.now()
+		detail =  get_game_detail(ids)
+		if detail is not None:
+			imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total = detail
+			ins = db_conn.query(PublishGame).filter(PublishGame.name==title).first()
+			#print title, ids, '*******', publish_status.get('logo', u'')
+			if ins is None:
+				count += 1
+				item = PublishGame(**{
+									'name': title,
+									'logo': publish_status.get('logo', u''),
+									'imgs': imgs,
+									'game_type': game_type,
+									'summary': summary,
+									'download_num': download_num,
+									'comment_num': comment_num,
+									'rating': rating,
+									'pkg_size': pkg_size,
+									'author': author,
+									'version': version,
+									'topic_num': topic_num_total,
+									'kc_list_ids': publish_status.get('kc_list_ids', u''),
+									'channels': publish_status.get('channel_list', u''),
+									'publish_dates': publish_status.get('publish_date_list', u''),
+									})
+				db_conn.merge(item)
+				if count % 500 == 0:
+					db_conn.commit()
+					mylogger.info("merge data %s commit ..." % count)		
+			else:
+				#ins.imgs = imgs
+				#ins.game_type = game_type
+				#ins.summary = summary
+				ins.download_num = download_num
+				ins.comment_num = comment_num
+				ins.rating = rating
+				#ins.pkg_size = pkg_size
+				#ins.author = author
+				#ins.version = version
+				ins.topic_num = topic_num_total
+				ins.logo  = publish_status.get('logo', u'')
+				ins.channels = publish_status.get('channel_list', u'')
+				ins.publish_dates = publish_status.get('publish_date_list', u'')
+				ins.kc_list_ids = publish_status.get('kc_list_ids', u'')
+				ins.last_update = datetime.datetime.now()
 	db_conn.commit()
 
 def get_publish_status(ids):
 	out = {}
 	l1 = []
 	l2 = []
-	_sql = "select b.name,publish_date from (select * from kc_list where id in (%s)) a join channel b on a.source=b.id order by publish_date" % ",".join(ids)
+	logos = []
+	_sql = "select b.name,publish_date, url from (select * from kc_list where id in (%s)) a join channel b on a.source=b.id order by publish_date" % ",".join(ids)
 	for ret in db_conn.execute(_sql):
-		channel,publish_date = ret
+		channel, publish_date, img = ret
 		l1.append(publish_date)
 		l2.append(channel)
+		if img:
+			logos.append(img)
 	out['publish_date_list'] = ",".join(l1)
 	out['channel_list'] = ",".join(l2)
 	out['kc_list_ids'] = ",".join(ids)
+	if logos:
+		out['logo'] = logos[0]
 	return out
 
 def get_game_detail(ids):
@@ -125,7 +133,8 @@ def get_game_detail(ids):
 				version = ins.version
 			if not topic_num_total or rating == u'0':
 				topic_num_total = ins.topic_num_total
-	return (imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total)
+			return (imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total)
+	return None
 
 
 	#ids = (int(id) for id in ids)
@@ -151,8 +160,8 @@ def func():
 	db_conn.commit()
 
 if __name__ == '__main__':
-	#main()
-	#print get_publish_status(['9247,13786,17106'])
-	#get_game_detail(['12746','12747','12748'])
+	main()
+	#print get_publish_status([2516,2671,2941,3375,3389,3414,3518,3559,8131,8548,11442,11657,13088,13231,13516,13658,14067])
+	#get_game_detail(['19084'])
 	#remove_duplicate_record()
-	func()
+	#func()
