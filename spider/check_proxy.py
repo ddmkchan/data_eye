@@ -113,7 +113,13 @@ if __name__ == '__main__':
 			"360助手棋牌天地"		: "59", 
 			"小米游戏app下载榜"			: "60", 
 			"小米游戏app畅销榜"			: "61", 
-				}
+			"淘宝助手单机榜"		: "62", #淘宝助手单机榜
+			"淘宝助手网游榜"		: "63", #淘宝助手网游榜
+			"淘宝助手飙升榜"		: "64", #淘宝助手飙升榜
+			"沃游戏最热榜"		: "65", #沃游戏最热榜
+			"沃游戏最新榜"		: "66", #沃游戏最新榜
+			}
+
 	for k,v in source_map.iteritems():
 		ins = db_conn.query(RankingChannel).filter(RankingChannel.id==v).first()
 		if not ins:

@@ -1534,6 +1534,53 @@ def get_pp_detail(channel_id):
 	mylogger.info("get pp detail %s" % count)
 	db_conn.commit()
 
+def get_wogame_detail(channel_id):
+	count = 0
+	error_times = 0
+	sess = requests.session()
+	mylogger.info("get wogame detail start ...")
+	ids = channel_map.get(channel_id)
+	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
+	mylogger.info("### %s ###" % _sql)
+	for ret in db_conn.execute(_sql):
+		name, pkg = ret
+		if error_times >= 10:
+			mylogger.info("wogame detail reach max error times ... ")
+			break
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		if not ins:
+			pkg_name, pkg_id = pkg.split('\t')
+			try:
+				_d = {"product_id": pkg_id}
+				jsondata = {"jsondata": json.dumps(_d)}
+				r = requests.get("http://wogame4.wostore.cn/wogame/gameDetail.do", timeout=10, params=jsondata)
+				if r.status_code == 200:
+					count += 1 
+					j = r.json()
+					if j['data'] is not None:
+						g = j['data']
+						item = HotGameDetailByDay(**{
+													'name': name,
+													'channel': channel_id,
+													'summary' : g.get('description', u''),
+													'version' : g.get('version_code', u''),
+													'game_type' : ",".join([i.get('name', u'') for i in g.get('categories', [])]),
+													'pkg_size' : g.get('apk_size', u''),
+													'download_num' : g.get('download_count', u''),
+													'author' : g.get('sp_name', u''),
+													'dt' : dt,
+													'imgs' : ",".join(g.get('pics', [])),
+														})
+						db_conn.merge(item)
+						if count % 50 == 0:
+							mylogger.info("wogame detail commit %s" % count)
+							db_conn.commit()
+			except Exception,e:
+				mylogger.error("get wogame detail %s \t%s" % (pkg_id.encode('utf-8'), traceback.format_exc()))
+	mylogger.info("get wogame detail %s" % count)
+	db_conn.commit()
+
 
 channel_map = {
 			2	: [46, 47], #18183
@@ -1567,6 +1614,7 @@ channel_map = {
 			10	: [19,20], # 金立
 			25	: [], # meizu
 			999	: [1, 15, 49, 50], #小米官方
+			998	: [65, 66], # wogame
 				}
 
 def main():
@@ -1591,6 +1639,7 @@ def main():
 	get_91play_detail(27)
 	get_gionee_detail(10)
 	get_xiaomi_game_detail(5)
+	get_wogame_detail(998)
 
 def get_muzhiwan_detail():
 	pass	

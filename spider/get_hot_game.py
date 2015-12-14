@@ -86,6 +86,8 @@ source_map = {
 			"tbzs_single"		: "62", #淘宝助手单机榜
 			"tbzs_webgame"		: "63", #淘宝助手网游榜
 			"tbzs_rise"		: "64", #淘宝助手飙升榜
+			"wogame_hot"		: "65", #沃游戏最热榜
+			"wogame_new"		: "66", #沃游戏最新榜
 				}
 
 def get_baidu_hot_games():
@@ -1070,7 +1072,6 @@ def get_tbzs_app_rank():
 		try:
 			raw_data = raw_data_map.get(gtype)
 			r = requests.post(url, data=json.dumps(raw_data))
-			print gtype, '------------'
 			if r.status_code == 200:
 				j = r.json()
 				if j['state']['msg'] == u'Ok':
@@ -1084,9 +1085,8 @@ def get_tbzs_app_rank():
 						downloads = app.get('downloads', u'')
 						source = source_map.get(gtype)
 						url = u"%s\t%s" % (app.get('packageName', u''),  app.get('id', u''))
-						print rank, game_name, img, downloads, size, source, popular, game_type, status, url
-						#print rank, game_name
-						#store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+						#print rank, game_name, downloads
+						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 		except Exception,e:
 			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 
@@ -1096,6 +1096,37 @@ def get_tbzs_detail(game_id):
 	if r.status_code == 200:
 		j = r.json()
 		print j['state']['msg']
+
+
+def get_wogame_app_rank(gtype, url):
+	rank = 0
+	try:
+		_j = {"page_size":20,"page_num":1}
+		params = {"jsondata": json.dumps(_j)}
+		r = requests.get(url, timeout=10, params=params)
+		print r.url
+		if r.status_code == 200:
+			j = r.json()
+			if j['data'] is not None:
+				for app in r.json()['data']:
+					rank += 1
+					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+					game_name = app.get('game_name', u'')
+					img = app.get('icon_url', u'')
+					size = app.get('apk_size', u'')
+					downloads = app.get('download_count', u'')#每周下载次数
+					source = source_map.get(gtype)
+					url = u"%s\t%s" % (app.get('package_name', u''),  app.get('product_id', u''))
+					store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+	except Exception,e:
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
+
+def store_wogame_app_rank():
+	_dict = {"wogame_hot": "http://wogame4.wostore.cn/wogame/weekHotList.do",
+			"wogame_new" : "http://wogame4.wostore.cn/wogame/newGameList.do"}
+	for gtype, url in _dict.iteritems():
+		get_wogame_app_rank(gtype, url)
+
 
 def store_data(ret):
 	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
@@ -1119,6 +1150,7 @@ def store_data(ret):
 	else:
 		ins.url = url
 	db_conn.commit()
+
 
 def main():
 	get_data(get_baidu_hot_games)
@@ -1146,7 +1178,8 @@ def main():
 	store_9game_web_app_rank()
 	get_360zhushou_web_rank()
 	store_xiaomi_app_rank()
+	store_wogame_app_rank()
+	get_tbzs_app_rank()
 
 if __name__ == '__main__':
 	main()
-	#get_tbzs_app_rank()
