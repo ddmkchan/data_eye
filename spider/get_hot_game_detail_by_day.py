@@ -1599,7 +1599,7 @@ channel_map = {
 			6	: [], # 小米游戏app
 			5	: [60, 61], #小米游戏app
 			3	: [8, 9, 10, 43], # 应用宝PC
-			15	: [14], #dangle
+			15	: [14, 67], #dangle
 			19	: [37], # kuaiyong
 			17	: [], #muzhiwan
 			14	: [33, 34, 51], #sougou

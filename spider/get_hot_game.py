@@ -88,6 +88,7 @@ source_map = {
 			"tbzs_rise"		: "64", #淘宝助手飙升榜
 			"wogame_hot"		: "65", #沃游戏最热榜
 			"wogame_new"		: "66", #沃游戏最新榜
+			"dangle_webgame"	: 67,
 				}
 
 def get_baidu_hot_games():
@@ -423,27 +424,32 @@ def store_m_baidu_app_rank():
 				store_data(data)
 		
 def get_dangle_app_rank():
-	_url = 'http://api2014.digua.d.cn/newdiguaserver/game/rank?pn=1&type=16&ps=50'
-	headers = {'HEAD': {"stamp":1448610575430,"verifyCode":"78492ba9e8569f3b9d9173ac4e4b6cb9","it":2,"resolutionWidth":1080,"imei":"865931027730878","clientChannelId":"100327","versionCode":750,"mac":"34:80:b3:4d:69:87","vender":"Qualcomm","vp":"","version":"7.5","sign":"2ec90f723384b1ec","dd":480,"sswdp":"360","hasRoot":0,"glEsVersion":196608,"device":"MI_4LTE","ss":2,"local":"zh_CN","language":"2","sdk":19,"resolutionHeight":1920,"osName":"4.4.4","gpu":"Adreno (TM) 330"}}
-	rank = 0
-	try:
-		r = requests.post(_url, timeout=10, headers=headers)
-		if r.status_code == 200:
-			j = r.json()
-			if 'list' in j:
-				for app in j['list']:
-					rank += 1
-					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
-					game_name = app.get('name', u'')
-					img = app.get('iconUrl', u'')
-					downloads = app.get('downs', u'')
-					game_type = app.get('categoryName', u'')
-					source = source_map.get('dangle_new_game')
-					url = u"%s\t%s" % (app.get('resourceType', u''), app.get('id', u''))
-					store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
-	except Exception,e:
-		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
-
+	_dict = {"dangle_new_game": "http://api2014.digua.d.cn/newdiguaserver/game/rank?pn=1&type=16&ps=50",
+			"dangle_webgame": "http://api2014.digua.d.cn/newdiguaserver/netgame/rank?pn=1&imsi=FFBBF2C3433E688CF21029AF18019E04251E9BD48DA80861850852CA82560C5714CCD4D3D1D31725&se=2D8118F6F152232B6B55EA964A24B0F8&im=882ADF58F29193B2E6F07F6A288D2593&wm=4D0ED9C025B669B25D18F6ECB92DB2A9F05D78CA67BED3B1&ps=20"}
+	#_url = 'http://api2014.digua.d.cn/newdiguaserver/game/rank?pn=1&type=16&ps=50'
+	headers_map = {
+			"dangle_new_game": {'HEAD': {"stamp":1448610575430,"verifyCode":"78492ba9e8569f3b9d9173ac4e4b6cb9","it":2,"resolutionWidth":1080,"imei":"865931027730878","clientChannelId":"100327","versionCode":750,"mac":"34:80:b3:4d:69:87","vender":"Qualcomm","vp":"","version":"7.5","sign":"2ec90f723384b1ec","dd":480,"sswdp":"360","hasRoot":0,"glEsVersion":196608,"device":"MI_4LTE","ss":2,"local":"zh_CN","language":"2","sdk":19,"resolutionHeight":1920,"osName":"4.4.4","gpu":"Adreno (TM) 330"}}, 
+			"dangle_webgame":{'HEAD': {"stamp":1450074512609,"verifyCode":"78492ba9e8569f3b9d9173ac4e4b6cb9","it":2,"resolutionWidth":1080,"imei":"865931027730878","clientChannelId":"100327","versionCode":750,"mac":"34:80:b3:4d:69:87","vender":"Qualcomm","vp":"","version":"7.5","sign":"f4fc625aca5d7a08","dd":480,"sswdp":"360","hasRoot":0,"glEsVersion":196608,"device":"MI_4LTE","ss":2,"local":"zh_CN","language":"2","sdk":19,"resolutionHeight":1920,"osName":"4.4.4","gpu":"Adreno (TM) 330"}}}
+	for gtype, _url in _dict.iteritems():
+		rank = 0
+		try:
+			headers = headers_map.get(gtype)
+			r = requests.post(_url, timeout=10, headers=headers)
+			if r.status_code == 200:
+				j = r.json()
+				if 'list' in j:
+					for app in j['list']:
+						rank += 1
+						game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+						game_name = app.get('name', u'')
+						img = app.get('iconUrl', u'')
+						downloads = app.get('downs', u'')
+						game_type = app.get('categoryName', u'')
+						source = source_map.get(gtype)
+						url = u"%s\t%s" % (app.get('resourceType', u''), app.get('id', u''))
+						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+		except Exception,e:
+			mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
 
 
 def get_data(f):
