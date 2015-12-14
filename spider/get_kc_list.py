@@ -634,38 +634,38 @@ def get_gionee_kc(page):
 
 def get_lenovo_kc():
 	count = 0
-	url = "http://yx.lenovomm.com/business/app!getNewest.action?width=1080&t=22&s=0&dpi=480&height=1920"
+	urls = ["http://yx.lenovomm.com/business/app!getNewest.action?width=1080&t=22&s=0&dpi=480&height=1920", "http://yx.lenovomm.com/business/app_category!getTest.action?dpi=480&height=1920&dev=ph&width=1080&t=20&s=0"]
 	try:
-		r = requests.get(url, timeout=10)
-		if r.status_code == 200:
-			d = r.json()
-			for ret in d['datalist']:
-				title = ret.get('name', u'')
-				game_type = ret.get('categoryName', u'')
-				img = ret.get('iconAddr', u'')
-				publishDate= ret.get('publishDate', u'')
-				popular = ret.get('downloadCount', u'')
-				pkg_name = ret.get('packageName', u'')
-				if publishDate and pkg_name:
-					publish_date = unicode(datetime.date.fromtimestamp(int(unicode(publishDate)[:-3])))
-					ins = db_conn.query(KC_LIST).filter(KC_LIST.pkg_name==pkg_name).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('lenovo')).first()
-					#ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('lenovo')).first()
-					if ins is None:
-						count += 1
-						item = KC_LIST(**{
-										"title": title,
-										"title2": pkg_name,
-										"pkg_name": pkg_name,
-										"game_type": game_type,
-										"publish_date": publish_date,
-										"popular": popular,
-										"img": img,
-										"source": source_map.get('lenovo')
-										})
-						db_conn.merge(item)
-					else:
-						ins.title2 = ret.get('packageName', u'')
-						ins.pkg_name = ret.get('packageName', u'')
+		for url in urls:
+			r = requests.get(url, timeout=10)
+			if r.status_code == 200:
+				d = r.json()
+				for ret in d['datalist']:
+					title = ret.get('name', u'')
+					game_type = ret.get('categoryName', u'')
+					img = ret.get('iconAddr', u'')
+					publishDate= ret.get('publishDate', u'')
+					popular = ret.get('downloadCount', u'')
+					pkg_name = ret.get('packageName', u'')
+					if publishDate and pkg_name:
+						publish_date = unicode(datetime.date.fromtimestamp(int(unicode(publishDate)[:-3])))
+						ins = db_conn.query(KC_LIST).filter(KC_LIST.pkg_name==pkg_name).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('lenovo')).first()
+						if ins is None:
+							count += 1
+							item = KC_LIST(**{
+											"title": title,
+											"title2": pkg_name,
+											"pkg_name": pkg_name,
+											"game_type": game_type,
+											"publish_date": publish_date,
+											"popular": popular,
+											"img": img,
+											"source": source_map.get('lenovo')
+											})
+							db_conn.merge(item)
+						else:
+							ins.title2 = ret.get('packageName', u'')
+							ins.pkg_name = ret.get('packageName', u'')
 	except Exception,e:
 		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 	mylogger.info("get %s records from lenovo" % count)
@@ -1639,4 +1639,3 @@ def main():
 
 if __name__ == '__main__':
 	main()
-	#get_anzhi_kc()

@@ -538,7 +538,7 @@ def get_leveno_detail():
 												'version' : g.get('version', u''),
 												'pkg_size' : g.get('size' u''),
 												'dt' : dt,
-												'download_num' : g.get('downloadCount', u''),
+												'download_num' : g.get('realDownCount', u''),
 												'summary' : g.get('description', u''),
 												'imgs' : g['snapList'],
 													})

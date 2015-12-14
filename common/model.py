@@ -20,7 +20,7 @@ class KC_LIST(Base):
 	time = Column(Unicode(50), nullable=False, default=u'')
 	title = Column(Unicode(50), nullable=False, default=u'')
 	title2 = Column(Unicode(50), nullable=False, default=u'')
-	img = Column(Unicode(100), nullable=False, default=u'')
+	img = Column(UnicodeText, nullable=False, default=u'')
 	url = Column(Unicode(100), nullable=False, default=u'')
 	device = Column(Unicode(50), nullable=False, default=u'')
 	publish_status = Column(Unicode(50), nullable=False, default=u'')
@@ -40,7 +40,7 @@ class HotGames(Base):
 	
 	id = Column(Integer, primary_key=True, autoincrement=True)
 	name = Column(Unicode(100), nullable=False, default=u'', index=True)
-	img = Column(Unicode(200), nullable=False, default=u'')
+	img = Column(UnicodeText, nullable=False, default=u'')
 	download_count = Column(Unicode(50), nullable=False, default=u'')
 	size = Column(Unicode(100), nullable=False, default=u'')
 	rank = Column(Integer, nullable=False, default=0)

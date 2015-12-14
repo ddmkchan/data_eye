@@ -89,6 +89,9 @@ source_map = {
 			"wogame_hot"		: "65", #沃游戏最热榜
 			"wogame_new"		: "66", #沃游戏最新榜
 			"dangle_webgame"	: 67,
+			"lenovo_gc_mostuser"	: 68,
+			"lenovo_gc_mosttime"	: 69,
+			"lenovo_gc_newest"	: 70,
 				}
 
 def get_baidu_hot_games():
@@ -1110,7 +1113,6 @@ def get_wogame_app_rank(gtype, url):
 		_j = {"page_size":20,"page_num":1}
 		params = {"jsondata": json.dumps(_j)}
 		r = requests.get(url, timeout=10, params=params)
-		print r.url
 		if r.status_code == 200:
 			j = r.json()
 			if j['data'] is not None:
@@ -1133,6 +1135,37 @@ def store_wogame_app_rank():
 	for gtype, url in _dict.iteritems():
 		get_wogame_app_rank(gtype, url)
 
+
+def get_lenovo_gamecenter_app_rank():
+	_dict = {
+				"lenovo_gc_mostuser": "http://yx.lenovomm.com/business/app!getMostUser.action?dpi=480&height=1920&dev=ph&width=1080&t=50&s=0",
+				"lenovo_gc_mosttime": "http://yx.lenovomm.com/business/app!getMostTime.action?dpi=480&height=1920&dev=ph&width=1080&t=50&s=0",
+				"lenovo_gc_newest": "http://yx.lenovomm.com/business/app!getNewest.action?dpi=480&height=1920&dev=ph&width=1080&t=50&s=0"
+			}
+	for gtype, url in _dict.iteritems():
+		rank = 0
+		try:
+			r = requests.get(url, timeout=10)
+			if r.status_code == 200:
+				j = r.json()
+				if j['datalist'] is not None:
+					for item in j['datalist']:
+						rank += 1
+						game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+						if 'app' not in item:
+							app = item
+						else:
+							app = item['app']	
+						game_name = app.get('name', u'')
+						img = app.get('iconAddr', u'')
+						size = app.get('size', u'')
+						game_type = app.get('categoryName', u'')
+						downloads = app.get('realDownCount', u'')
+						source = source_map.get(gtype)
+						url = app.get('packageName', u'')
+						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+		except Exception,e:
+			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 
 def store_data(ret):
 	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
@@ -1186,6 +1219,7 @@ def main():
 	store_xiaomi_app_rank()
 	store_wogame_app_rank()
 	get_tbzs_app_rank()
+	get_lenovo_gamecenter_app_rank()
 
 if __name__ == '__main__':
 	main()

@@ -509,19 +509,23 @@ def get_gionee_detail(channel_id):
 
 
 
-def get_leveno_detail():
+def get_leveno_detail(channel_id):
 	count = 0
 	error_times = 0
 	sess = requests.session()
 	mylogger.info("get lenovo detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==11):
-		if error_times >= 10:
+	ids = channel_map.get(channel_id)
+	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
+	mylogger.info("### %s ###" % _sql)
+	for ret in db_conn.execute(_sql):
+		name, pkg = ret
+		if error_times >= 20:
 			mylogger.info("leveno reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.kc_id==ret.id).filter(HotGameDetailByDay.dt==dt).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
-			_url = u"http://yx.lenovomm.com/business/app!getAppDetail5.action?dpi=480&height=1920&dev=ph&width=1080&cpu=armeabi-v7a&pn=%s&uid=72DB07100FC223A2EDE82F4A44AE96B4&os=4.4.4&perf=hp&model=MI 4LTE&type=0&density=xx&mac=7A031DAB40535B3F5E204582EB961FC5" % ret.title2
+			_url = u"http://yx.lenovomm.com/business/app!getAppDetail5.action?dpi=480&height=1920&dev=ph&width=1080&cpu=armeabi-v7a&pn=%s&uid=72DB07100FC223A2EDE82F4A44AE96B4&os=4.4.4&perf=hp&model=MI 4LTE&type=0&density=xx&mac=7A031DAB40535B3F5E204582EB961FC5" % pkg
 			try:
 				p = proxies[random.randrange(len(proxies))]
 				r = sess.get(_url, timeout=10, proxies=p)
@@ -531,13 +535,14 @@ def get_leveno_detail():
 						g = d['app']
 						count += 1 
 						item = HotGameDetailByDay(**{
-													'kc_id': ret.id,
+													'name': name,
+													'channel': channel_id,
 													'rating' : g.get('averageStar', u''),
 													'game_type' : g.get('categoryName', u''),
 													'version' : g.get('version', u''),
 													'pkg_size' : g.get('size' u''),
 													'dt' : dt,
-													'download_num' : g.get('downloadCount', u''),
+													'download_num' : g.get('realDownCount', u''),
 													'summary' : g.get('description', u''),
 													'imgs' : g['snapList'],
 														})
@@ -545,7 +550,7 @@ def get_leveno_detail():
 			except Exception,e:
 				sleep(1.23)
 				error_times += 1
-				mylogger.error("%s\t%s" % (_url.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("%s\t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get lenovo detail %s" % count)
 	db_conn.commit()
 
@@ -1607,7 +1612,7 @@ channel_map = {
 			16	: [35], # i4
 			7	: [24, 25, 26, 45], #爱游戏
 			29 	: [11, 12, 13, 44], #百度手机助手app
-			11	: [], # lenovo
+			11	: [68, 69, 70], # lenovo
 			23	: [27, 28], # wandoujia
 			9	: [21, 22, 23], # coolpad
 			27	: [40], #91play
@@ -1640,6 +1645,7 @@ def main():
 	get_gionee_detail(10)
 	get_xiaomi_game_detail(5)
 	get_wogame_detail(998)
+	get_leveno_detail(11)
 
 def get_muzhiwan_detail():
 	pass	
