@@ -139,6 +139,7 @@ def get_18183_detail(channel_id):
 		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
+				p = proxies[random.randrange(len(proxies))]
 				response = sess.get(url, timeout=10, proxies=p)
 				count += 1
 				topic_num_total = u''

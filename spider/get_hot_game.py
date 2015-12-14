@@ -83,6 +83,9 @@ source_map = {
 			"360_chess"		: "59", 
 			"xiaomi_app_download"		: "60", 
 			"xiaomi_app_hot"		: "61", #畅销榜 
+			"tbzs_single"		: "62", #淘宝助手单机榜
+			"tbzs_webgame"		: "63", #淘宝助手网游榜
+			"tbzs_rise"		: "64", #淘宝助手飙升榜
 				}
 
 def get_baidu_hot_games():
@@ -1053,6 +1056,47 @@ def get_18183_top_app_rank(gtype, url):
 	except Exception,e:
 		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 
+def get_tbzs_app_rank():
+	raw_data_map = {
+			'tbzs_single'	: {"sign":"7c54c6ceded15e80342794c6d13646a4","data":{"flags":193,"count":20,"offset":0,"order":13,"page":1,"positionId":549,"resourceType":1},"id":2472251151577597201,"client":{"caller":"secret.pp.client","versionCode":1393,"ex":{"cityCode":"0755","aid":"gj\/4\/Osm5gwpjlFgnvkVCQ==","ch":"PT_4","osVersion":19,"productId":2002},"VName":"4.7.0","uuid":"bTkwHyimxYyNDQzBWGVG\/kQ5Q9aqRKjrTmkhTksZlxPjWz55Gh0KRgROPDXaQ3T8uOTA\/6onICCEiA=="},"encrypt":"md5"}, 
+			'tbzs_webgame'	: {"sign":"988f075faf00cfe11ab2f5278b08ffb1","data":{"flags":193,"count":20,"offset":0,"order":14,"page":1,"positionId":551,"resourceType":1},"id":3601133516216288053,"client":{"caller":"secret.pp.client","versionCode":1393,"ex":{"cityCode":"0755","aid":"gj\/4\/Osm5gwpjlFgnvkVCQ==","ch":"PT_4","osVersion":19,"productId":2002},"VName":"4.7.0","uuid":"bTkwH8QcSHwR84\/R\/PPDDgxVSfaScKaLeouYfn+7HMNzcyo5qsX+Bgj4q4XWDeVMACA2XwLbEoA8TA=="},"encrypt":"md5"}, 
+			'tbzs_rise'		: {"sign":"d59759061e1a29cd703496864239d7d1","data":{"flags":193,"order":9,"count":20,"page":1,"resourceType":1},"id":-3452676716686130419,"client":{"caller":"secret.pp.client","versionCode":1393,"ex":{"cityCode":"0755","aid":"gj\/4\/Osm5gwpjlFgnvkVCQ==","ch":"PT_4","osVersion":19,"productId":2002},"VName":"4.7.0","uuid":"bTkwH+NbLMg2sLMFg7IvwsrTkV5Q\/t5zn050App46O\/3D5oJLsFuVuPHPwG9yHnI2tpeB8xhukjmtg=="},"encrypt":"md5"}}
+
+	_dict = {'tbzs_rise'	: 'http://sjzs-api.25pp.com/api/resource.app.getList',
+			 'tbzs_single'	: 'http://sjzs-api.25pp.com/api/op.rec.app.list',
+			 'tbzs_webgame'	: 'http://sjzs-api.25pp.com/api/op.rec.app.list'}
+	for gtype, url in _dict.iteritems():
+		rank = 0
+		try:
+			raw_data = raw_data_map.get(gtype)
+			r = requests.post(url, data=json.dumps(raw_data))
+			print gtype, '------------'
+			if r.status_code == 200:
+				j = r.json()
+				if j['state']['msg'] == u'Ok':
+					for app in j['data']['content']:
+						rank += 1
+						game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+						game_name = app.get('name', u'')
+						img = app.get('iconUrl', u'')
+						size = app.get('size', u'')
+						game_type = app.get('categoryName', u'')
+						downloads = app.get('downloads', u'')
+						source = source_map.get(gtype)
+						url = u"%s\t%s" % (app.get('packageName', u''),  app.get('id', u''))
+						print rank, game_name, img, downloads, size, source, popular, game_type, status, url
+						#print rank, game_name
+						#store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+		except Exception,e:
+			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
+
+def get_tbzs_detail(game_id):
+	raw_data = {"sign":"bc78c22c95972167a0e16edae52994b1","data":[{"data":{"screenWidth":1080,"appId":game_id},"service":"resource.app.getDetail"},{"data":{"count":5,"screenWidth":1080,"appId":game_id},"service":"behavior.question.listByAppId"},{"data":{"appId":game_id},"service":"resource.app.getGameNewsList"},{"data":{"id":game_id},"service":"op.app.article.get"}],"id":-1945496287406372250,"client":{"caller":"secret.pp.client","versionCode":1393,"ex":{"cityCode":"0755","aid":"gj\/4\/Osm5gwpjlFgnvkVCQ==","ch":"PT_4","osVersion":19,"productId":2002},"VName":"4.7.0","uuid":"bTkwH81xSdAoRpAN9ajCuj6PSy58qqBjUYideli6A8dfpy5p9mn6tl1RoGkjeuggXiYoV0jlCJhiSg=="},"encrypt":"md5"}
+	r = requests.post('http://sjzs-api.25pp.com/api/combine', data=json.dumps(raw_data))
+	if r.status_code == 200:
+		j = r.json()
+		print j['state']['msg']
+
 def store_data(ret):
 	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
 	dt = unicode(datetime.date.today())
@@ -1061,7 +1105,7 @@ def store_data(ret):
 		item = HotGames(**{
 						"name"			: game_name,
 						"img"			: img,
-						"download_num"		: downloads,
+						"download_count"		: downloads,
 						"size"			: size,
 						"source"		: source,
 						"rank"			: rank,
@@ -1105,3 +1149,4 @@ def main():
 
 if __name__ == '__main__':
 	main()
+	#get_tbzs_app_rank()
