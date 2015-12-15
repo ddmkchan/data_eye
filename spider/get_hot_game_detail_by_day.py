@@ -1077,36 +1077,43 @@ def get_wandoujia_detail(channel_id):
 
 
 
-def get_meizu_detail_by_id(gid):
-	URL = "http://api-game.meizu.com/games/public/detail/%s" % gid
+def get_meizu_detail_by_id(url):
 	try:
-		response = requests.get(URL, timeout=10)
+		response = requests.get(url, timeout=10)
+		if response.status_code == 200:
+			j = response.json()
+			if 'value' in j:
+				return j['value']
 	except Exception,e:
-		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
-		response = T(404)
-	if response.status_code == 200:
-		j = response.json()
-		if 'value' in j:
-			return j['value']
+		mylogger.error("get meizu detial \t%s" % (traceback.format_exc()))
+		return EX()
 	return None
 
 
-def get_meizu_detail():
+def get_meizu_detail(channel_id):
 	count = 0
 	error_times = 0
 	mylogger.info("get meizu detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.title2!=u'').filter(KC_LIST.source==25):
+	sess = requests.session()
+	ids = channel_map.get(channel_id)
+	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
+	mylogger.info("### %s ###" % _sql)
+	for ret in db_conn.execute(_sql):
+		name, url = ret
 		if error_times >= 20:
 			mylogger.info("meizu reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.kc_id==ret.id).filter(HotGameDetailByDay.dt==dt).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
-			g = get_meizu_detail_by_id(ret.title2)
-			if g is not None:	
+			g = get_meizu_detail_by_id(url)
+			if isinstance(g, EX):
+				error_times += 1
+			elif g is not None:	
 				count += 1 
 				item = HotGameDetailByDay(**{
-									'kc_id': ret.id,
+									'name': name,
+									'channel': channel_id,
 									'summary' : g.get('description', u''),
 									'version' : g.get('version_name', u''),
 									'game_type' : g.get('category_name', u''),
@@ -1119,25 +1126,9 @@ def get_meizu_detail():
 									'imgs' : u','.join([i.get('image') for i in g.get('images', [])]),
 										})
 				db_conn.merge(item)
-			else:
-				error_times += 1
 	mylogger.info("get meizu detail %s" % count)
 	db_conn.commit()
 
-def get_proxies():
-	return [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in db_conn.query(ProxyList)]
-
-def check_proxy(proxy):
-	start = time.time()
-	try:
-		r = requests.get("http://www.sogou.com/", headers=headers)
-		#r = requests.get("http://www.douban.com/", headers=headers, proxies = proxy)
-		if r.status_code == 200:
-			end = time.time()
-			print proxy, end - start
-	except Exception,e:
-		mylogger.error("%s" % (traceback.format_exc()))
-		
 
 def get_youku_detail_by_id(app_id):
 	URL = "http://api.gamex.mobile.youku.com/v2/app/detail?product_id=1&app_id=%s" % app_id
@@ -1677,7 +1668,7 @@ channel_map = {
 			9	: [21, 22, 23], # coolpad
 			27	: [40], #91play
 			10	: [19,20], # 金立
-			25	: [], # meizu
+			25	: [75, 76], # meizu
 			999	: [1, 15, 49, 50], #小米官方
 			998	: [65, 66], # wogame
 			30	: [71, 72, 73, 74], # lenovo shop
@@ -1708,6 +1699,7 @@ def main():
 	get_wogame_detail(998)
 	get_leveno_detail(11)
 	get_lenovo_shop_detail(30)
+	get_meizu_detail(25)
 
 def get_muzhiwan_detail():
 	pass	

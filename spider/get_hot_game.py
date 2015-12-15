@@ -96,6 +96,8 @@ source_map = {
 			"lenovo_shop_android_free" : 72,
 			"lenovo_shop_parkour" : 73,
 			"lenovo_shop_hard_game" : 74,
+			"meizu_webgame" : 75,
+			"meizu_single" : 76,
 				}
 
 def get_baidu_hot_games():
@@ -1200,6 +1202,31 @@ def get_lenovo_shop_rank():
 		except Exception,e:
 			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 
+def get_meizu_app_rank():
+	_dict = {
+			"meizu_webgame" : "http://api-game.meizu.com/games/public/top/online/layout?start=0&max=50&os=21",
+			"meizu_single" 	: "http://api-game.meizu.com/games/public/top/solo/layout?start=0&os=21&max=50",
+			}
+	for gtype,url in _dict.iteritems():
+		rank = 0
+		try:
+			r = requests.get(url, timeout=10)
+			if r.status_code == 200:
+				j = r.json()
+				if j['value'] is not None and len(j['value']['blocks'])>=1 and j['value']['blocks'][0]['data']:
+					for app in j['value']['blocks'][0]['data']:
+						rank += 1
+						game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+						game_name = app.get('name', u'')
+						img = app.get('icon', u'')
+						size = app.get('size', u'')
+						game_type = app.get('category_name', u'')
+						downloads = app.get('download_count', u'')
+						source = source_map.get(gtype)
+						url = u"http://api-game.meizu.com/games/public/detail/%s" % app.get('id', u'') if app.get('id', u'') else u''
+						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+		except Exception,e:
+			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 
 
 def store_data(ret):
@@ -1258,4 +1285,5 @@ def main():
 	get_lenovo_shop_rank()
 
 if __name__ == '__main__':
-	main()
+	#main()
+	get_meizu_app_rank()
