@@ -47,6 +47,7 @@ source_map = {
 			"91play": 27,#酷玩汇
 			"360_gamebox": 28,
 			"m_baidu_app": 29,#百度手机助手
+			"lenovo_shop": 30,
 				}
 
 class T:
@@ -1607,6 +1608,46 @@ def get_360_gamebox_kc(start):
 	db_conn.commit()
 
 
+def get_lenovo_shop_kc(page):
+	count = 0
+	headers = {"clientid": "141623-2-2-19-1-3-1_480_i865931027730878t19700201770903586_c20524d1p1"}
+	url = "http://223.202.25.30/ams/api/applist?l=zh-CN&si=%s&c=20&lt=subject&cg=subject&code=21568&nremark=1&pa=ams5.0_7402535-2-2-22-1-3-1_480-8" % page
+	try:
+		r = requests.get(url, timeout=10,headers=headers)
+		if r.status_code == 200:
+			d = r.json()
+			if d['datalist'] is not None:
+				for ret in d['datalist']:
+					title = ret.get('name', u'')
+					img = ret.get('iconAddr', u'')
+					pkg_name = ret.get('packageName', u'')
+					game_type = ret.get('typeName', u'')
+					popular = ret.get('downloadCount', u'')
+					publishtime = ret.get('publishDate', u'')
+					publish_date = u''
+					publish_date = unicode(datetime.date.fromtimestamp(int(unicode(publishtime)[:10]))) if publishtime else u""
+					if publish_date and pkg_name:
+						print page, title, pkg_name, publish_date
+						ins = db_conn.query(KC_LIST).filter(KC_LIST.pkg_name==pkg_name).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('lenovo_shop')).first()
+						if ins is None:
+							count += 1
+							item = KC_LIST(**{
+											"title": title,
+											"pkg_name": pkg_name,
+											"game_type": game_type,
+											"publish_date": publish_date,
+											"img": img,
+											"popular": popular,
+											"source": source_map.get('lenovo_shop')
+											})
+							db_conn.merge(item)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
+	mylogger.info("get %s records from lenovo" % count)
+	db_conn.commit()
+
+
+
 def main():
 	mylogger.info("gogo")
 	get_18183_kc()
@@ -1636,6 +1677,7 @@ def main():
 	get_91play_kc()
 	get_360_gamebox_kc(0)
 	get_muzhiwan_kc()
+	get_lenovo_shop_kc(1)
 
 if __name__ == '__main__':
 	main()

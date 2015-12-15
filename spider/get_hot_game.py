@@ -89,9 +89,13 @@ source_map = {
 			"wogame_hot"		: "65", #沃游戏最热榜
 			"wogame_new"		: "66", #沃游戏最新榜
 			"dangle_webgame"	: 67,
-			"lenovo_gc_mostuser"	: 68,
+			"lenovo_gc_mostuser"	: 68,#联想游戏中心
 			"lenovo_gc_mosttime"	: 69,
 			"lenovo_gc_newest"	: 70,
+			"lenovo_shop_racing_car"	: 71,
+			"lenovo_shop_android_free" : 72,
+			"lenovo_shop_parkour" : 73,
+			"lenovo_shop_hard_game" : 74,
 				}
 
 def get_baidu_hot_games():
@@ -1167,6 +1171,37 @@ def get_lenovo_gamecenter_app_rank():
 		except Exception,e:
 			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 
+def get_lenovo_shop_rank():
+	_dict = {
+			"lenovo_shop_racing_car": "http://223.202.25.30/ams/api/applist?l=zh-CN&si=1&c=20&lt=subject&cg=subject&code=21701&nremark=1&pa=ams5.0_7402535-2-2-22-1-3-1_480-8",
+			"lenovo_shop_android_free" : "http://223.202.25.30/ams/api/applist?l=zh-CN&si=1&c=20&lt=subject&cg=subject&code=21569&nremark=1&pa=ams5.0_7402535-2-2-22-1-3-1_480-8",
+			"lenovo_shop_parkour" : "http://223.202.25.30/ams/api/applist?l=zh-CN&si=1&c=20&lt=subject&cg=subject&code=21083&nremark=1&pa=ams5.0_7402535-2-2-22-1-3-1_480-8",
+			"lenovo_shop_hard_game" : "http://223.202.25.30/ams/api/applist?l=zh-CN&si=1&c=20&lt=subject&cg=subject&code=21565&nremark=1&pa=ams5.0_7402535-2-2-22-1-3-1_480-8"
+			}
+	headers = {"clientid": "141623-2-2-19-1-3-1_480_i865931027730878t19700201770903586_c20524d1p1"}
+	for gtype,url in _dict.iteritems():
+		rank = 0
+		try:
+			r = requests.get(url, timeout=10, headers=headers)
+			if r.status_code == 200:
+				j = r.json()
+				if j['datalist'] is not None:
+					for app in j['datalist']:
+						rank += 1
+						game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+						game_name = app.get('name', u'')
+						img = app.get('iconAddr', u'')
+						size = app.get('apkSize', u'')
+						game_type = app.get('apptype', u'')
+						downloads = app.get('downloadCount', u'')
+						source = source_map.get(gtype)
+						url = app.get('packageName', u'')
+						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+		except Exception,e:
+			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
+
+
+
 def store_data(ret):
 	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
 	dt = unicode(datetime.date.today())
@@ -1220,6 +1255,7 @@ def main():
 	store_wogame_app_rank()
 	get_tbzs_app_rank()
 	get_lenovo_gamecenter_app_rank()
+	get_lenovo_shop_rank()
 
 if __name__ == '__main__':
 	main()

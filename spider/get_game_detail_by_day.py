@@ -1351,6 +1351,63 @@ def get_360_gamebox_detail():
 	mylogger.info("get 360_gamebox app detail %s" % count)
 	db_conn.commit()
 
+
+def get_lenovo_shop_detail():
+	count = 0
+	error_times = 0
+	mylogger.info("get lenovo_shop app detail start ...")
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.pkg_name!=u'').filter(KC_LIST.source==30):
+		if error_times >= 10:
+			mylogger.info("lenovo_shop reach max error times ... ")
+			break
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+		if not ins:
+			try:
+				headers = {"clientid": "141623-2-2-19-1-3-1_480_i865931027730878t19700201770903586_c20524d1p1"}
+				url = "http://223.202.25.30/ams/api/appinfo?l=zh-CN&pn=%s&vc=100150928&woi=0&pa=ams5.0_141623-2-2-19-1-3-1_480-8" % ret.pkg_name
+				response = requests.get(url, timeout=10, headers=headers)
+				if response.status_code == 200:
+					j = response.json() 
+					if j['appInfo'] is not None:
+						g = j['appInfo']
+						count += 1 
+						#for k, v in g.iteritems():
+						#	print k, v
+						item = GameDetailByDay(**{
+									'kc_id': ret.id,
+									'summary' : g.get('description', u''),
+									'rating' : g.get('averageStar', u''),
+									'version' : g.get('version', u''),
+									'game_type' : g.get('typeName', u''),
+									'pkg_size' : g.get('size', u''),
+									'comment_num' : get_lenovo_shop_comment_by_pkg(ret.pkg_name),
+									'author' : g.get('developerName', u''),
+									'download_num' : g.get('realDownCount', u''),
+									'dt' : dt,
+									'imgs' : u",".join([img.get('APPIMG_PATH', u'') for img in g.get('snapList', [])])
+										})
+						db_conn.merge(item)
+			except Exception,e:
+				error_times += 1
+				mylogger.error("lenovo_shop app detail #### %s #### \t%s" % (ret.pkg_name.encode('utf-8'), traceback.format_exc()))
+	mylogger.info("get lenovo_shop app detail %s" % count)
+	db_conn.commit()
+
+def get_lenovo_shop_comment_by_pkg(pkg_name):
+	url = "http://223.202.25.30/comment/api/commentlist?bizCode=APP&bizIdentity=%s&startIndex=1&count=10&orderBy=DATE" % pkg_name
+	headers = {"clientid": "141623-2-2-19-1-3-1_480_i865931027730878t19700201770903586_c20524d1p1"}
+	try:
+		r = requests.get(url, timeout=10, headers=headers)
+		if r.status_code == 200:
+			j = r.json()
+			if j['data'] is not None:
+				return j['data'].get('totalCount', u'')
+	except Exception, e:
+		mylogger.error("get lenovo shop comment %s" % traceback.format_exc())
+	return u''
+
+
 def step1():
 	get_xiaomi_new_detail()
 	get_xiaomi_rpg_detail()
@@ -1378,6 +1435,7 @@ def step2():
 	get_xyzs_app_detail()
 	get_91play_detail()
 	get_360_gamebox_detail()
+	get_lenovo_shop_detail()
 
 if __name__ == '__main__':
 	step1()
