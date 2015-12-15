@@ -48,6 +48,7 @@ source_map = {
 			"360_gamebox": 28,
 			"m_baidu_app": 29,#百度手机助手
 			"lenovo_shop": 30,
+			"wostore": 31,#沃商店
 				}
 
 class T:
@@ -1627,7 +1628,6 @@ def get_lenovo_shop_kc(page):
 					publish_date = u''
 					publish_date = unicode(datetime.date.fromtimestamp(int(unicode(publishtime)[:10]))) if publishtime else u""
 					if publish_date and pkg_name:
-						print page, title, pkg_name, publish_date
 						ins = db_conn.query(KC_LIST).filter(KC_LIST.pkg_name==pkg_name).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('lenovo_shop')).first()
 						if ins is None:
 							count += 1
@@ -1646,6 +1646,64 @@ def get_lenovo_shop_kc(page):
 	mylogger.info("get %s records from lenovo" % count)
 	db_conn.commit()
 
+def get_wostroe_detail_by_id(product_id):
+	try:
+		headers = {"phoneAccessMode": "3",
+				"mac" : "50:a7:2b:33:57:56",
+				"version": "android_v4.2.1",
+				"Androidversion": "android4.4.2",
+				"companylogo": "10269",
+				"settertype": "3",
+				"handphone": "00000000000"}
+		url = "http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=productDetail&productIndex=%s&resource=null&referer=null" % product_id
+		r = requests.get(url, timeout=10, headers=headers)
+		if r.status_code == 200:
+			return r.json()
+	except Exception, e:
+		mylogger.error("wostore detail \t%s" % (traceback.format_exc()))
+	return None
+
+def get_wostore_kc():
+	count = 0
+	headers = {"phoneAccessMode": "3",
+				"mac" : "50:a7:2b:33:57:56",
+				"version": "android_v4.2.1",
+				"Androidversion": "android4.4.2",
+				"companylogo": "10269",
+				"settertype": "3",
+				"handphone": "00000000000"}
+	try:
+		r = requests.get("http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=appList&channel=5&categoryID=0&pageNum=1&count=20", headers=headers, timeout=10)
+		if r.status_code == 200:
+			j = r.json()
+			if j['WOSTORE'] is not None:
+				for app in j['WOSTORE']:
+					#for k, v in app.iteritems():
+					#	print k, v
+					product_id = app.get('productIndex', u'')
+					if product_id:
+						info = get_wostroe_detail_by_id(product_id)
+						if info is not None:
+							updatetime = info.get('updatetime', u'')
+							if updatetime:
+								publish_date = "%s-%s-%s" % (updatetime[:4], updatetime[4:6], updatetime[6:8])
+								#print app.get('appName'), publish_date
+								ins = db_conn.query(KC_LIST).filter(KC_LIST.game_id==product_id).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('wostore')).first()
+								if ins is None:
+									count += 1
+									item = KC_LIST(**{
+													"title": app.get('appName', u''),
+													"game_id": product_id,
+													"publish_date": publish_date,
+													"img": app.get('iconURL', u''),
+													"popular": app.get('downloadCount', u''),
+													"source": source_map.get('wostore')
+													})
+									db_conn.merge(item)
+	except Exception,e:
+		mylogger.error("get wostore kc \t%s" % (traceback.format_exc()))
+	mylogger.info("get %s records from wostore" % count)
+	db_conn.commit()
 
 
 def main():
@@ -1678,6 +1736,7 @@ def main():
 	get_360_gamebox_kc(0)
 	get_muzhiwan_kc()
 	get_lenovo_shop_kc(1)
+	get_wostore_kc()
 
 if __name__ == '__main__':
 	main()

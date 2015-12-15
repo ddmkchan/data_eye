@@ -1637,6 +1637,77 @@ def get_wogame_detail(channel_id):
 	mylogger.info("get wogame detail %s" % count)
 	db_conn.commit()
 
+def get_wostroe_comment_by_product_id(product_id):
+	headers = {
+			"phoneAccessMode": "3",
+			"version": "android_v5.0.3",
+			"handphone": "00000000000"}
+	url = "http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=commentsList&productIndex=%s&pageNum=1&count=20" % product_id
+	try:
+		r = requests.get(url, timeout=10, headers=headers)
+		if r.status_code == 200:
+			j = r.json()
+			if j is not None:
+				return j.get('totalCount', u'')
+	except Exception, e:
+		mylogger.error("get wostore comment %s" % traceback.format_exc())
+	return u''
+
+def get_wostore_download_count_by_id(name, game_id, dt):
+	ins = db_conn.query(HotGames).filter(HotGames.name==name).filter(HotGames.url==game_id).filter(HotGames.dt==dt).first()
+	if ins is not None:
+		return ins.download_count
+	return u''
+
+def get_wostore_detail(channel_id):
+	count = 0
+	error_times = 0
+	sess = requests.session()
+	mylogger.info("get wostore detail start ...")
+	ids = channel_map.get(channel_id)
+	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
+	mylogger.info("### %s ###" % _sql)
+	for ret in db_conn.execute(_sql):
+		name, pkg_id = ret
+		dt = unicode(datetime.date.today())
+		try:
+			ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+			if not ins:
+				headers = {"phoneAccessMode": "3",
+						"mac" : "50:a7:2b:33:57:56",
+						"version": "android_v4.2.1",
+						"Androidversion": "android4.4.2",
+						"companylogo": "10269",
+						"settertype": "3",
+						"handphone": "00000000000"}
+				url = "http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=productDetail&productIndex=%s&resource=null&referer=null" % pkg_id
+				p = proxies[random.randrange(len(proxies))]
+				r = requests.get(url, timeout=20, headers=headers)
+				if r.status_code == 200:
+					g = r.json() 
+					if g is not None:
+						count += 1 
+						item = HotGameDetailByDay(**{
+									'name': name,
+									'channel': channel_id,
+									'summary' : g.get('desc', u''),
+									'rating' : g.get('rate', u''),
+									'version' : g.get('versionName', u''),
+									'author' : g.get('supplier', u''),
+									'pkg_size' : g.get('size', u''),
+									'comment_num' : get_wostroe_comment_by_product_id(pkg_id),
+									'download_num' : get_wostore_download_count_by_id(name, pkg_id, dt),
+									'dt' : dt,
+									'imgs' : g.get('screenshots1', u''),
+										})
+						db_conn.merge(item)
+			else:
+				ins.download_num = get_wostore_download_count_by_id(name, pkg_id, dt)
+		except Exception,e:
+			mylogger.error("wostore app detail #### %s #### \t%s" % (pkg_id.encode('utf-8'), traceback.format_exc()))
+	mylogger.info("get wostore app detail %s" % count)
+	db_conn.commit()
+
 
 channel_map = {
 			2	: [46, 47], #18183
@@ -1672,6 +1743,7 @@ channel_map = {
 			999	: [1, 15, 49, 50], #小米官方
 			998	: [65, 66], # wogame
 			30	: [71, 72, 73, 74], # lenovo shop
+			31	: [77,78], # lenovo shop
 				}
 
 def main():
@@ -1700,6 +1772,7 @@ def main():
 	get_leveno_detail(11)
 	get_lenovo_shop_detail(30)
 	get_meizu_detail(25)
+	get_wostore_detail(31)
 
 def get_muzhiwan_detail():
 	pass	

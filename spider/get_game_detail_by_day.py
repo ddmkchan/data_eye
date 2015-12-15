@@ -15,9 +15,6 @@ import datetime
 db_conn = new_session()
 mylogger = get_logger('get_game_detail')
 
-headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'}
-
-import random
 
 class EX:
 	
@@ -1408,6 +1405,63 @@ def get_lenovo_shop_comment_by_pkg(pkg_name):
 	return u''
 
 
+def get_wostroe_comment_by_product_id(product_id):
+	headers = {
+			"phoneAccessMode": "3",
+			"version": "android_v5.0.3",
+			"handphone": "00000000000"}
+	url = "http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=commentsList&productIndex=%s&pageNum=1&count=20" % product_id
+	try:
+		r = requests.get(url, timeout=10, headers=headers)
+		if r.status_code == 200:
+			j = r.json()
+			if j is not None:
+				return j.get('totalCount', u'')
+	except Exception, e:
+		mylogger.error("get wostore comment %s" % traceback.format_exc())
+	return u''
+
+def get_wostore_detail():
+	count = 0
+	mylogger.info("get wostore app detail start ...")
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.game_id!=u'').filter(KC_LIST.source==31):
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+		if not ins:
+			try:
+				headers = {"phoneAccessMode": "3",
+						"mac" : "50:a7:2b:33:57:56",
+						"version": "android_v4.2.1",
+						"Androidversion": "android4.4.2",
+						"companylogo": "10269",
+						"settertype": "3",
+						"handphone": "00000000000"}
+				url = "http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=productDetail&productIndex=%s&resource=null&referer=null" % ret.game_id
+				r = requests.get(url, timeout=10, headers=headers)
+				if r.status_code == 200:
+					g = r.json() 
+					if g is not None:
+						count += 1 
+						#for k, v in g.iteritems():
+						#	print k, v
+						item = GameDetailByDay(**{
+									'kc_id': ret.id,
+									'summary' : g.get('desc', u''),
+									'rating' : g.get('rate', u''),
+									'version' : g.get('versionName', u''),
+									'author' : g.get('supplier', u''),
+									'pkg_size' : g.get('size', u''),
+									'comment_num' : get_wostroe_comment_by_product_id(ret.game_id),
+									'download_num' : g.get('downloadCount', u''),
+									'dt' : dt,
+									'imgs' : g.get('screenshots1', u''),
+										})
+						db_conn.merge(item)
+			except Exception,e:
+				mylogger.error("wostore app detail #### %s #### \t%s" % (ret.pkg_name.encode('utf-8'), traceback.format_exc()))
+	mylogger.info("get wostore app detail %s" % count)
+	db_conn.commit()
+
 def step1():
 	get_xiaomi_new_detail()
 	get_xiaomi_rpg_detail()
@@ -1436,6 +1490,7 @@ def step2():
 	get_91play_detail()
 	get_360_gamebox_detail()
 	get_lenovo_shop_detail()
+	get_wostore_detail()
 
 if __name__ == '__main__':
 	step1()

@@ -98,6 +98,8 @@ source_map = {
 			"lenovo_shop_hard_game" : 74,
 			"meizu_webgame" : 75,
 			"meizu_single" : 76,
+			"wostore_new_game" : 77,
+			"wostore_hot" : 78,
 				}
 
 def get_baidu_hot_games():
@@ -1229,6 +1231,35 @@ def get_meizu_app_rank():
 			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 
 
+def get_wostore_app_rank():
+	headers = {
+			"phoneAccessMode": "3",
+			"version": "android_v5.0.3",
+			"handphone": "00000000000"}
+	try:
+		r = requests.get("http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=rankingList&channel=2", headers=headers, timeout=10)	
+		if r.status_code == 200:
+			j = r.json()
+			for ranklist in j['RANKINGLIST']:
+				source = -1
+				rank = 0
+				if ranklist.get('rankingName', u'') == u'新游榜':
+					source = source_map.get('wostore_new_game', -1)
+				elif ranklist.get('rankingName', u'') == u'热门榜':
+					source = source_map.get('wostore_hot', -1)
+				if source != -1:
+					for app in ranklist['RANKINGAPP']:
+						rank += 1
+						game_name, img, downloads, size, popular, game_type, status, url = [u''] * 8
+						game_name = app.get('appName', u'')
+						img = app.get('iconURL', u'')
+						size = app.get('size', u'')
+						downloads = app.get('downloadCout', u'')
+						url = app.get('productIndex', u'')
+						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+	except Exception,e:
+		mylogger.error("get wostore rank \t%s" % (traceback.format_exc()))
+
 def store_data(ret):
 	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
 	dt = unicode(datetime.date.today())
@@ -1251,7 +1282,6 @@ def store_data(ret):
 	else:
 		ins.url = url
 	db_conn.commit()
-
 
 def main():
 	get_data(get_baidu_hot_games)
@@ -1283,7 +1313,8 @@ def main():
 	get_tbzs_app_rank()
 	get_lenovo_gamecenter_app_rank()
 	get_lenovo_shop_rank()
+	get_meizu_app_rank()
+	get_wostore_app_rank()
 
 if __name__ == '__main__':
-	#main()
-	get_meizu_app_rank()
+	main()
