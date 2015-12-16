@@ -160,8 +160,9 @@ def func():
 	db_conn.commit()
 
 def get_urls_from_db_by_ids(ids, name):
-	_sql = "select distinct url from hot_games where url!='' and source in (%s) and name=\'%s\'" % (",".join([str(i) for i in ids]), name)
-	return [re[0] for re in db_conn.execute(_sql)]
+    ids = (int(id) for id in ids)
+    return [re.url for re in db_conn.query(HotGames.url).filter(HotGames.url!=u'').filter(HotGames.source.in_(ids)).filter(HotGames.name==name).distinct()]
+
 
 def func2():
 	from get_hot_game_detail_by_day import channel_map
