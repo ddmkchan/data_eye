@@ -1438,7 +1438,7 @@ def get_wostore_detail():
 						"handphone": "00000000000"}
 				url = "http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=productDetail&productIndex=%s&resource=null&referer=null" % ret.game_id
 				r = requests.get(url, timeout=10, headers=headers)
-				if r.status_code == 200:
+				if r.status_code == 200 and r.text:
 					g = r.json() 
 					if g is not None:
 						count += 1 
