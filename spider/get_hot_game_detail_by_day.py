@@ -378,9 +378,13 @@ def get_vivo_detail(channel_id):
 													'imgs' : u','.join(g['screenshot'].split(u'###')),
 														})
 							db_conn.merge(item)
+						if count % 50 == 0:
+							sleep(3)
+							mylogger.info("vivo detail commit %s" % count)
+							db_conn.commit()
 			except Exception,e:
 				error_times += 1
-				mylogger.error("%s\t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("%s\t%s" % (url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get vivo play detail %s" % count)
 	db_conn.commit()
 

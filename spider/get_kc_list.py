@@ -1705,6 +1705,16 @@ def get_wostore_kc():
 	mylogger.info("get %s records from wostore" % count)
 	db_conn.commit()
 
+def get_huawei_app_kc():
+	url = "http://hispaceclt1.hicloud.com:8080/hwmarket/api/storeApi2"
+	headers = {'user-agent': 'Gamebox_6.31.71.301_Meizu'}
+	raw_data = """clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=8BE2222453F8466690700BD3D29AFDF9&isShake=0&iv=wX%2B1e9JQvWrBOJLf7j5ANQ%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=-5469498271608711199&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105320000000%404697D3C011A742DC11B384CDF57C6349&trace=97bf368fefad407593b6855b86b8a0c2&ts=1450267895898&uri=f7bdb327d25944009c49e85af1e57720%7C1450267850388&userId=213DB50D94D265FFF89BD4A22D30114D&ver=1.1&nsp_key=pKED5sIghVAJjDQE4Sr1%2BCQLvHA%3D"""
+	r = requests.post(url, data=raw_data, headers=headers,timeout=10)
+	print r.text
+	if r.status_code == 200:
+		j = r.json()
+		print j['name']
+
 
 def main():
 	mylogger.info("gogo")
@@ -1740,3 +1750,4 @@ def main():
 
 if __name__ == '__main__':
 	main()
+	#get_huawei_app_kc()
