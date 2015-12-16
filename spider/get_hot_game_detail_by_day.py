@@ -1473,6 +1473,8 @@ def get_lenovo_shop_detail(channel_id):
 			try:
 				headers = {"clientid": "141623-2-2-19-1-3-1_480_i865931027730878t19700201770903586_c20524d1p1"}
 				response = requests.get(url, timeout=20, headers=headers)
+				m = re.search(u'pn=(\w+\S+)&vc', url)
+				pkg_name = m.group(1) if m is not None else u''
 				if response.status_code == 200:
 					j = response.json() 
 					if j['appInfo'] is not None:
@@ -1486,7 +1488,7 @@ def get_lenovo_shop_detail(channel_id):
 									'version' : g.get('version', u''),
 									'game_type' : g.get('typeName', u''),
 									'pkg_size' : g.get('size', u''),
-									'comment_num' : get_lenovo_shop_comment_by_pkg(pkg),
+									'comment_num' : get_lenovo_shop_comment_by_pkg(pkg_name),
 									'author' : g.get('developerName', u''),
 									'download_num' : g.get('realDownCount', u''),
 									'dt' : dt,
@@ -1500,16 +1502,17 @@ def get_lenovo_shop_detail(channel_id):
 	db_conn.commit()
 
 def get_lenovo_shop_comment_by_pkg(pkg_name):
-	url = "http://223.202.25.30/comment/api/commentlist?bizCode=APP&bizIdentity=%s&startIndex=1&count=10&orderBy=DATE" % pkg_name
-	headers = {"clientid": "141623-2-2-19-1-3-1_480_i865931027730878t19700201770903586_c20524d1p1"}
-	try:
-		r = requests.get(url, timeout=10, headers=headers)
-		if r.status_code == 200:
-			j = r.json()
-			if j['data'] is not None:
-				return j['data'].get('totalCount', u'')
-	except Exception, e:
-		mylogger.error("get lenovo shop comment %s" % traceback.format_exc())
+	if pkg_name:
+		url = "http://223.202.25.30/comment/api/commentlist?bizCode=APP&bizIdentity=%s&startIndex=1&count=10&orderBy=DATE" % pkg_name
+		headers = {"clientid": "141623-2-2-19-1-3-1_480_i865931027730878t19700201770903586_c20524d1p1"}
+		try:
+			r = requests.get(url, timeout=10, headers=headers)
+			if r.status_code == 200:
+				j = r.json()
+				if j['data'] is not None:
+					return j['data'].get('totalCount', u'')
+		except Exception, e:
+			mylogger.error("get lenovo shop comment %s" % traceback.format_exc())
 	return u''
 
 def get_wogame_detail(channel_id):
