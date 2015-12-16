@@ -610,8 +610,8 @@ def get_sogou_detail(channel_id):
 													})
 					db_conn.merge(item)
 			except Exception,e:
-				error_times += 1
-				mylogger.error("%s\t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
+				#error_times += 1
+				mylogger.error("%s\t%s" % (url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get sogou detail %s" % count)
 	db_conn.commit()
 
@@ -767,7 +767,7 @@ def get_muzhiwan_detail_by_id(url):
 			mydict['description'] = summary.text
 	except Exception,e:
 		mydict = {'ex_msg': u'Exception'}
-		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
+		mylogger.error("get muzhiwan detail \t%s" % (traceback.format_exc()))
 	return mydict
 
 
@@ -1472,7 +1472,7 @@ def get_lenovo_shop_detail(channel_id):
 		if not ins:
 			try:
 				headers = {"clientid": "141623-2-2-19-1-3-1_480_i865931027730878t19700201770903586_c20524d1p1"}
-				response = requests.get(url, timeout=10, headers=headers)
+				response = requests.get(url, timeout=20, headers=headers)
 				if response.status_code == 200:
 					j = response.json() 
 					if j['appInfo'] is not None:
@@ -1495,7 +1495,7 @@ def get_lenovo_shop_detail(channel_id):
 						db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
-				mylogger.error("lenovo_shop app detail #### %s #### \t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("lenovo_shop app detail #### %s #### \t%s" % (url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get lenovo_shop app detail %s" % count)
 	db_conn.commit()
 
@@ -1673,6 +1673,8 @@ def main():
 	get_appicsh_detail(3)
 	get_dangle_detail(15)
 	get_kuaiyong_detail(19)
+
+def step2():
 	get_iqiyi_detail(12)
 	get_i4_app_detail(16)
 	get_sogou_detail(14)

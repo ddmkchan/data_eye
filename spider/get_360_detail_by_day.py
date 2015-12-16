@@ -15,7 +15,7 @@ import datetime
 import random
 db_conn = new_session()
 
-from get_hot_game_detail_by_day import channel_map, mylogger, get_urls_from_db_by_ids
+from get_hot_game_detail_by_day import channel_map, mylogger, get_urls_from_db_by_ids, step2
 
 
 
@@ -99,3 +99,4 @@ def get_360zhushou_web_detail(channel_id):
 
 if __name__ == '__main__':
 	get_360zhushou_web_detail(22)
+	step2()
