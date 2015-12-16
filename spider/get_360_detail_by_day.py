@@ -15,10 +15,8 @@ import datetime
 import random
 db_conn = new_session()
 
-from get_hot_game_detail_by_day import channel_map, mylogger
+from get_hot_game_detail_by_day import channel_map, mylogger, get_urls_from_db_by_ids
 
-
-headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'}
 
 
 def get_360zhushou_web_detail(channel_id):
@@ -27,17 +25,15 @@ def get_360zhushou_web_detail(channel_id):
 	sess = requests.session()
 	mylogger.info("get 360zhushou web detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
-		name, url = ret
+	for url in get_urls_from_db_by_ids(ids):
 		if error_times >= 20:
 			mylogger.info("360zhushou web  detail reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
+				headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'}
 				p = proxies[random.randrange(len(proxies))]
 				r = sess.get(url, timeout=20, headers=headers, proxies=p)
 				if r.status_code == 200:
@@ -78,7 +74,7 @@ def get_360zhushou_web_detail(channel_id):
 								mydict[segs[0]] = segs[1]
 					count += 1
 					item = HotGameDetailByDay(**{
-												'name': name,
+												'identifying': url,
 												'channel': channel_id,
 												'dt' : dt,
 												'imgs' : imgs,
