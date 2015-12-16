@@ -26,7 +26,7 @@ class EX:
 
 
 def get_urls_from_db_by_ids(ids):
-	_sql = "select url from hot_games where url!='' and dt!='' and source in (%s) and url!='' group by url" % ",".join([str(i) for i in ids])
+	_sql = "select url from hot_games where url!='\t' and url!='' and dt!='' and source in (%s) and url!='' group by url" % ",".join([str(i) for i in ids])
 	mylogger.info(_sql)
 	return [rt[0] for rt in db_conn.execute(_sql)]
 
@@ -465,15 +465,12 @@ def get_gionee_detail(channel_id):
 	sess = requests.session()
 	mylogger.info("get gionee detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
-		name, pkg = ret
+	for pkg in get_urls_from_db_by_ids(ids):
 		if error_times >= 20:
 			mylogger.info("gionee reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==pkg).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
 				_url = u"http://game.gionee.com/Api/Local_Gameinfo/getDetails?gameId=%s" % pkg.split('\t')[1]
@@ -484,7 +481,7 @@ def get_gionee_detail(channel_id):
 						g = d['data']
 						count += 1 
 						item = HotGameDetailByDay(**{
-													'name': name,
+													'identifying': pkg,
 													'channel': channel_id,
 													'rating' : g.get('score', u''),
 													'download_num' : g.get('downloadCount', u''),

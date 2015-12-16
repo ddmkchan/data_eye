@@ -45,6 +45,7 @@ class HotGames(Base):
 	size = Column(Unicode(100), nullable=False, default=u'')
 	rank = Column(Integer, nullable=False, default=0)
 	url = Column(Unicode(100), nullable=False, default=u'')
+	identifying = Column(Unicode(500), nullable=False, default=u'')
 	status = Column(Unicode(50), nullable=False, default=u'')
 	game_type = Column(Unicode(50), nullable=False, default=u'')
 	popular = Column(Unicode(50), nullable=False, default=u'')
@@ -165,6 +166,7 @@ class HotGameDetailByDay(Base):
 	author = Column(Unicode(100), nullable=False, default=u'')
 	dt = Column(Unicode(100), nullable=False, default=u'', index=True)
 	channel = Column(Integer, nullable=False, default=0, index=True)
+	status = Column(Integer, nullable=False, default=0)
 	update_time = Column(Unicode(100), nullable=False, default=u'')
 	create_date = Column(DateTime, nullable=False, default=datetime.now())#创建时间
 	last_update = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间

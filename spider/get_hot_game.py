@@ -327,7 +327,8 @@ def get_360_app_rank(gtype):
 					downloads = app.get('download_times', u'')
 					size = app.get('size', u'')
 					game_type = app.get('category_name', u'')
-					url = app.get('apkid', u'') + "\t" + app.get('id', u'')
+					#url = app.get('apkid', u'') + "\t" + app.get('id', u'')
+					url = u"http://125.88.193.234/mintf/getAppInfoByIds?pname=%s" % app.get('apkid', u'') if app.get('apkid', u'') else u''
 					source = source_map.get(type_2_source.get(gtype))
 					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
 	except Exception,e:
