@@ -1130,25 +1130,23 @@ def get_360_app_detail(channel_id):
 	error_times = 0
 	mylogger.info("get 360 app hot game detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info(_sql)
-	for ret in db_conn.execute(_sql):
-		name, pkg = ret
+	for pkg in get_urls_from_db_by_ids(ids):
 		if error_times >= 10:
 			mylogger.info("360 reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==pkg).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
-				url = "http://125.88.193.234/mintf/getAppInfoByIds?pname=%s" % pkg.split('\t')[0]
+				pkg_name, pkg_id = pkg.split('\t')
+				url = "http://125.88.193.234/mintf/getAppInfoByIds?pname=%s" % pkg_name
 				r = requests.get(url, timeout=10)
 				if r.status_code == 200:
 					j = r.json()
 					if j['data'] is not None and len(j['data'])>=1:
 						g = j['data'][0]
 						count += 1 
-						comments_url = "http://comment.mobilem.360.cn/comment/getCommentTags?objid=%s" % pkg.split('\t')[1]
+						comments_url = "http://comment.mobilem.360.cn/comment/getCommentTags?objid=%s" % pkg_id
 						comments_num = u''
 						try:
 							get_comments_r = requests.get(comments_url)
@@ -1160,7 +1158,7 @@ def get_360_app_detail(channel_id):
 						except Exception,e :
 							mylogger.error("360 app comments #### %s #### \t%s" % (comments_url, traceback.format_exc()))
 						item = HotGameDetailByDay(**{
-									'name': name,
+									'identifying': pkg,
 									'summary' : g.get('brief', u''),
 									'version' : g.get('version_name', u''),
 									'game_type' : g.get('category_name', u''),
