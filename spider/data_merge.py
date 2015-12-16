@@ -166,13 +166,16 @@ def get_urls_from_db_by_ids(ids, name):
 
 def func2():
 	from get_hot_game_detail_by_day import channel_map
-	for rt in db_conn.execute("select channel, identifying from hot_game_detail_by_day group by channel, identifying"):
+	for rt in db_conn.execute("select channel, identifying from hot_game_detail_by_day where channel=29 group by channel, identifying"):
 		channel, name = rt
 		ids = channel_map.get(channel)
 		urls = get_urls_from_db_by_ids(ids, name)
 		if len(urls)>=2:
 			print channel, name, ids
-			print urls, '******'
+			if len(urls[0].split('\t')) >= 2:
+				pkg_name, pkg_id = urls[0].split('\t')
+				db_conn.execute("update table hot_game_detail_by_day set identifying=%s where channel=%s and name=\'%s\'" % (pkg_name, channel, name))
+	db_conn.commit()
 
 if __name__ == '__main__':
 	#main()

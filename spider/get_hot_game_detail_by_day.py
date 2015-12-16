@@ -1412,18 +1412,15 @@ def get_m_baidu_detail(channel_id):
 	sess = requests.session()
 	mylogger.info("get baidu zhushou app detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
-		name, pkg = ret
+	for pkg in get_urls_from_db_by_ids(ids):
 		if error_times >= 20:
 			mylogger.info("baidu zhoushou app detail reach max error times ... ")
 			break
+		pkg_name, pkg_id = pkg.split('\t')
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==pkg_name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
-				pkg_name, pkg_id = pkg.split('\t')
 				url = u"http://m.baidu.com/appsrv?native_api=1&psize=3&pkname=%s&action=detail&docid=%s" % (pkg_name, pkg_id)
 				r = sess.get(url, timeout=10)
 				if r.status_code == 200:
@@ -1434,7 +1431,7 @@ def get_m_baidu_detail(channel_id):
 							count +=1
 							item = HotGameDetailByDay(**{
 										'channel': channel_id,
-										'name': name,
+										'identifying': pkg_name,
 										'summary' : g.get('brief', u''),
 										'rating' : g.get('display_score', u''),
 										'version' : g.get('versionname', u''),
