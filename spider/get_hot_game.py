@@ -1299,14 +1299,12 @@ def store_data(ret):
 						"rank"			: rank,
 						"popular"		: popular,
 						"game_type"		: game_type,
-						"status"		: status,
+						"status"		: 0,
 						"url"			: url,
 						"identifying"			: url,
 						"dt"			: dt
 						})
 		db_conn.merge(item)
-	else:
-		ins.url = url
 	db_conn.commit()
 
 def main():
