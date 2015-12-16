@@ -105,11 +105,13 @@ source_map = {
 def get_baidu_hot_games():
 	url = "http://shouji.baidu.com/game"
 	r = s.get(url)
+	rank = 0
 	if r.status_code == 200:
 		soup = BeautifulSoup(r.text)
 		hot = soup.find("div", class_="sec-hot tophot")
 		if hot is not None:
 			for k in hot.find_all("li")[:]:
+				rank += 1
 				popular 	= u""
 				game_type 	= u""
 				status 		= u""
@@ -125,7 +127,7 @@ def get_baidu_hot_games():
 					down_size = detail.find("p", class_="down-size")	
 					downloads = down_size.find("span", class_="down").text
 					size = down_size.find("span", class_="size").text
-					yield game_name, img, downloads, size, source, popular, game_type, status, url
+					store((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 
 def download_pic(url, name):
 	try:
@@ -472,28 +474,6 @@ def get_dangle_app_rank():
 		except Exception,e:
 			mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
 
-
-def get_data(f):
-	for i in enumerate(f()):
-		rank, ret = i
-		game_name, img, downloads, size, source, popular, game_type, status, url = ret
-		ins = db_conn.query(HotGames).filter(HotGames.name==game_name).filter(HotGames.source==source).filter(HotGames.create_date==date.today()).first()
-		if ins is None:
-			item = HotGames(**{
-							"name"			: game_name,
-							"img"			: img,
-							"download_count"		: downloads,
-							"size"			: size,
-							"source"		: source,
-							"rank"			: rank+1,
-							"popular"		: popular,
-							"game_type"		: game_type,
-							"status"		: status,
-							"url"			: url
-							})
-			db_conn.merge(item)
-	db_conn.commit()
-	mylogger.info("%s done!" % f.__name__)
 
 
 def get_vivo_app_rank(gtype, _url):
@@ -1293,7 +1273,7 @@ def store_data(ret):
 		item = HotGames(**{
 						"name"			: game_name,
 						"img"			: img,
-						"download_count"		: downloads,
+						"download_count": downloads,
 						"size"			: size,
 						"source"		: source,
 						"rank"			: rank,
@@ -1301,14 +1281,14 @@ def store_data(ret):
 						"game_type"		: game_type,
 						"status"		: 0,
 						"url"			: url,
-						"identifying"			: url,
+						"identifying"	: url,
 						"dt"			: dt
 						})
 		db_conn.merge(item)
 	db_conn.commit()
 
 def main():
-	get_data(get_baidu_hot_games)
+	get_baidu_hot_games()
 	store_360_app_rank()
 	store_m5qq_app_rank()
 	store_m_baidu_app_rank()
