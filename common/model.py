@@ -46,7 +46,7 @@ class HotGames(Base):
 	rank = Column(Integer, nullable=False, default=0)
 	url = Column(Unicode(100), nullable=False, default=u'')
 	identifying = Column(Unicode(500), nullable=False, default=u'')
-	status = Column(Unicode(50), nullable=False, default=u'')
+	status = Column(Integer, nullable=False, default=0)
 	game_type = Column(Unicode(50), nullable=False, default=u'')
 	popular = Column(Unicode(50), nullable=False, default=u'')
 	source = Column(Integer, nullable=False, default=-1, index=True)

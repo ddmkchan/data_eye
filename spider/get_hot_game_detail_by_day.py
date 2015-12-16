@@ -177,7 +177,7 @@ def get_18183_detail(channel_id):
 					if icons:
 						imgs = u",".join(icons)
 				item = HotGameDetailByDay(**{'channel': channel_id,
-												'name' : name,
+												'identifying' : url,
 												'dt' : dt,
 												'imgs' : imgs,
 												'summary' : summary,
@@ -1309,7 +1309,6 @@ def get_360_gamebox_detail(channel_id):
 	mylogger.info("get 360_gamebox app detail start ...")
 	ids = channel_map.get(channel_id)
 	for url in get_urls_from_db_by_ids(ids):
-		name, pkg = ret
 		if error_times >= 10:
 			mylogger.info("360 gamebox reach max error times ... ")
 			break
@@ -1461,7 +1460,6 @@ def get_lenovo_shop_detail(channel_id):
 	mylogger.info("get lenovo_shop app detail start ...")
 	ids = channel_map.get(channel_id)
 	for url in get_urls_from_db_by_ids(ids):
-		name, pkg = ret
 		if error_times >= 20:
 			mylogger.info("lenovo_shop reach max error times ... ")
 			break
@@ -1569,8 +1567,8 @@ def get_wostroe_comment_by_product_id(product_id):
 		mylogger.error("get wostore comment %s" % traceback.format_exc())
 	return u''
 
-def get_wostore_download_count_by_id(name, game_id, dt):
-	ins = db_conn.query(HotGames).filter(HotGames.name==name).filter(HotGames.url==game_id).filter(HotGames.dt==dt).first()
+def get_wostore_download_count_by_id(game_id, dt):
+	ins = db_conn.query(HotGames).filter(HotGames.source.in_((77,78))).filter(HotGames.identifying==game_id).filter(HotGames.dt==dt).first()
 	if ins is not None:
 		return ins.download_count
 	return u''
@@ -1581,10 +1579,10 @@ def get_wostore_detail(channel_id):
 	sess = requests.session()
 	mylogger.info("get wostore detail start ...")
 	ids = channel_map.get(channel_id)
-	for url in get_urls_from_db_by_ids(ids):
+	for pkg_id in get_urls_from_db_by_ids(ids):
 		dt = unicode(datetime.date.today())
 		try:
-			ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+			ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==pkg_id).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 			if not ins:
 				headers = {"phoneAccessMode": "3",
 						"mac" : "50:a7:2b:33:57:56",
@@ -1594,13 +1592,14 @@ def get_wostore_detail(channel_id):
 						"settertype": "3",
 						"handphone": "00000000000"}
 				p = proxies[random.randrange(len(proxies))]
+				url = "http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=productDetail&productIndex=%s&resource=null&referer=null" % pkg_id
 				r = requests.get(url, timeout=20, headers=headers)
 				if r.status_code == 200:
 					g = r.json() 
 					if g is not None:
 						count += 1 
 						item = HotGameDetailByDay(**{
-									'identifying': url,
+									'identifying': pkg_id,
 									'channel': channel_id,
 									'summary' : g.get('desc', u''),
 									'rating' : g.get('rate', u''),
@@ -1608,13 +1607,13 @@ def get_wostore_detail(channel_id):
 									'author' : g.get('supplier', u''),
 									'pkg_size' : g.get('size', u''),
 									'comment_num' : get_wostroe_comment_by_product_id(pkg_id),
-									'download_num' : get_wostore_download_count_by_id(name, pkg_id, dt),
+									'download_num' : get_wostore_download_count_by_id(pkg_id, dt),
 									'dt' : dt,
 									'imgs' : g.get('screenshots1', u''),
 										})
 						db_conn.merge(item)
 			else:
-				ins.download_num = get_wostore_download_count_by_id(name, pkg_id, dt)
+				ins.download_num = get_wostore_download_count_by_id(pkg_id, dt)
 		except Exception,e:
 			mylogger.error("wostore app detail #### %s #### \t%s" % (pkg_id.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get wostore app detail %s" % count)
@@ -1655,7 +1654,7 @@ channel_map = {
 			999	: [1, 15, 49, 50], #小米官方
 			998	: [65, 66], # wogame
 			30	: [71, 72, 73, 74], # lenovo shop
-			31	: [77,78], # lenovo shop
+			31	: [77,78], # wostore
 				}
 
 def main():

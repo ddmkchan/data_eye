@@ -140,4 +140,4 @@ if __name__ == '__main__':
 		else:
 			ins.name = k
 	db_conn.commit()
-
+	
