@@ -762,7 +762,7 @@ def get_sogou_app_rank(gtype, _url):
 					size = app.get('size', u'')
 					source = source_map.get(gtype)
 					#url = u"%s\t%s" % (app.get('packagename', u''),  app.get('appid', u''))
-					_url = u"http://mobile.zhushou.sogou.com/m/appDetail.html?id=%s" % pkg.split('\t')[1] if app.get('appid') if app.get('appid', u'') else u''
+					url = u"http://mouile.zhushou.sogou.com/m/appDetail.html?id=%s" % app.get('appid') if app.get('appid', u'') else u''
 					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
 					#for k,v in app.iteritems():
 					#	print k,v
