@@ -127,7 +127,7 @@ def get_baidu_hot_games():
 					down_size = detail.find("p", class_="down-size")	
 					downloads = down_size.find("span", class_="down").text
 					size = down_size.find("span", class_="size").text
-					store((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+					store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 
 def download_pic(url, name):
 	try:
