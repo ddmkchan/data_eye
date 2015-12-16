@@ -159,33 +159,7 @@ def func():
 		ret.pkg_name = ret.title2
 	db_conn.commit()
 
-def get_urls_from_db_by_ids(ids, name):
-    ids = (int(id) for id in ids)
-    return [re.url for re in db_conn.query(HotGames.url).filter(HotGames.url!=u'').filter(HotGames.source.in_(ids)).filter(HotGames.url!='\t').filter(HotGames.name==name).distinct()]
-
-
 def func2():
-	from get_hot_game_detail_by_day import channel_map
-	#for rt in db_conn.execute("select channel, identifying from hot_game_detail_by_day where channel=29 group by channel, identifying"):
-	#	channel, name = rt
-	#	ids = channel_map.get(channel)
-	#	urls = get_urls_from_db_by_ids(ids, name)
-	#	if len(urls)>=2:
-	#		print channel, name, ids
-	#		if len(urls[0].split('\t')) >= 2:
-	#			pkg_name, pkg_id = urls[0].split('\t')
-	#			db_conn.execute("update table hot_game_detail_by_day set identifying=\'%s\' where channel=%s and name=\'%s\'" % (pkg_name, channel, name))
-	#for rt in db_conn.execute("select channel, identifying from hot_game_detail_by_day where channel=10 group by channel, identifying"):
-	#	channel, name = rt
-	#	ids = channel_map.get(channel)
-	#	urls = get_urls_from_db_by_ids(ids, name)
-	#	if len(urls)>=2:
-	#		print channel, name, ids
-	#		if len(urls[0].split('\t')) >= 2:
-	#			pkg_name, pkg_id = urls[0].split('\t')
-	#			db_conn.execute("update table hot_game_detail_by_day set identifying=\'%s\' where channel=%s and name=\'%s\'" % (pkg_name, channel, name))
-
-
 	ids = channel_map.get(2)
 	for rt in db_conn.query(HotGames).filter(HotGames.source.in_(ids)):
 		if rt.url and rt.url!=u'\t':
@@ -333,9 +307,40 @@ def func2():
 
 	db_conn.commit()
 
+
+def get_urls_from_db_by_ids(ids, name):
+    ids = (int(id) for id in ids)
+    return [re.url for re in db_conn.query(HotGames.url).filter(HotGames.url!=u'').filter(HotGames.source.in_(ids)).filter(HotGames.url!='\t').filter(HotGames.name==name).distinct()]
+
+
+def func3():
+	from get_hot_game_detail_by_day import channel_map
+	for rt in db_conn.execute("select channel, identifying from hot_game_detail_by_day where channel=29 group by channel, identifying"):
+		channel, name = rt
+		ids = channel_map.get(channel)
+		urls = get_urls_from_db_by_ids(ids, name)
+		if len(urls)>=2:
+			print channel, name, ids
+			print urls, '******'
+			if len(urls[0].split('\t')) >= 2:
+				pkg_name, pkg_id = urls[0].split('\t')
+				#db_conn.execute("update table hot_game_detail_by_day set identifying=\'%s\' where channel=%s and name=\'%s\'" % (pkg_name, channel, name))
+	#for rt in db_conn.execute("select channel, identifying from hot_game_detail_by_day where channel=10 group by channel, identifying"):
+	#	channel, name = rt
+	#	ids = channel_map.get(channel)
+	#	urls = get_urls_from_db_by_ids(ids, name)
+	#	if len(urls)>=2:
+	#		print channel, name, ids
+	#		if len(urls[0].split('\t')) >= 2:
+	#			pkg_name, pkg_id = urls[0].split('\t')
+	#			db_conn.execute("update table hot_game_detail_by_day set identifying=\'%s\' where channel=%s and name=\'%s\'" % (pkg_name, channel, name))
+
+	db_conn.commit()
+
+
 if __name__ == '__main__':
 	#main()
 	#print get_publish_status([2516,2671,2941,3375,3389,3414,3518,3559,8131,8548,11442,11657,13088,13231,13516,13658,14067])
 	#get_game_detail(['19084'])
 	#remove_duplicate_record()
-	func2()
+	func3()
