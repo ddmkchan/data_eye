@@ -1052,7 +1052,7 @@ def get_wandoujia_detail_by_id(url):
 def get_meizu_detail_by_id(gid):
 	URL = u"http://api-game.meizu.com/games/public/detail/%s" % gid
 	try:
-		response = requests.get(URL, timeout=10)
+		response = requests.get(URL, timeout=30)
 		if response.status_code == 200:
 			j = response.json()
 			if 'value' in j:

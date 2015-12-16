@@ -1036,7 +1036,7 @@ def get_wandoujia_detail(channel_id):
 
 def get_meizu_detail_by_id(url):
 	try:
-		response = requests.get(url, timeout=10)
+		response = requests.get(url, timeout=20)
 		if response.status_code == 200:
 			j = response.json()
 			if 'value' in j:
@@ -1600,8 +1600,8 @@ def get_wostore_detail(channel_id):
 						"handphone": "00000000000"}
 				p = proxies[random.randrange(len(proxies))]
 				url = "http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=productDetail&productIndex=%s&resource=null&referer=null" % pkg_id
-				r = requests.get(url, timeout=20, headers=headers)
-				if r.status_code == 200:
+				r = requests.get(url, timeout=40, headers=headers)
+				if r.status_code == 200 and r.text:
 					g = r.json() 
 					if g is not None:
 						count += 1 
@@ -1621,6 +1621,7 @@ def get_wostore_detail(channel_id):
 						db_conn.merge(item)
 			else:
 				ins.download_num = get_wostore_download_count_by_id(pkg_id, dt)
+			break
 		except Exception,e:
 			mylogger.error("wostore app detail #### %s #### \t%s" % (pkg_id.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get wostore app detail %s" % count)
