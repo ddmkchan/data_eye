@@ -379,12 +379,14 @@ def store_m5qq_app_rank():
 BAIDU_SINGLE_RANK = 0
 BAIDU_WEBGAME_RANK = 0 
 BAIDU_NEW_GAME_RANK = 0 
+BAIDU_TOP = 0 
 
 
 def get_m_baidu_rank(gtype, _url):
 	global BAIDU_SINGLE_RANK
 	global BAIDU_WEBGAME_RANK
 	global BAIDU_NEW_GAME_RANK
+	global BAIDU_TOP
 
 	try:
 		p = proxies[random.randrange(len(proxies))]
@@ -400,9 +402,12 @@ def get_m_baidu_rank(gtype, _url):
 						elif gtype == 'm_baidu_webgame':
 							BAIDU_WEBGAME_RANK += 1
 							rank = BAIDU_WEBGAME_RANK
-						else:
+						elif:
 							BAIDU_NEW_GAME_RANK += 1
 							rank = BAIDU_NEW_GAME_RANK
+						else:
+							BAIDU_TOP += 1
+							rank = BAIDU_TOP
 						app = item.get('itemdata', {})
 						game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
 						game_name = app.get('sname', u'')
