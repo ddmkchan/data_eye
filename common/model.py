@@ -149,7 +149,7 @@ class HotGameDetailByDay(Base):
 	__tablename__ = 'hot_game_detail_by_day'
 	
 	id = Column(Integer, primary_key=True, autoincrement=True)
-	name = Column(Unicode(100), nullable=False, default=u'', index=True)
+	identifying = Column(Unicode(500), nullable=False, default=u'', index=True)
 	imgs = Column(UnicodeText, nullable=False, default=u'')
 	game_type = Column(Unicode(100), nullable=False, default=u'')
 	summary = Column(UnicodeText, nullable=False, default=u'')

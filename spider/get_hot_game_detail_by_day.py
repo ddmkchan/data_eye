@@ -15,10 +15,6 @@ import datetime
 db_conn = new_session()
 mylogger = get_logger('get_hot_game_detail')
 
-headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'}
-
-import random
-
 class T:
 	
 	def __init__(self, status_code):
@@ -29,21 +25,23 @@ class EX:
 	msg = ""
 
 
+def get_urls_from_db_by_ids(ids):
+	_sql = "select url from hot_games where url!='' and dt!='' and source in (%s) and url!='' group by url" % ",".join([str(i) for i in ids])
+	mylogger.info(_sql)
+	return [rt[0] for rt in db_conn.execute(_sql)]
+
 def get_9game_detail(channel_id):
 	mylogger.info("get 9game detail start ...")
 	count = 0
 	error_times = 0
 	sess = requests.session()
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where url!='' and dt!='' and source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info(_sql)
-	for ret in db_conn.execute(_sql):
-		name, url = ret
+	for url in get_urls_from_db_by_ids(ids):
 		if error_times >= 10:
 			mylogger.info("9game reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
 				p = proxies[random.randrange(len(proxies))]
@@ -128,15 +126,12 @@ def get_18183_detail(channel_id):
 	error_times = 0
 	sess = requests.session()
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info(_sql)
-	for ret in db_conn.execute(_sql):
-		name, url = ret
+	for url in get_urls_from_db_by_ids(ids):
 		if error_times >= 10:
 			mylogger.info("18183 reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
 				p = proxies[random.randrange(len(proxies))]
@@ -1665,7 +1660,7 @@ def get_wostore_detail(channel_id):
 	sess = requests.session()
 	mylogger.info("get wostore detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
+	_sql = "select url from hot_games where url!='' and dt!='' and source in (%s) and url!='' group by url" % ",".join([str(i) for i in ids])
 	mylogger.info("### %s ###" % _sql)
 	for ret in db_conn.execute(_sql):
 		name, pkg_id = ret
@@ -1784,4 +1779,5 @@ def get_360_gamebox_web_detail():
 	pass
 
 if __name__ == '__main__':
-	main()
+	#main()
+	print get_urls_from_db_by_ids([68])

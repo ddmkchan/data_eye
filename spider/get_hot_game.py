@@ -286,9 +286,8 @@ def get_9game_web_app_rank(gtype, url):
 		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 
 
-headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'}
-
 def get_appannie_hot_list():
+	headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'}
 	r = s.get("https://www.appannie.com/apps/ios/top/china/games/?device=iphone", headers=headers, timeout=10)
 	if r.status_code == 200:
 		soup = BeautifulSoup(r.text)
@@ -658,19 +657,18 @@ def store_wandoujia_app_rank():
 def get_wandoujia_detail(url):
 	try:
 		r = requests.get(url, timeout=10)
+		if r.status_code == 200:
+			d = r.json()
+			entity = d['entity']
+			if entity:
+				detail = entity[0]['detail']['appDetail']
+				if detail is not None:
+					categories = detail.get('categories', [])
+					game_type = u",".join([c['name'] for c in categories if c['level']==1])
+					popular = detail.get('downloadCount', u'')
+					return game_type, popular
 	except Exception,e:
-		r = T(404)
 		mylogger.error("### %s ### %s" % (url.encode('utf-8'), traceback.format_exc()))
-	if r.status_code == 200:
-		d = r.json()
-		entity = d['entity']
-		if entity:
-			detail = entity[0]['detail']['appDetail']
-			if detail is not None:
-				categories = detail.get('categories', [])
-				game_type = u",".join([c['name'] for c in categories if c['level']==1])
-				popular = detail.get('downloadCount', u'')
-				return game_type, popular
 	return None
 
 
@@ -846,29 +844,28 @@ def get_kuaiyong_detail(URL):
 	mydict = {}
 	try:
 		response = s.get(URL, timeout=10)
+		if response.status_code == 200:
+			soup = BeautifulSoup(response.text)
+			base_left = soup.find('div', class_='base-left')
+			if base_left is not None:
+				img = base_left.find('img')
+				if img is not None:
+					mydict['img'] = img.get('src')
+			base_right = soup.find('div', class_='base-right')
+			if base_right is not None:
+				if base_right.find('h1') is not None:
+					mydict[u'title'] = base_right.find('h1').text
+				base_list = base_right.find('div', class_='base-list')
+				if base_list is not None:
+					for ret in base_list.find_all('p'):
+						if ret.text:
+							segs = ret.text.split(u'：')
+							if len(segs) == 2:
+								mydict[segs[0]] = segs[1]
+							elif len(segs)==1 and u'次下载' in ret.text:
+								mydict[u'下载'] = re.sub(u'次下载|\n|\r', u'', ret.text)
 	except Exception,e:
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
-		response = T(404)
-	if response.status_code == 200:
-		soup = BeautifulSoup(response.text)
-		base_left = soup.find('div', class_='base-left')
-		if base_left is not None:
-			img = base_left.find('img')
-			if img is not None:
-				mydict['img'] = img.get('src')
-		base_right = soup.find('div', class_='base-right')
-		if base_right is not None:
-			if base_right.find('h1') is not None:
-				mydict[u'title'] = base_right.find('h1').text
-			base_list = base_right.find('div', class_='base-list')
-			if base_list is not None:
-				for ret in base_list.find_all('p'):
-					if ret.text:
-						segs = ret.text.split(u'：')
-						if len(segs) == 2:
-							mydict[segs[0]] = segs[1]
-						elif len(segs)==1 and u'次下载' in ret.text:
-							mydict[u'下载'] = re.sub(u'次下载|\n|\r', u'', ret.text)
 	return mydict
 
 

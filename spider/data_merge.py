@@ -159,9 +159,23 @@ def func():
 		ret.pkg_name = ret.title2
 	db_conn.commit()
 
+def get_urls_from_db_by_ids(ids, name):
+	_sql = "select distinct url from hot_games where url!='' and source in (%s) and name=\'%s\'" % (",".join([str(i) for i in ids]), name)
+	return [re[0] for re in db_conn.execute(_sql)]
+
+def func2():
+	from get_hot_game_detail_by_day import channel_map
+	for rt in db_conn.execute("select channel, identifying from hot_game_detail_by_day group by channel, identifying"):
+		channel, name = rt
+		ids = channel_map.get(channel)
+		urls = get_urls_from_db_by_ids(ids, name)
+		if len(urls)>=2:
+			print channel, name, ids
+			print urls, '******'
+
 if __name__ == '__main__':
-	main()
+	#main()
 	#print get_publish_status([2516,2671,2941,3375,3389,3414,3518,3559,8131,8548,11442,11657,13088,13231,13516,13658,14067])
 	#get_game_detail(['19084'])
 	#remove_duplicate_record()
-	#func()
+	func2()
