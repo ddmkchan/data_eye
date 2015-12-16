@@ -403,7 +403,7 @@ def get_m_baidu_rank(gtype, _url):
 						elif gtype == 'm_baidu_webgame':
 							BAIDU_WEBGAME_RANK += 1
 							rank = BAIDU_WEBGAME_RANK
-						elif:
+						elif gtype == 'm_baidu_new_game':
 							BAIDU_NEW_GAME_RANK += 1
 							rank = BAIDU_NEW_GAME_RANK
 						else:
@@ -1283,6 +1283,7 @@ def get_wostore_app_rank():
 						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 	except Exception,e:
 		mylogger.error("get wostore rank \t%s" % (traceback.format_exc()))
+	mylogger.info("get wostore rank done!")
 
 def store_data(ret):
 	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
