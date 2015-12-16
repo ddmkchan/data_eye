@@ -548,7 +548,7 @@ def get_coolpad_app_rank(gtype, fd):
 	rank = 0
 	_url = "http://gamecenter.coolyun.com/gameAPI/API/getResList?key=0"
 	try:
-		r = requests.post(_url, timeout=10, data=fd, headers=headers)
+		r = requests.post(_url, timeout=10, data=fd, headers={'Content-Type': 'application/xml'})
 		if r.status_code == 200:
 			t = re.sub(u'\r|\n', '', r.text)
 			doc = xmltodict.parse(t)
