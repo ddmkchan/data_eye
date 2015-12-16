@@ -26,7 +26,7 @@ class EX:
 
 
 def get_urls_from_db_by_ids(ids):
-	_sql = "select url from hot_games where url!='\t' and url!='' and dt!='' and source in (%s) and url!='' group by url" % ",".join([str(i) for i in ids])
+	_sql = "select identifying from hot_games where identifying!='\t' and identifying!='' and dt!='' and source in (%s) group by identifying" % ",".join([str(i) for i in ids])
 	mylogger.info(_sql)
 	return [rt[0] for rt in db_conn.execute(_sql)]
 
@@ -83,7 +83,7 @@ def get_9game_detail(channel_id):
 
 					item = HotGameDetailByDay(**{'channel': channel_id,
 													'dt' : dt,
-													'name' : name,
+													'identifying' : url,
 													'imgs' : imgs,
 													'summary' : summary,
 													'game_type' : game_type,
@@ -203,18 +203,14 @@ def get_appicsh_detail(channel_id):
 	error_times = 0
 	sess = requests.session()
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info(_sql)
-	for ret in db_conn.execute(_sql):
-		name, pkg = ret
+	for url in get_urls_from_db_by_ids(ids):
 		if error_times >= 10:
 			mylogger.info("appicsh reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
-				url = "http://m5.qq.com/app/getappdetail.htm?pkgName=%s&sceneId=0" % pkg.split('\t')[0]
 				r = sess.get(url, timeout=10)
 				if r.status_code == 200:
 					d = r.json()
@@ -224,7 +220,7 @@ def get_appicsh_detail(channel_id):
 						publishtime = appinfo.get('apkPublishTime', u"")
 						update_time = unicode(datetime.date.fromtimestamp(publishtime)) if publishtime else u""
 
-						item = HotGameDetailByDay(**{'name': name,
+						item = HotGameDetailByDay(**{'identifying': url,
 													'channel' : channel_id,
 													'dt' : dt,
 													'imgs' : u','.join([i for i in appinfo['screenshots']]),
@@ -251,20 +247,17 @@ def get_xiaomi_game_detail(channel_id):
 	xiaomi_app_map = get_xiaomi_app_list()
 	mylogger.info("get xiaomi_game rank detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
-		name, pkg_name = ret
+	for pkg_name in get_urls_from_db_by_ids(ids):
 		if pkg_name in xiaomi_app_map:
 			dt = unicode(datetime.date.today())
-			ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+			ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==pkg_name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 			if not ins:
 				g = xiaomi_app_map.get(pkg_name)
 				if g is not None:
 					count += 1
 					item = HotGameDetailByDay(**{
 												'channel': channel_id,
-												'name': name,
+												'identifying': pkg_name,
 												'summary' : g.get('introduction', u''),
 												'author' : g.get('publisherName', u''),
 												'game_type' : g.get('className', u''),
@@ -306,15 +299,12 @@ def get_open_play_detail(channel_id):
 	sess = requests.session()
 	mylogger.info("get open play detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
-		name, url = ret
+	for url in get_urls_from_db_by_ids(ids):
 		if error_times >= 20:
 			mylogger.info("open play detail reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
 				response = sess.get(url, timeout=10)
@@ -329,7 +319,7 @@ def get_open_play_detail(channel_id):
 							topic_num_total = ref_vote_info['vote_up_count'] + ref_vote_info['vote_dn_count']
 						item = HotGameDetailByDay(**{
 													'channel': channel_id,
-													'name': name,
+													'identifying': url,
 													'summary' : g.get('game_introduction', u''),
 													'author' : g.get('cp_name', u''),
 													'game_type' : g.get('game_class', u''),
@@ -357,19 +347,15 @@ def get_vivo_detail(channel_id):
 	sess = requests.session()
 	mylogger.info("get vivo detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where url!='' and dt!='' and source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info(_sql)
-	for ret in db_conn.execute(_sql):
-		name, pkg = ret
+	for url in get_urls_from_db_by_ids(ids):
 		if error_times >= 10:
 			mylogger.info("vivo reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
-				detail_url = "http://info.gamecenter.vivo.com.cn/clientRequest/gameDetail?id=%s&adrVerName=4.4.4&appVersion=37" % pkg.split('\t')[1]
-				r = sess.get(detail_url, timeout=10)
+				r = sess.get(url, timeout=10)
 				if r.status_code == 200:
 					d = r.json()
 					if d is not None and 'result' in d and d['result']:
@@ -378,7 +364,7 @@ def get_vivo_detail(channel_id):
 							count += 1 
 							item = HotGameDetailByDay(**{
 													'channel': channel_id,
-													'name': name,
+													'identifying': url,
 													'summary' : g.get('desc', u''),
 													'rating' : g.get('comment', u''),
 													'author' : g.get('gameDeveloper', u''),
@@ -404,17 +390,14 @@ def get_coolpad_detail(channel_id):
 	error_times = 0
 	mylogger.info("get coolpad detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
-		name, pkg = ret
+	for pkg_id in get_urls_from_db_by_ids(ids):
 		if error_times >= 20:
 			mylogger.info("coolpad reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==pkg_id).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
-			g =  get_coolpad_detail_by_id(pkg.split('\t')[1])
+			g =  get_coolpad_detail_by_id(pkg_id)
 			if isinstance(g, EX):
 				error_times += 1
 			elif g is not None:
@@ -423,7 +406,7 @@ def get_coolpad_detail(channel_id):
 				if g['pics'] is not None and g['pics']['picurl'] is not None:
 					imgs =  u','.join([i for i in g['pics']['picurl'] if i is not None])
 				item = HotGameDetailByDay(**{
-											'name': name,
+											'identifying': pkg_id,
 											'channel': channel_id,
 											'summary' : g.get('summary', u''),
 											'rating' : g.get('score', u''),
@@ -463,25 +446,23 @@ def get_gionee_detail(channel_id):
 	count = 0
 	error_times = 0
 	sess = requests.session()
-	mylogger.info("get gionee detail start ...")
 	ids = channel_map.get(channel_id)
-	for pkg in get_urls_from_db_by_ids(ids):
+	for url in get_urls_from_db_by_ids(ids):
 		if error_times >= 20:
 			mylogger.info("gionee reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==pkg).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
-				_url = u"http://game.gionee.com/Api/Local_Gameinfo/getDetails?gameId=%s" % pkg.split('\t')[1]
-				r = sess.get(_url, timeout=10)
+				r = sess.get(url, timeout=10)
 				if r.status_code == 200:
 					d = r.json()
 					if d['success']:
 						g = d['data']
 						count += 1 
 						item = HotGameDetailByDay(**{
-													'identifying': pkg,
+													'identifying': url,
 													'channel': channel_id,
 													'rating' : g.get('score', u''),
 													'download_num' : g.get('downloadCount', u''),
@@ -507,27 +488,23 @@ def get_leveno_detail(channel_id):
 	sess = requests.session()
 	mylogger.info("get lenovo detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
-		name, pkg = ret
+	for url in get_urls_from_db_by_ids(ids):
 		if error_times >= 20:
 			mylogger.info("leveno reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
-			_url = u"http://yx.lenovomm.com/business/app!getAppDetail5.action?dpi=480&height=1920&dev=ph&width=1080&cpu=armeabi-v7a&pn=%s&uid=72DB07100FC223A2EDE82F4A44AE96B4&os=4.4.4&perf=hp&model=MI 4LTE&type=0&density=xx&mac=7A031DAB40535B3F5E204582EB961FC5" % pkg
 			try:
 				p = proxies[random.randrange(len(proxies))]
-				r = sess.get(_url, timeout=10, proxies=p)
+				r = sess.get(url, timeout=10, proxies=p)
 				if r.status_code == 200:
 					d = r.json()
 					if 'app' in d:
 						g = d['app']
 						count += 1 
 						item = HotGameDetailByDay(**{
-													'name': name,
+													'identifying': url,
 													'channel': channel_id,
 													'rating' : g.get('averageStar', u''),
 													'game_type' : g.get('categoryName', u''),
@@ -552,15 +529,12 @@ def get_iqiyi_detail(channel_id):
 	error_times = 0
 	mylogger.info("get iqiyi detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
-		name, qipu_id = ret
+	for qipu_id in get_urls_from_db_by_ids(ids):
 		if error_times >= 20:
 			mylogger.info("iqiyi reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==qipu_id).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			d =  get_iqiyi_detail_by_id(qipu_id)
 			if isinstance(d, EX):
@@ -570,7 +544,7 @@ def get_iqiyi_detail(channel_id):
 				count += 1 
 				item = HotGameDetailByDay(**{
 											'channel': channel_id,
-											'name': name,
+											'identifying': qipu_id,
 											'summary' : g.get('desc', u''),
 											'game_type' : g.get('cate_name', u''),
 											'version' : g.get('version', u''),
@@ -604,25 +578,21 @@ def get_sogou_detail(channel_id):
 	sess = requests.session()
 	mylogger.info("get sogou detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
-		name, pkg = ret
+	for url in get_urls_from_db_by_ids(ids):
 		if error_times >= 20:
 			mylogger.info("sogou reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
-				_url = u"http://mobile.zhushou.sogou.com/m/appDetail.html?id=%s" % pkg.split('\t')[1]
-				r = sess.get(_url, timeout=10)
+				r = sess.get(url, timeout=10)
 				if r.status_code == 200:
 					d = r.json()
 					g = d['ainfo']
 					count += 1 
 					item = HotGameDetailByDay(**{
-												'name': name,
+												'identifying': url,
 												'channel': channel_id,
 												'rating' : g.get('score', u''),
 												'summary' : g.get('desc', u''),
@@ -647,15 +617,12 @@ def get_dangle_detail(channel_id):
 	error_times = 0
 	mylogger.info("get dangle detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
-		name, url = ret
+	for url in get_urls_from_db_by_ids(ids):
 		if error_times >= 20:
 			mylogger.info("dangle reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			resourceType, gid = url.split('\t')
 			g =  get_dangle_detail_by_id(resourceType, gid)
@@ -668,7 +635,7 @@ def get_dangle_detail(channel_id):
 					packageTOs = g['packageTOs'][0] if g['packageTOs'] else {}
 					item = HotGameDetailByDay(**{
 												'channel': channel_id,
-												'name': name,
+												'identifying': url,
 												'summary' : g.get('description', u''),
 												'game_type' : g.get('categoryName', u''),
 												'version' : packageTOs.get('versionName', u''),
@@ -882,15 +849,12 @@ def get_kuaiyong_detail(channel_id):
 	error_times = 0
 	mylogger.info("get kuaiyong detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
-		name, url = ret
+	for url in get_urls_from_db_by_ids(ids):
 		if error_times >= 20:
 			mylogger.info("kuaiyong reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			g = get_kuaiyong_detail_by_id(url)
 			if isinstance(g, EX):
@@ -899,7 +863,7 @@ def get_kuaiyong_detail(channel_id):
 				count += 1 
 				item = HotGameDetailByDay(**{
 											'channel': channel_id,
-											'name': name,
+											'identifying': url,
 											'summary' : g.get('description', u''),
 											'version' : g.get(u'版　　本', u''),
 											'game_type' : g.get(u'类　　别', u''),
@@ -948,7 +912,7 @@ def get_kuaiyong_detail_by_id(URL):
 			mydict['description'] = detail_content.text
 	except Exception,e:
 		sleep(1.21)
-		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+		mylogger.error("get kuaiyong detail\t%s" % (traceback.format_exc()))
 		return EX()
 	return mydict
 
@@ -1020,15 +984,12 @@ def get_wandoujia_detail(channel_id):
 	error_times = 0
 	mylogger.info("get wandoujia detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
-		name, url = ret
+	for url in get_urls_from_db_by_ids(ids):
 		if error_times >= 20:
 			mylogger.info("wandoujia reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
 				r = requests.get(url, timeout=10)
@@ -1045,7 +1006,7 @@ def get_wandoujia_detail(channel_id):
 							apk = apk_list[0]
 						developer = g.get('developer', {})
 						item = HotGameDetailByDay(**{
-													'name': name,
+													'identifying': url,
 													'channel': channel_id,
 													'summary' : g.get('description', u''),
 													'version' : apk.get('versionName', u''),
@@ -1088,15 +1049,12 @@ def get_meizu_detail(channel_id):
 	mylogger.info("get meizu detail start ...")
 	sess = requests.session()
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
-		name, url = ret
+	for url in get_urls_from_db_by_ids(ids):
 		if error_times >= 20:
 			mylogger.info("meizu reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			g = get_meizu_detail_by_id(url)
 			if isinstance(g, EX):
@@ -1104,7 +1062,7 @@ def get_meizu_detail(channel_id):
 			elif g is not None:	
 				count += 1 
 				item = HotGameDetailByDay(**{
-									'name': name,
+									'identifying': url,
 									'channel': channel_id,
 									'summary' : g.get('description', u''),
 									'version' : g.get('version_name', u''),
@@ -1139,15 +1097,12 @@ def get_youku_detail(channel_id):
 	error_times = 0
 	mylogger.info("get youku detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where url!='' and dt!='' and source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info(_sql)
-	for ret in db_conn.execute(_sql):
-		name, pkg_id = ret
+	for pkg_id in get_urls_from_db_by_ids(ids):
 		if error_times >= 20:
 			mylogger.info("youku reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==pkg_id).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			g = get_youku_detail_by_id(pkg_id)
 			if isinstance(g, EX):
@@ -1156,7 +1111,7 @@ def get_youku_detail(channel_id):
 				count += 1 
 				item = HotGameDetailByDay(**{
 									'channel': channel_id,
-									'name': name,
+									'identifying': pkg_id,
 									'summary' : g.get('desc', u''),
 									'version' : g.get('version', u''),
 									'game_type' : g.get('type', u''),
@@ -1234,17 +1189,13 @@ def get_i4_app_detail(channel_id):
 	error_times = 0
 	mylogger.info("get i4 app detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
-		name, pkg = ret
+	for url in get_urls_from_db_by_ids(ids):
 		if error_times >= 20:
 			mylogger.info("i4 reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
-			url = "http://app3.i4.cn/controller/action/online.go?store=3&module=1&id=%s&reqtype=5" % pkg.split('\t')[1]
 			try:
 				r = requests.get(url, timeout=10)
 				if r.status_code == 200:
@@ -1254,7 +1205,7 @@ def get_i4_app_detail(channel_id):
 						count += 1 
 						item = HotGameDetailByDay(**{
 									'channel': channel_id,
-									'name': name,
+									'identifying': url,
 									'summary' : g.get('shortNote', u''),
 									'version' : g.get('shortVersion', u''),
 									'game_type' : g.get('typeName', u''),
@@ -1277,19 +1228,16 @@ def get_xyzs_app_detail(channel_id):
 	error_times = 0
 	mylogger.info("get xyzs app detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where url!='' and dt!='' and source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info(_sql)
-	for ret in db_conn.execute(_sql):
-		name, pkg = ret
+	for itunesid in get_urls_from_db_by_ids(ids):
 		if error_times >= 10:
 			mylogger.info("xyzs reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==itunesid).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
 				url = "http://interface.xyzs.com/v2/ios/c01/app"
-				d = {'itunesid': int(pkg.split('\t')[1])}
+				d = {'itunesid': int(itunesid)}
 				r = requests.get(url, params=d, timeout=10)
 				if r.status_code == 200:
 					j = r.json()
@@ -1297,7 +1245,7 @@ def get_xyzs_app_detail(channel_id):
 						g = j['data']['app']
 						count += 1 
 						item = HotGameDetailByDay(**{
-									'name': name,
+									'identifying': itunesid,
 									'channel': channel_id,
 									'summary' : g.get('content', u''),
 									'version' : g.get('version', u''),
@@ -1320,19 +1268,16 @@ def get_91play_detail(channel_id):
 	error_times = 0
 	mylogger.info("get 91play app detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
-		name, pkg = ret
+	for pkg_id in get_urls_from_db_by_ids(ids):
 		if error_times >= 20:
 			mylogger.info("91play reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==pkg_id).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
 				url = "http://play.91.com/api.php/Api/index"
-				raw_data = {"id": int(pkg.split('\t')[1]),"firmware":"19","time":1449458211590,"device":1,"action":30005,"app_version":302,"action_version":4,"mac":"7b715ce093480b34d6987","debug":0}
+				raw_data = {"id": int(pkg_id),"firmware":"19","time":1449458211590,"device":1,"action":30005,"app_version":302,"action_version":4,"mac":"7b715ce093480b34d6987","debug":0}
 				response = requests.post(url, data=raw_data, timeout=10)
 				if response.status_code == 200:
 					j = response.json() 
@@ -1341,7 +1286,7 @@ def get_91play_detail(channel_id):
 						#break
 						count += 1 
 						item = HotGameDetailByDay(**{
-									'name': name,
+									'identifying': pkg_id,
 									'channel': channel_id,
 									'summary' : g.get('content', u''),
 									'rating' : g.get('score', u''),
@@ -1365,18 +1310,15 @@ def get_360_gamebox_detail(channel_id):
 	error_times = 0
 	mylogger.info("get 360_gamebox app detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info(_sql)
-	for ret in db_conn.execute(_sql):
+	for url in get_urls_from_db_by_ids(ids):
 		name, pkg = ret
 		if error_times >= 10:
 			mylogger.info("360 gamebox reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
-				url = "http://next.gamebox.360.cn/7/xgamebox/getappintro?pname=%s" % pkg.split('\t')[0]
 				response = requests.get(url, timeout=10)
 				if response.status_code == 200:
 					j = response.json() 
@@ -1385,7 +1327,7 @@ def get_360_gamebox_detail(channel_id):
 						count += 1 
 						item = HotGameDetailByDay(**{
 									'channel': channel_id,
-									'name': name,
+									'identifying': url,
 									'summary' : g.get('brief', u''),
 									'rating' : g.get('rating', u''),
 									'version' : g.get('version_name', u''),
@@ -1409,16 +1351,14 @@ def get_m_baidu_detail(channel_id):
 	sess = requests.session()
 	mylogger.info("get baidu zhushou app detail start ...")
 	ids = channel_map.get(channel_id)
-	for pkg in get_urls_from_db_by_ids(ids):
+	for url in get_urls_from_db_by_ids(ids):
 		if error_times >= 20:
 			mylogger.info("baidu zhoushou app detail reach max error times ... ")
 			break
-		pkg_name, pkg_id = pkg.split('\t')
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==pkg_name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
-				url = u"http://m.baidu.com/appsrv?native_api=1&psize=3&pkname=%s&action=detail&docid=%s" % (pkg_name, pkg_id)
 				r = sess.get(url, timeout=10)
 				if r.status_code == 200:
 					d = r.json()
@@ -1428,7 +1368,7 @@ def get_m_baidu_detail(channel_id):
 							count +=1
 							item = HotGameDetailByDay(**{
 										'channel': channel_id,
-										'identifying': pkg_name,
+										'identifying': url,
 										'summary' : g.get('brief', u''),
 										'rating' : g.get('display_score', u''),
 										'version' : g.get('versionname', u''),
@@ -1478,17 +1418,13 @@ def get_pp_detail(channel_id):
 	sess = requests.session()
 	mylogger.info("get pp detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
-		name, pkg = ret
+	for pkg_id in get_urls_from_db_by_ids(ids):
 		if error_times >= 10:
 			mylogger.info("pp detail reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==pkg_id).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
-			pkg_name, pkg_id = pkg.split('\t')
 			g = get_pp_detail_by_id(int(pkg_id))
 			if isinstance(g, EX):
 				error_times += 1
@@ -1496,7 +1432,7 @@ def get_pp_detail(channel_id):
 				comments_info = get_pp_comments_by_id(int(pkg_id))
 				count += 1 
 				item = HotGameDetailByDay(**{
-											'name': name,
+											'identifying': pkg_id,
 											'channel': channel_id,
 											'summary' : g.get('content', u''),
 											'version' : g.get('ver', u''),
@@ -1526,19 +1462,16 @@ def get_lenovo_shop_detail(channel_id):
 	sess = requests.session()
 	mylogger.info("get lenovo_shop app detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
+	for url in get_urls_from_db_by_ids(ids):
 		name, pkg = ret
 		if error_times >= 20:
 			mylogger.info("lenovo_shop reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
 				headers = {"clientid": "141623-2-2-19-1-3-1_480_i865931027730878t19700201770903586_c20524d1p1"}
-				url = "http://223.202.25.30/ams/api/appinfo?l=zh-CN&pn=%s&vc=100150928&woi=0&pa=ams5.0_141623-2-2-19-1-3-1_480-8" % pkg
 				response = requests.get(url, timeout=10, headers=headers)
 				if response.status_code == 200:
 					j = response.json() 
@@ -1546,7 +1479,7 @@ def get_lenovo_shop_detail(channel_id):
 						g = j['appInfo']
 						count += 1 
 						item = HotGameDetailByDay(**{
-									'name': name,
+									'identifying': url,
 									'channel': channel_id,
 									'summary' : g.get('description', u''),
 									'rating' : g.get('averageStar', u''),
@@ -1585,17 +1518,13 @@ def get_wogame_detail(channel_id):
 	sess = requests.session()
 	mylogger.info("get wogame detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
-		name, pkg = ret
+	for pkg_id in get_urls_from_db_by_ids(ids):
 		if error_times >= 10:
 			mylogger.info("wogame detail reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==pkg_id).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
-			pkg_name, pkg_id = pkg.split('\t')
 			try:
 				_d = {"product_id": pkg_id}
 				jsondata = {"jsondata": json.dumps(_d)}
@@ -1606,7 +1535,7 @@ def get_wogame_detail(channel_id):
 					if j['data'] is not None:
 						g = j['data']
 						item = HotGameDetailByDay(**{
-													'name': name,
+													'identifying': pkg_id,
 													'channel': channel_id,
 													'summary' : g.get('description', u''),
 													'version' : g.get('version_code', u''),
@@ -1654,13 +1583,10 @@ def get_wostore_detail(channel_id):
 	sess = requests.session()
 	mylogger.info("get wostore detail start ...")
 	ids = channel_map.get(channel_id)
-	_sql = "select url from hot_games where url!='' and dt!='' and source in (%s) and url!='' group by url" % ",".join([str(i) for i in ids])
-	mylogger.info("### %s ###" % _sql)
-	for ret in db_conn.execute(_sql):
-		name, pkg_id = ret
+	for url in get_urls_from_db_by_ids(ids):
 		dt = unicode(datetime.date.today())
 		try:
-			ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.name==name).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+			ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 			if not ins:
 				headers = {"phoneAccessMode": "3",
 						"mac" : "50:a7:2b:33:57:56",
@@ -1669,7 +1595,6 @@ def get_wostore_detail(channel_id):
 						"companylogo": "10269",
 						"settertype": "3",
 						"handphone": "00000000000"}
-				url = "http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=productDetail&productIndex=%s&resource=null&referer=null" % pkg_id
 				p = proxies[random.randrange(len(proxies))]
 				r = requests.get(url, timeout=20, headers=headers)
 				if r.status_code == 200:
@@ -1677,7 +1602,7 @@ def get_wostore_detail(channel_id):
 					if g is not None:
 						count += 1 
 						item = HotGameDetailByDay(**{
-									'name': name,
+									'identifying': url,
 									'channel': channel_id,
 									'summary' : g.get('desc', u''),
 									'rating' : g.get('rate', u''),
@@ -1773,5 +1698,4 @@ def get_360_gamebox_web_detail():
 	pass
 
 if __name__ == '__main__':
-	#main()
-	print get_urls_from_db_by_ids([68])
+	main()

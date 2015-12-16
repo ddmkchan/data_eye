@@ -170,7 +170,12 @@ def func2():
 		if len(rt.url.split('\t'))>=2:
 			pkg_name, pkg_id = rt.url.split('\t')
 			rt.identifying = u"http://125.88.193.234/mintf/getAppInfoByIds?pname=%s" % pkg_name
-	
+
+	ids = channel_map.get(22)
+	for rt in db_conn.query(HotGames).filter(HotGames.source.in_(ids)):
+		if rt.url and rt.url!=u'\t':
+			rt.identifying = ret.url
+
 	ids = channel_map.get(28)
 	for rt in db_conn.query(HotGames).filter(HotGames.source.in_(ids)):
 		if len(rt.url.split('\t'))>=2:
@@ -309,9 +314,7 @@ def func2():
 
 
 def get_urls_from_db_by_ids(ids, name):
-    ids = (int(id) for id in ids)
-    return [re.url for re in db_conn.query(HotGames.url).filter(HotGames.url!=u'').filter(HotGames.source.in_(ids)).filter(HotGames.url!='\t').filter(HotGames.name==name).distinct()]
-
+	return [re.identifying for re in db_conn.query(HotGames.identifying).filter(HotGames.identifying!=u'').filter(HotGames.source.in_(ids)).filter(HotGames.name==name).filter(HotGames.status==0).distinct()]
 
 def func3():
 	from get_hot_game_detail_by_day import channel_map
@@ -319,24 +322,17 @@ def func3():
 		channel, name = rt
 		ids = channel_map.get(channel)
 		urls = get_urls_from_db_by_ids(ids, name)
+		print channel, name, ids
 		if len(urls)>=2:
-			print channel, name, ids
 			print urls, '******'
 			if len(urls[0].split('\t')) >= 2:
 				pkg_name, pkg_id = urls[0].split('\t')
-				#db_conn.execute("update table hot_game_detail_by_day set identifying=\'%s\' where channel=%s and name=\'%s\'" % (pkg_name, channel, name))
-	#for rt in db_conn.execute("select channel, identifying from hot_game_detail_by_day where channel=10 group by channel, identifying"):
-	#	channel, name = rt
-	#	ids = channel_map.get(channel)
-	#	urls = get_urls_from_db_by_ids(ids, name)
-	#	if len(urls)>=2:
-	#		print channel, name, ids
-	#		if len(urls[0].split('\t')) >= 2:
-	#			pkg_name, pkg_id = urls[0].split('\t')
-	#			db_conn.execute("update table hot_game_detail_by_day set identifying=\'%s\' where channel=%s and name=\'%s\'" % (pkg_name, channel, name))
-
-	db_conn.commit()
-
+		elif len(urls)==1:
+			print urls, '---------------'
+			items  = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.channel==channel).filter(HotGameDetailByDay.identifying==name)
+			for re in items:
+				re.identifying = urls[0]
+				re.last_update = datetime.datetime.now()
 
 if __name__ == '__main__':
 	#main()

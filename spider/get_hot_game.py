@@ -364,7 +364,8 @@ def get_m5qq_app_rank(gtype):
 					downloads = app.get('appDownCount', u'')
 					size = app.get('fileSize', u'')
 					game_type = app.get('categoryName', u'')
-					url = u"%s\t%s" % (app.get('pkgName', u''),  app.get('appId', u''))
+					#url = u"%s\t%s" % (app.get('pkgName', u''),  app.get('appId', u''))
+					url = "http://m5.qq.com/app/getappdetail.htm?pkgName=%s&sceneId=0" % app.get('pkgName', u'') if app.get('pkgName', u'') else u''
 					source = source_map.get(type_2_source.get(gtype))
 					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
 	except Exception,e:
@@ -416,7 +417,12 @@ def get_m_baidu_rank(gtype, _url):
 						downloads = app.get('display_download', u'')
 						size = app.get('size', u'')
 						game_type = app.get('catename', u'')
-						url = u"%s\t%s" % (app.get('package', u''),  app.get('docid', u''))
+						pkg_name = app.get('package', u'')
+						pkg_id = app.get('docid', u'')
+						if pkg_name and pkg_id:
+							url = u"http://m.baidu.com/appsrv?native_api=1&psize=3&pkname=%s&action=detail&docid=%s" % (pkg_name, pkg_id)
+						else:
+							url = u''
 						source = source_map.get(gtype)
 						#print rank, game_name, source
 						yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
@@ -506,7 +512,8 @@ def get_vivo_app_rank(gtype, _url):
 					downloads = app.get('download', u'')
 					size = app.get('size', u'')
 					game_type = app.get('type', u'')
-					url = u"%s\t%s" % (app.get('pkgName', u''),  app.get('id', u''))
+					url = u"http://info.gamecenter.vivo.com.cn/clientRequest/gameDetail?id=%s&adrVerName=4.4.4&appVersion=37" % app.get('id', u'') if app.get('id', u'') else u''
+					#url = u"%s\t%s" % (app.get('pkgName', u''),  app.get('id', u''))
 					source = source_map.get(gtype)
 					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
 					#for k, v in app.iteritems():
@@ -541,7 +548,8 @@ def get_gionee_app_rank(gtype, param):
 						downloads = app.get('downloadCount', u'')
 						size = app.get('size', u'')
 						game_type = app.get('category', u'')
-						url = u"%s\t%s" % (app.get('package', u''),  app.get('gameid', u''))
+						#url = u"%s\t%s" % (app.get('package', u''),  app.get('gameid', u''))
+						url = u"http://game.gionee.com/Api/Local_Gameinfo/getDetails?gameId=%s" % app.get('gameid') if app.get('gameid', u'') else u''
 						source = source_map.get(gtype)
 						yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
 	except Exception,e:
@@ -575,7 +583,8 @@ def get_coolpad_app_rank(gtype, fd):
 					game_type = app.get('levelname', u'')
 					source = source_map.get(gtype)
 					size = app.get('size', u'')
-					url = u"%s\t%s" % (app.get('package_name', u''),  app.get('@rid', u''))
+					url = app.get('@rid', u'')
+					#url = u"%s\t%s" % (app.get('package_name', u''),  app.get('@rid', u''))
 					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
 	except Exception,e:
 		mylogger.error("%s====>\t%s" % (gtype, traceback.format_exc()))
@@ -753,7 +762,8 @@ def get_sogou_app_rank(gtype, _url):
 					downloads = app.get('downloadCount', u'')
 					size = app.get('size', u'')
 					source = source_map.get(gtype)
-					url = u"%s\t%s" % (app.get('packagename', u''),  app.get('appid', u''))
+					#url = u"%s\t%s" % (app.get('packagename', u''),  app.get('appid', u''))
+					_url = u"http://mobile.zhushou.sogou.com/m/appDetail.html?id=%s" % pkg.split('\t')[1] if app.get('appid') if app.get('appid', u'') else u''
 					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
 					#for k,v in app.iteritems():
 					#	print k,v
@@ -786,7 +796,8 @@ def get_i4_app_rank():
 					downloads = app.get('downCount', u'')
 					size = app.get('size', u'')
 					source = source_map.get('i4_hot')
-					url = u"%s\t%s" % (app.get('sourceId', u''),  app.get('id', u''))
+					#url = u"%s\t%s" % (app.get('sourceId', u''),  app.get('id', u''))
+					url = u"http://app3.i4.cn/controller/action/online.go?store=3&module=1&id=%s&reqtype=5" % app.get('id', u'') if app.get('id', u'') else u''
 					store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 	except Exception,e:
 		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
@@ -810,7 +821,8 @@ def get_pp_app_rank():
 					downloads = app.get('downloads', u'')
 					size = app.get('fsize', u'')
 					source = source_map.get('pp_hot')
-					url = u"%s\t%s" % (app.get('buid', u''),  app.get('id', u''))
+					url = app.get('id', u'')
+					#url = u"%s\t%s" % (app.get('buid', u''),  app.get('id', u''))
 					out = [rank, game_name, img, downloads, size, source, popular, game_type, status, url]
 					store_data(out)
 	except Exception,e:
@@ -953,7 +965,8 @@ def get_xyzs_app_rank():
 					game_type = app.get('cus_desc', u'')
 					downloads = app.get('downloadnum', u'')
 					source = source_map.get('xyzs_hot')
-					url = u"%s\t%s" % (app.get('bundleid', u''),  app.get('itunesid', u''))
+					#url = u"%s\t%s" % (app.get('bundleid', u''),  app.get('itunesid', u''))
+					url = app.get('itunesid', u'')
 					store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 	except Exception,e:
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
@@ -979,7 +992,8 @@ def get_91play_app_rank():
 					game_type = app.get('type_name', u'')
 					downloads = app.get('download_count', u'')
 					source = source_map.get('91play_hot')
-					url = u"%s\t%s" % (app.get('package_name', u''),  app.get('id', u''))
+					url = app.get('id', u'')
+					#url = u"%s\t%s" % (app.get('package_name', u''),  app.get('id', u''))
 					store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 	except Exception,e:
 		mylogger.error("91play app rank\t%s" % (traceback.format_exc()))
@@ -1003,7 +1017,8 @@ def get_360_gamebox_app_rank(gtype, url):
 					game_type = app.get('category_name', u'')
 					downloads = app.get('download_times', u'')
 					source = source_map.get(gtype)
-					url = u"%s\t%s" % (app.get('apkid', u''),  app.get('id', u''))
+					#url = u"%s\t%s" % (app.get('apkid', u''),  app.get('id', u''))
+					url = u"http://next.gamebox.360.cn/7/xgamebox/getappintro?pname=%s" % app.get('apkid', u'') if app.get('apkid', u'') else u''
 					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
 	except Exception,e:
 		mylogger.error("360_gamebox app rank\t%s" % (traceback.format_exc()))
@@ -1135,7 +1150,8 @@ def get_wogame_app_rank(gtype, url):
 					size = app.get('apk_size', u'')
 					downloads = app.get('download_count', u'')#每周下载次数
 					source = source_map.get(gtype)
-					url = u"%s\t%s" % (app.get('package_name', u''),  app.get('product_id', u''))
+					url = app.get('product_id', u'')
+					#url = u"%s\t%s" % (app.get('package_name', u''),  app.get('product_id', u''))
 					store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 	except Exception,e:
 		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
@@ -1173,7 +1189,9 @@ def get_lenovo_gamecenter_app_rank():
 						game_type = app.get('categoryName', u'')
 						downloads = app.get('realDownCount', u'')
 						source = source_map.get(gtype)
-						url = app.get('packageName', u'')
+						pkg_name = app.get('packageName', u'')
+						if pkg_name:
+							url = u"http://yx.lenovomm.com/business/app!getAppDetail5.action?dpi=480&height=1920&dev=ph&width=1080&cpu=armeabi-v7a&pn=%s&uid=72DB07100FC223A2EDE82F4A44AE96B4&os=4.4.4&perf=hp&model=MI 4LTE&type=0&density=xx&mac=7A031DAB40535B3F5E204582EB961FC5" % pkg_name
 						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 		except Exception,e:
 			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
@@ -1202,7 +1220,9 @@ def get_lenovo_shop_rank():
 						game_type = app.get('apptype', u'')
 						downloads = app.get('downloadCount', u'')
 						source = source_map.get(gtype)
-						url = app.get('packageName', u'')
+						pkg_name = app.get('packageName', u'')
+						if pkg_name:
+							url = "http://223.202.25.30/ams/api/appinfo?l=zh-CN&pn=%s&vc=100150928&woi=0&pa=ams5.0_141623-2-2-19-1-3-1_480-8" % pkg_name
 						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 		except Exception,e:
 			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
@@ -1258,7 +1278,9 @@ def get_wostore_app_rank():
 						img = app.get('iconURL', u'')
 						size = app.get('size', u'')
 						downloads = app.get('downloadCout', u'')
-						url = app.get('productIndex', u'')
+						pkg_id = app.get('productIndex', u'')
+						if pkg_id:
+							url = "http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=productDetail&productIndex=%s&resource=null&referer=null" % pkg_id
 						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 	except Exception,e:
 		mylogger.error("get wostore rank \t%s" % (traceback.format_exc()))
@@ -1279,6 +1301,7 @@ def store_data(ret):
 						"game_type"		: game_type,
 						"status"		: status,
 						"url"			: url,
+						"identifying"			: url,
 						"dt"			: dt
 						})
 		db_conn.merge(item)
