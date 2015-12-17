@@ -771,36 +771,37 @@ def get_youku_kc():
 
 def get_wandoujia_kc():
 	count = 0
-	url = "http://apis.wandoujia.com/apps/v1/topics/smart438/list?start=0&max=15"
+	urls = ["http://apis.wandoujia.com/apps/v1/topics/smart150/list?start=0&max=15", "http://apis.wandoujia.com/apps/v1/topics/smart438/list?start=0&max=15"]
 	try:
-		r = requests.get(url, timeout=10)
-		if r.status_code == 200:
-			d = r.json()
-			for ret in d['entity']:
-				title = ret.get('title', u'')
-				action = ret.get('action', u'')
-				img = ret.get('icon', u'')
-				if action is not None:
-					detail_url = action.get('url', u'')
-					if detail_url:
-						detail = get_wandoujia_detail(detail_url)	
-						if detail is not None:
-							game_type, popular, publish_date = detail
-							#print title, game_type, publish_date
-							if publish_date:
-									ins = db_conn.query(KC_LIST).filter(KC_LIST.url==detail_url).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('wandoujia')).first()
-									if ins is None:
-										count += 1
-										item = KC_LIST(**{
-														"title": title,
-														"url": detail_url,
-														"game_type": game_type,
-														"publish_date": publish_date,
-														"popular": popular,
-														"img": img,
-														"source": source_map.get('wandoujia')
-														})
-										db_conn.merge(item)
+		for url in urls:
+			r = requests.get(url, timeout=10)
+			if r.status_code == 200:
+				d = r.json()
+				for ret in d['entity']:
+					title = ret.get('title', u'')
+					action = ret.get('action', u'')
+					img = ret.get('icon', u'')
+					if action is not None:
+						detail_url = action.get('url', u'')
+						if detail_url:
+							detail = get_wandoujia_detail(detail_url)	
+							if detail is not None:
+								game_type, popular, publish_date = detail
+								print title, game_type, publish_date
+								if publish_date:
+										ins = db_conn.query(KC_LIST).filter(KC_LIST.url==detail_url).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('wandoujia')).first()
+										if ins is None:
+											count += 1
+											item = KC_LIST(**{
+															"title": title,
+															"url": detail_url,
+															"game_type": game_type,
+															"publish_date": publish_date,
+															"popular": popular,
+															"img": img,
+															"source": source_map.get('wandoujia')
+															})
+											db_conn.merge(item)
 	except Exception,e:
 		mylogger.error("### %s ### %s" % (url, traceback.format_exc()))
 	mylogger.info("get %s records from wandoujia" % count)
@@ -818,7 +819,7 @@ def get_wandoujia_detail(url):
 					categories = detail.get('categories', [])
 					game_type = u",".join([c['name'] for c in categories if c['level']==1])
 					popular = detail.get('downloadCount', u'')
-					publishtime = detail.get('updatedDate', u'')
+					publishtime = detail.get('publishDate', u'')
 					publish_date = unicode(datetime.date.fromtimestamp(int(unicode(publishtime)[:10]))) if publishtime else u""
 					return game_type, popular, publish_date
 	except Exception,e:
