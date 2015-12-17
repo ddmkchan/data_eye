@@ -1748,7 +1748,6 @@ def get_mmstore_kc(page):
 						publishtime = detail.get('updateTime', u'')
 						publish_date = unicode(datetime.date.fromtimestamp(int(unicode(publishtime)[:10]))) if publishtime else u""
 					if publish_date and detail_url:
-						print page, app.get('name'), publish_date
 						ins = db_conn.query(KC_LIST).filter(KC_LIST.url==detail_url).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('mmstore')).first()
 						if ins is None:
 							count += 1
