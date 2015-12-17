@@ -1458,9 +1458,65 @@ def get_wostore_detail():
 										})
 						db_conn.merge(item)
 			except Exception,e:
-				mylogger.error("wostore app detail #### %s #### \t%s" % (ret.pkg_name.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("wostore app detail #### #### \t%s" % (traceback.format_exc()))
 	mylogger.info("get wostore app detail %s" % count)
 	db_conn.commit()
+
+def get_mmstore_detail():
+	count = 0
+	error_times = 0
+	mylogger.info("get mmstore app detail start ...")
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==32):
+		if error_times >= 10:
+			mylogger.info("mmstore reach max error times ... ")
+			break
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+		if not ins:
+			try:
+				headers = {
+					"appname": "MM5.3.0.001.01_CTAndroid_JT", 
+					"ua":"android-19-720x1280-CHE2-UL00"}
+				response = requests.get(ret.url, timeout=20, headers=headers)
+				if response.status_code == 200:
+					j = response.json() 
+					if j is not None:
+						g = j
+						count += 1 
+						item = GameDetailByDay(**{
+									'kc_id': ret.id,
+									'summary' : g.get('description', u''),
+									'rating' : g.get('grade', u''),
+									'version' : g.get('versionName', u''),
+									'game_type' : g.get('category', u''),
+									'pkg_size' : g.get('appSize', u''),
+									'author' : g.get('provider', u''),
+									'download_num' : g.get('interested', u''),
+									'comment_num' : get_mmstore_comments_by_id(g.get('contentId', 0)),
+									'dt' : dt,
+									'imgs' : u",".join(g.get('previews', []))
+										})
+						db_conn.merge(item)
+			except Exception,e:
+				error_times += 1
+				mylogger.error("mmstore app detail ### #### \t%s" % (traceback.format_exc()))
+	mylogger.info("get mmstore app detail %s" % count)
+	db_conn.commit()
+
+def get_mmstore_comments_by_id(contentid):
+	url = "http://odp.mmarket.com/t.do?requestid=query_comment_cs&contentid=%s" % contentid
+	try:
+		headers = {
+			"appname": "MM5.3.0.001.01_CTAndroid_JT", 
+			"ua":"android-19-720x1280-CHE2-UL00"}
+		response = requests.get(url, timeout=20, headers=headers)
+		if response.status_code == 200:
+			j = response.json() 
+			if j['pageInfo'] is not None:
+				return j['pageInfo'].get('totalRows', u'')
+	except Exception,e:
+		mylogger.error("mmstore comments ### #### \t%s" % (traceback.format_exc()))
+	return u''
 
 def step1():
 	get_xiaomi_new_detail()
@@ -1489,6 +1545,7 @@ def step2():
 	get_360_gamebox_detail()
 	get_lenovo_shop_detail()
 	get_wostore_detail()
+	get_mmstore_detail()
 	get_huawei_detail()
 	get_kuaiyong_detail()
 

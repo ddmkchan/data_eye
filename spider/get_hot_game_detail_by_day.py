@@ -1628,6 +1628,64 @@ def get_wostore_detail(channel_id):
 	db_conn.commit()
 
 
+def get_mmstore_detail(channel_id):
+	count = 0
+	error_times = 0
+	mylogger.info("get mmstore app detail start ...")
+	ids = channel_map.get(channel_id)
+	for url in get_urls_from_db_by_ids(ids):
+		if error_times >= 10:
+			mylogger.info("mmstore reach max error times ... ")
+			break
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).first()
+		if not ins:
+			try:
+				headers = {
+					"appname": "MM5.3.0.001.01_CTAndroid_JT", 
+					"ua":"android-19-720x1280-CHE2-UL00"}
+				response = requests.get(url, timeout=20, headers=headers)
+				if response.status_code == 200:
+					g = response.json() 
+					if g is not None:
+						count += 1 
+						item = HotGameDetailByDay(**{
+									'identifying': url,
+									'channel':	channel_id,
+									'summary' : g.get('description', u''),
+									'rating' : g.get('grade', u''),
+									'version' : g.get('versionName', u''),
+									'game_type' : g.get('category', u''),
+									'pkg_size' : g.get('appSize', u''),
+									'author' : g.get('provider', u''),
+									'download_num' : g.get('interested', u''),
+									'comment_num' : get_mmstore_comments_by_id(g.get('contentId', 0)),
+									'dt' : dt,
+									'imgs' : u",".join(g.get('previews', []))
+										})
+						db_conn.merge(item)
+			except Exception,e:
+				error_times += 1
+				mylogger.error("mmstore app detail ### #### \t%s" % (traceback.format_exc()))
+	mylogger.info("get mmstore app detail %s" % count)
+	db_conn.commit()
+
+def get_mmstore_comments_by_id(contentid):
+	url = "http://odp.mmarket.com/t.do?requestid=query_comment_cs&contentid=%s" % contentid
+	try:
+		headers = {
+			"appname": "MM5.3.0.001.01_CTAndroid_JT", 
+			"ua":"android-19-720x1280-CHE2-UL00"}
+		response = requests.get(url, timeout=20, headers=headers)
+		if response.status_code == 200:
+			j = response.json() 
+			if j['pageInfo'] is not None:
+				return j['pageInfo'].get('totalRows', u'')
+	except Exception,e:
+		mylogger.error("mmstore comments ### #### \t%s" % (traceback.format_exc()))
+	return u''
+
+
 channel_map = {
 			2	: [46, 47], #18183
 			4 	: [5, 6, 7, 48], #360助手app
@@ -1663,6 +1721,7 @@ channel_map = {
 			998	: [65, 66], # wogame
 			30	: [71, 72, 73, 74], # lenovo shop
 			31	: [77,78], # wostore
+			32	: [79], # mmstore
 				}
 
 def main():
@@ -1676,6 +1735,7 @@ def main():
 	get_youku_detail(13)
 	get_appicsh_detail(3)
 	get_dangle_detail(15)
+	get_mmstore_detail(32)
 	get_kuaiyong_detail(19)
 
 def step2():

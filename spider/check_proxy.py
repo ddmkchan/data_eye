@@ -130,6 +130,7 @@ if __name__ == '__main__':
 			"魅族单机榜" : 76,
 			"沃商店新游榜" : 77,
 			"沃商店热门榜" : 78,
+			"MM商店热门榜" : 79,
 			}
 
 	for k,v in source_map.iteritems():

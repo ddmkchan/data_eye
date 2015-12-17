@@ -100,6 +100,7 @@ source_map = {
 			"meizu_single" : 76,
 			"wostore_new_game" : 77,
 			"wostore_hot" : 78,
+			"mmstore_hot" : 79,
 				}
 
 def get_baidu_hot_games():
@@ -1265,6 +1266,32 @@ def get_wostore_app_rank():
 		mylogger.error("get wostore rank \t%s" % (traceback.format_exc()))
 	mylogger.info("get wostore rank done!")
 
+def get_mmstore_app_rank():
+	rank = 0
+	headers = {
+				"appname": "MM5.3.0.001.01_CTAndroid_JT", 
+				"ua":"android-19-720x1280-CHE2-UL00"}
+	for p in xrange(1, 3):
+		url = "http://odp.mmarket.com/t.do?requestid=json_game_total_ranking_library&currentPage=%s&totalRows=824" % p
+		try:
+			r = requests.get(url, timeout=20, headers=headers)
+			if r.status_code == 200:
+				j = r.json()
+				if j['items'] is not None:
+					for app in j['items']:
+						rank += 1
+						game_name, img, downloads, size, popular, game_type, status, url = [u''] * 8
+						game_name = app.get('name', u'')
+						img = app.get('iconUrl', u'')
+						size = app.get('appsize', u'')
+						downloads = app.get('interested', u'')
+						url = app.get('detailUrl', u'')
+						source = source_map.get('mmstore_hot')
+						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+		except Exception, e:
+			mylogger.error("get mmstore app rank \t%s" % (traceback.format_exc()))
+	db_conn.commit()
+
 def store_data(ret):
 	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
 	dt = unicode(datetime.date.today())
@@ -1319,6 +1346,7 @@ def main():
 	get_lenovo_shop_rank()
 	get_meizu_app_rank()
 	get_wostore_app_rank()
+	get_mmstore_app_rank()
 
 if __name__ == '__main__':
 	main()
