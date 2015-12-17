@@ -1685,6 +1685,47 @@ def get_mmstore_comments_by_id(contentid):
 		mylogger.error("mmstore comments ### #### \t%s" % (traceback.format_exc()))
 	return u''
 
+def get_vivo_store_detail(channel_id):
+	count = 0
+	error_times = 0
+	mylogger.info("get vivo_store app detail start ...")
+	ids = channel_map.get(channel_id)
+	for game_id in get_urls_from_db_by_ids(ids):
+		if error_times >= 10:
+			mylogger.info("vivo_store reach max error times ... ")
+			break
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==game_id).filter(HotGameDetailByDay.dt==dt).first()
+		if not ins:
+			try:
+				prefix = "http://info.appstore.vivo.com.cn/port/package/?source=1&e=150100523832314d4200cf98e451625f&elapsedtime=2563957798&content_complete=1&screensize=1080_1920&density=3.0&pictype=webp&cs=0&av=22&an=5.1&app_version=612&imei=867570026068423&nt=WIFI&module_id=219&target=local&cfrom=103&need_comment=0&model=m2+note&s=2%7C0"
+				url = prefix + "&id=%s" % game_id
+				response = requests.get(url, timeout=20)
+				if response.status_code == 200:
+					j = response.json() 
+					if j['value'] is not None:
+						g = j['value']
+						count += 1 
+						item = HotGameDetailByDay(**{
+									'channel': channel_id,
+									'identifying': game_id,
+									'summary' : g.get('introduction', u''),
+									'rating' : g.get('score', u''),
+									'version' : g.get('version_name', u''),
+									'pkg_size' : g.get('size', u''),
+									'author' : g.get('developer', u''),
+									'download_num' : g.get('download_count', u''),
+									'comment_num' : g.get('raters_count', u''),
+									'dt' : dt,
+									'imgs' : u",".join(g.get('screenshotList', []))
+										})
+						db_conn.merge(item)
+			except Exception,e:
+				error_times += 1
+				mylogger.error("vivo_store app detail ### #### \t%s" % (traceback.format_exc()))
+	mylogger.info("get vivo_store app detail %s" % count)
+	db_conn.commit()
+
 
 channel_map = {
 			2	: [46, 47], #18183
@@ -1722,6 +1763,7 @@ channel_map = {
 			30	: [71, 72, 73, 74], # lenovo shop
 			31	: [77,78], # wostore
 			32	: [79], # mmstore
+			33	: [80, 81], # mmstore
 				}
 
 def main():
@@ -1736,6 +1778,7 @@ def main():
 	get_appicsh_detail(3)
 	get_dangle_detail(15)
 	get_mmstore_detail(32)
+	get_vivo_store_detail(33)
 	get_kuaiyong_detail(19)
 
 def step2():

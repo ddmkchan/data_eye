@@ -101,6 +101,8 @@ source_map = {
 			"wostore_new_game" : 77,
 			"wostore_hot" : 78,
 			"mmstore_hot" : 79,
+			"vivo_store_single" : 80,
+			"vivo_store_webgame" : 81,
 				}
 
 def get_baidu_hot_games():
@@ -1266,6 +1268,7 @@ def get_wostore_app_rank():
 		mylogger.error("get wostore rank \t%s" % (traceback.format_exc()))
 	mylogger.info("get wostore rank done!")
 
+
 def get_mmstore_app_rank():
 	rank = 0
 	headers = {
@@ -1290,6 +1293,32 @@ def get_mmstore_app_rank():
 						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 		except Exception, e:
 			mylogger.error("get mmstore app rank \t%s" % (traceback.format_exc()))
+	db_conn.commit()
+
+def get_vivo_store_app_rank():
+	_dict = {
+			"vivo_store_single": "http://main.appstore.vivo.com.cn/port/packages_top/?apps_per_page=20&e=150100523832314d4200cf98e451625f&elapsedtime=2564215904&screensize=1080_1920&density=3.0&pictype=webp&cs=0&req_id=7&av=22&an=5.1&app_version=612&imei=867570026068423&nt=WIFI&id=2&page_index=1&cfrom=4&type=9&model=m2+note&s=2%7C0",
+			"vivo_store_webgame": "http://main.appstore.vivo.com.cn/port/packages_top/?apps_per_page=20&e=150100523832314d4200cf98e451625f&elapsedtime=2564218581&screensize=1080_1920&density=3.0&pictype=webp&cs=0&req_id=8&av=22&an=5.1&app_version=612&imei=867570026068423&nt=WIFI&id=2&page_index=1&cfrom=4&type=10&model=m2+note&s=2%7C0",
+			}
+	for gtype, url in _dict.iteritems():
+		rank = 0
+		try:
+			r = requests.get(url, timeout=20)
+			if r.status_code == 200:
+				j = r.json()
+				if j['value'] is not None:
+					for app in j['value']:
+						rank += 1
+						game_name, img, downloads, size, popular, game_type, status, url = [u''] * 8
+						game_name = app.get('title_zh', u'')
+						img = app.get('icon_url', u'')
+						downloads = app.get('download_count', u'')
+						url = app.get('id', u'')
+						source = source_map.get(gtype)
+						print rank, game_name, source
+						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+		except Exception, e:
+			mylogger.error("get vivo store app rank \t%s" % (traceback.format_exc()))
 	db_conn.commit()
 
 def store_data(ret):
@@ -1347,6 +1376,7 @@ def main():
 	get_meizu_app_rank()
 	get_wostore_app_rank()
 	get_mmstore_app_rank()
+	get_vivo_store_app_rank()
 
 if __name__ == '__main__':
 	main()

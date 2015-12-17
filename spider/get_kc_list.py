@@ -50,6 +50,7 @@ source_map = {
 			"lenovo_shop": 30,
 			"wostore": 31,#沃商店
 			"mmstore": 32,
+			"vivo_store": 33,
 				}
 
 class T:
@@ -1721,11 +1722,11 @@ def get_mmstore_detail(url):
 		headers = {
 				"appname": "MM5.3.0.001.01_CTAndroid_JT", 
 				"ua":"android-19-720x1280-CHE2-UL00"}
-		r = requests.get(url, timeout=20, headers=headers)
+		r = requests.get(url, timeout=50, headers=headers)
 		if r.status_code == 200:
 			return r.json()
 	except Exception, e:
-		mylogger.error("get mmstore detail \t%s" % (traceback.format_exc()))
+		mylogger.error("## % ## get mmstore detail \t%s" % (url.encode('utf-8'), traceback.format_exc()))
 	return None
 
 
@@ -1767,6 +1768,52 @@ def get_mmstore_kc(page):
 	mylogger.info("get %s records from mmstore" % count)
 	db_conn.commit()
 
+def get_viv_store_detail_by_id(game_id):
+	try:
+		prefix = "http://info.appstore.vivo.com.cn/port/package/?source=1&e=150100523832314d4200cf98e451625f&elapsedtime=2563957798&content_complete=1&screensize=1080_1920&density=3.0&pictype=webp&cs=0&av=22&an=5.1&app_version=612&imei=867570026068423&nt=WIFI&module_id=219&target=local&cfrom=103&need_comment=0&model=m2+note&s=2%7C0"
+		url = prefix + "&id=%s" % game_id
+		r = requests.get(url, timeout=15)
+		if r.status_code == 200:
+			return r.json()
+	except Exception, e:
+		mylogger.error("## % ## get vivo store detail \t%s" % (game_id, traceback.format_exc()))
+	return None
+
+
+def get_vivo_store_kc():
+	count = 0
+	url = "http://main.appstore.vivo.com.cn/topic/topics_soft?source=1&e=150100523832314d4200cf98e451625f&elapsedtime=2563900502&content_complete=0&screensize=1080_1920&density=3.0&pictype=webp&cs=0&req_id=219&av=22&an=5.1&app_version=612&imei=867570026068423&nt=WIFI&id=219&cfrom=32&model=m2+note&s=2%7C0"
+	try:
+		r = requests.get(url, timeout=20)
+		if r.status_code == 200:
+			j = r.json()
+			if j['value'] is not None:
+				for app in j['value']:
+					game_id = app.get('id', -1)
+					publish_date = u''
+					detail = get_viv_store_detail_by_id(game_id)
+					if detail is not None and detail['value'] is not None:
+						publish_date = detail['value'].get('upload_time', u'')[:11]
+					if publish_date and game_id != -1:
+						ins = db_conn.query(KC_LIST).filter(KC_LIST.game_id==game_id).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('vivo_store')).first()
+						if ins is None:
+							count += 1
+							item = KC_LIST(**{
+											"title": app.get('title_zh', u''),
+											"game_id": app.get('id'),
+											"publish_date": publish_date,
+											"img": app.get('icon_url', u''),
+											"popular": app.get('download_count', u''),
+											"source": source_map.get('vivo_store')
+											})
+							db_conn.merge(item)
+
+	except Exception, e:
+		mylogger.error("get vivo store kc \t%s" % (traceback.format_exc()))
+	mylogger.info("get %s records from vivo_store" % count)
+	db_conn.commit()
+
+
 def main():
 	mylogger.info("gogo")
 	get_18183_kc()
@@ -1799,9 +1846,8 @@ def main():
 	get_lenovo_shop_kc(1)
 	get_wostore_kc()
 	get_mmstore_kc(1)
+	get_vivo_store_kc()
 
 if __name__ == '__main__':
 	main()
 	#get_huawei_app_kc()
-	#for p in xrange(1, 11):
-	#	get_mmstore_kc(p)

@@ -1518,6 +1518,45 @@ def get_mmstore_comments_by_id(contentid):
 		mylogger.error("mmstore comments ### #### \t%s" % (traceback.format_exc()))
 	return u''
 
+def get_vivo_store_detail():
+	count = 0
+	error_times = 0
+	mylogger.info("get vivo_store app detail start ...")
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.game_id!=u'').filter(KC_LIST.source==33):
+		if error_times >= 10:
+			mylogger.info("vivo_store reach max error times ... ")
+			break
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+		if not ins:
+			try:
+				prefix = "http://info.appstore.vivo.com.cn/port/package/?source=1&e=150100523832314d4200cf98e451625f&elapsedtime=2563957798&content_complete=1&screensize=1080_1920&density=3.0&pictype=webp&cs=0&av=22&an=5.1&app_version=612&imei=867570026068423&nt=WIFI&module_id=219&target=local&cfrom=103&need_comment=0&model=m2+note&s=2%7C0"
+				url = prefix + "&id=%s" % ret.game_id
+				response = requests.get(url, timeout=20)
+				if response.status_code == 200:
+					j = response.json() 
+					if j['value'] is not None:
+						g = j['value']
+						count += 1 
+						item = GameDetailByDay(**{
+									'kc_id': ret.id,
+									'summary' : g.get('introduction', u''),
+									'rating' : g.get('score', u''),
+									'version' : g.get('version_name', u''),
+									'pkg_size' : g.get('size', u''),
+									'author' : g.get('developer', u''),
+									'download_num' : g.get('download_count', u''),
+									'comment_num' : g.get('raters_count', u''),
+									'dt' : dt,
+									'imgs' : u",".join(g.get('screenshotList', []))
+										})
+						db_conn.merge(item)
+			except Exception,e:
+				error_times += 1
+				mylogger.error("vivo_store app detail ### #### \t%s" % (traceback.format_exc()))
+	mylogger.info("get vivo_store app detail %s" % count)
+	db_conn.commit()
+
 def step1():
 	get_xiaomi_new_detail()
 	get_xiaomi_rpg_detail()
@@ -1546,6 +1585,7 @@ def step2():
 	get_lenovo_shop_detail()
 	get_wostore_detail()
 	get_mmstore_detail()
+	get_vivo_store_detail()
 	get_huawei_detail()
 	get_kuaiyong_detail()
 
