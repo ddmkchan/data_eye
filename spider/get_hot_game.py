@@ -1403,7 +1403,7 @@ def main():
 	get_wostore_app_rank()
 	get_mmstore_app_rank()
 	get_vivo_store_app_rank()
+	get_myaora_app_rank()
 
 if __name__ == '__main__':
-	#main()
-	get_myaora_app_rank()
+	main()

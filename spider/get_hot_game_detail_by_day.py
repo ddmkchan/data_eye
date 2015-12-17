@@ -1820,6 +1820,7 @@ def main():
 	get_dangle_detail(15)
 	get_mmstore_detail(32)
 	get_vivo_store_detail(33)
+	get_myaora_detail(997)
 	get_kuaiyong_detail(19)
 
 def step2():
@@ -1849,5 +1850,4 @@ def get_360_gamebox_web_detail():
 	pass
 
 if __name__ == '__main__':
-	#main()
-	get_myaora_detail(997)
+	main()
