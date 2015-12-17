@@ -854,7 +854,7 @@ def get_huawei_detail_by_id(url):
 					mydict['comment_num'] = m.group()
 	except Exception,e:
 		mylogger.error("%s\t%s" % (url.encode('utf-8'), traceback.format_exc()))
-		sleep(5)
+		sleep(3)
 		return EX()
 	return mydict
 
@@ -1466,7 +1466,6 @@ def step1():
 	get_xiaomi_new_detail()
 	get_xiaomi_rpg_detail()
 	get_open_play_detail()
-	get_9game_detail()
 	get_18183_detail()
 	get_appicsh_detail()
 	get_vivo_detail()
@@ -1478,11 +1477,10 @@ def step1():
 	get_dangle_detail()
 	get_muzhiwan_detail()
 	get_meizu_detail()
+	get_9game_detail()
 
 def step2():
-	get_huawei_detail()
 	get_wandoujia_detail()
-	get_kuaiyong_detail()
 	get_youku_detail()
 	get_360zhushou_app_detail()
 	get_i4_app_detail()
@@ -1491,6 +1489,8 @@ def step2():
 	get_360_gamebox_detail()
 	get_lenovo_shop_detail()
 	get_wostore_detail()
+	get_huawei_detail()
+	get_kuaiyong_detail()
 
 if __name__ == '__main__':
 	step1()
