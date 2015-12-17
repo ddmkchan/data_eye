@@ -1726,6 +1726,46 @@ def get_vivo_store_detail(channel_id):
 	mylogger.info("get vivo_store app detail %s" % count)
 	db_conn.commit()
 
+def get_myaora_detail(channel_id):
+	count = 0
+	error_times = 0
+	mylogger.info("get myaora app detail start ...")
+	ids = channel_map.get(channel_id)
+	for game_id in get_urls_from_db_by_ids(ids):
+		if error_times >= 10:
+			mylogger.info("myaora reach max error times ... ")
+			break
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==game_id).filter(HotGameDetailByDay.dt==dt).first()
+		if not ins:
+			try:
+				payload = {"TAG":"INTRODUCTION_CATEGORY","API_VERSION":9,"MARKET_IMEI":"867570026068423","MARKET_KEY":"5bed9c59b8d64b24d35eedf7b8065115","ID": game_id}
+				response = requests.post("http://adres.myaora.net:81/api.php", timeout=20, data=json.dumps(payload))
+				if response.status_code == 200:
+					g = response.json() 
+					if g is not None:
+						count += 1 
+						item = HotGameDetailByDay(**{
+									'channel': channel_id,
+									'identifying': game_id,
+									'summary' : g.get('DESCRIBE', u''),
+									'rating' : g.get('ALL_START', {}).get('average', u''),
+									'game_type' : g.get('CATALOG_NAME', u''),
+									'version' : g.get('VERSION', u''),
+									'pkg_size' : g.get('SIZE', u''),
+									'author' : g.get('DEVELOPER', u''),
+									'download_num' : g.get('DOWNLOAD_REGION', u''),
+									'comment_num' : g.get('COMMENT_COUNT', u''),
+									'dt' : dt,
+									'imgs' : u",".join(g.get('ALL_SCREENSHOT_URLS', []))
+										})
+						db_conn.merge(item)
+			except Exception,e:
+				error_times += 1
+				mylogger.error("myaora app detail ### #### \t%s" % (traceback.format_exc()))
+	mylogger.info("get myaora app detail %s" % count)
+	db_conn.commit()
+
 
 channel_map = {
 			2	: [46, 47], #18183
@@ -1764,6 +1804,7 @@ channel_map = {
 			31	: [77,78], # wostore
 			32	: [79], # mmstore
 			33	: [80, 81], # mmstore
+			997	: [82, 83], # 易用汇榜单
 				}
 
 def main():
@@ -1808,4 +1849,5 @@ def get_360_gamebox_web_detail():
 	pass
 
 if __name__ == '__main__':
-	main()
+	#main()
+	get_myaora_detail(997)

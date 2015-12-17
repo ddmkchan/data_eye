@@ -103,6 +103,8 @@ source_map = {
 			"mmstore_hot" : 79,
 			"vivo_store_single" : 80,
 			"vivo_store_webgame" : 81,
+			"myaora_download" : 82,#易用汇下载榜
+			"myaora_rise" : 83,#易用汇
 				}
 
 def get_baidu_hot_games():
@@ -1293,7 +1295,6 @@ def get_mmstore_app_rank():
 						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 		except Exception, e:
 			mylogger.error("get mmstore app rank \t%s" % (traceback.format_exc()))
-	db_conn.commit()
 
 def get_vivo_store_app_rank():
 	_dict = {
@@ -1315,11 +1316,36 @@ def get_vivo_store_app_rank():
 						downloads = app.get('download_count', u'')
 						url = app.get('id', u'')
 						source = source_map.get(gtype)
-						print rank, game_name, source
 						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 		except Exception, e:
 			mylogger.error("get vivo store app rank \t%s" % (traceback.format_exc()))
-	db_conn.commit()
+
+def get_myaora_app_rank():
+	_dict = {
+			"myaora_download"	: {"TAG":"SOFT_HOT","API_VERSION":9,"MARKET_IMEI":"867570026068423","MARKET_KEY":"5bed9c59b8d64b24d35eedf7b8065115","INDEX_START":0,"INDEX_SIZE":20,"MODEL":"m2 note","PCATID":2},
+			"myaora_rise"		: {"TAG":"GET_SOAR_LIST","API_VERSION":9,"MARKET_IMEI":"867570026068423","MARKET_KEY":"5bed9c59b8d64b24d35eedf7b8065115","INDEX_START":0,"INDEX_SIZE":20,"MODEL":"m2 note","PCATID":2} ,
+			}
+	for gtype, raw_data in _dict.iteritems():
+		rank = 0
+		try:
+			r = requests.post("http://adres.myaora.net:81/api.php", timeout=20, data=json.dumps(raw_data))
+			if r.status_code == 200:
+				j = r.json()
+				if j['ARRAY'] is not None:
+					for app in j['ARRAY']:
+						rank += 1
+						game_name, img, downloads, size, popular, game_type, status, url = [u''] * 8
+						game_name = app.get('NAME', u'')
+						img = app.get('ICON_URL', u'')
+						downloads = app.get('DOWNLOAD_COUNT', u'')
+						game_type = app.get('CATALOG_NAME', u'')
+						url = app.get('ID', u'')
+						size = app.get('SIZE', u'')
+						source = source_map.get(gtype)
+						#print rank, game_name, source
+						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+		except Exception, e:
+			mylogger.error("get myaora  app rank \t%s" % (traceback.format_exc()))
 
 def store_data(ret):
 	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
@@ -1379,4 +1405,5 @@ def main():
 	get_vivo_store_app_rank()
 
 if __name__ == '__main__':
-	main()
+	#main()
+	get_myaora_app_rank()
