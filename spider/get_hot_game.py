@@ -109,6 +109,7 @@ source_map = {
 			"huawei_webgame_weekly" : 85,
 			"huawei_newgame" : 86,
 			"huawei_hot" : 87,
+			"app12345" : 88,
 				}
 
 def get_baidu_hot_games():
@@ -1403,6 +1404,30 @@ def get_huawei_app_rank():
 		except Exception, e:
 			mylogger.error("get myaora  app rank \t%s" % (traceback.format_exc()))
 
+def get_app12345_app_rank():
+	url = "http://www.app12345.com/?area=cn&store=Apple%20Store&device=iPhone&pop_id=27&showdate=2015-12-18&showtime=12&genre_id=6014"
+	try:
+		r = requests.get(url, timeout=10)
+		rank = 0
+		if r.status_code == 200:
+			soup = BeautifulSoup(r.text)
+			for dl in soup.find_all('dl', class_='dldefault'):
+				dvimg = dl.find('div', class_='dvimg')
+				if dvimg is not None:
+					img_class = dvimg.find('img')
+					if img_class is not None:
+						rank += 1
+						game_name, img, downloads, size, popular, game_type, status, url = [u''] * 8
+						game_name = img_class.get('title')
+						img = img_class.get('src')
+						url = dvimg.find('a').get('href') if dvimg.find('a') is not None else u''
+						source = source_map.get('app12345')
+						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+	except Exception, e:
+		mylogger.error("app12345 ex")
+
+
+
 def store_data(ret):
 	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
 	dt = unicode(datetime.date.today())
@@ -1463,4 +1488,5 @@ def main():
 	get_huawei_app_rank()
 
 if __name__ == '__main__':
-	main()
+	#main()
+	get_app12345_app_rank()
