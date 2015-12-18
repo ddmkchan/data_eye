@@ -1765,6 +1765,99 @@ def get_myaora_detail(channel_id):
 	mylogger.info("get myaora app detail %s" % count)
 	db_conn.commit()
 
+def get_xiaomi_web_game_list():
+	mydict = {}
+	count = 0
+	from get_hot_game import get_xiaomi_game_rank
+	type_list = [2,3,12,13]
+	for rank_id in type_list:
+		for x in range(1,4):
+			game_list = get_xiaomi_game_rank(x, rank_id)
+			if game_list is not None:
+				for g in game_list:
+					count += 1
+					mydict[g.get("ext_id")] = g
+	mylogger.info("get xiaomi web game list %s" % count)
+	return mydict
+
+def get_xiaomi_web_page_info(url):
+	mydict = {}
+	try:
+		p = proxies[random.randrange(len(proxies))]
+		r = requests.get(url, timeout=15, proxies=p)
+		if r.status_code == 200:
+			soup = BeautifulSoup(r.text)
+			info_star = soup.find('div', class_='info-star')
+			if info_star is not None:
+				start_rank = info_star.find('div').get('class')
+				if len(start_rank) == 2:
+					if start_rank[1] == u's10':
+						rating = u'5'
+					elif start_rank[1] == u's8':
+						rating = u'4'
+					elif start_rank[1] == u's8':
+						rating = u'3'
+					elif start_rank[1] == u's8':
+						rating = u'2'
+					elif start_rank[1] == u's8':
+						rating = u'1'
+					else:
+						rating = u''
+					mydict['rating'] = rating
+			imgs = soup.find('div', class_='thumbnail-wrap')
+			if imgs is not None:
+				mydict['imgs'] = ",".join([img.get('src') for img in imgs.find_all('img')])
+			appinfo = soup.find('div',class_='appinfo')
+			if appinfo is not None:
+				mydict['summary'] = appinfo.text 
+	except Exception,e:
+		mylogger.error("get ## %s ## xiaomi web page info %s" % (url.encode('utf-8'),traceback.format_exc()))
+	return mydict
+	
+
+def get_xiaomi_web_detail(channel_id):
+	count = 0
+	error_times = 0
+	id2category = get_xiaomi_web_game_list()
+	mylogger.info("get xiaomi_web app detail start ...")
+	ids = channel_map.get(channel_id)
+	for url in get_urls_from_db_by_ids(ids):
+		if error_times >= 20:
+			mylogger.info("xiaomi_web reach max error times ... ")
+			break
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==url).filter(HotGameDetailByDay.dt==dt).first()
+		if not ins:
+			try:
+				game_type = u''
+				m =  re.search('(\d+).html', url)
+				if m is not None:
+					ext_id = m.group(1)
+					g = id2category.get(ext_id)
+					if g is not None:
+						page_info = get_xiaomi_web_page_info(url)
+						count += 1 
+						item = HotGameDetailByDay(**{
+									'channel': channel_id,
+									'identifying': url,
+									'summary' : page_info.get('summary', u''),
+									'rating' : page_info.get('rating', u''),
+									'game_type' : g.get('level2_category_name', u''),
+									'version' : g.get('version_code', u''),
+									'pkg_size' : g.get('apk_size', u''),
+									'download_num' : g.get('download_count', u''),
+									'dt' : dt,
+									'imgs' : page_info.get('imgs', u'')
+										})
+						db_conn.merge(item)
+						if count % 50 == 0:
+							mylogger.info("xiaomi web game detail commit %s" % count)
+							db_conn.commit()
+			except Exception,e:
+				error_times += 1
+				mylogger.error("xiaomi_web app detail ### #### \t%s" % (traceback.format_exc()))
+	mylogger.info("get xiaomi_web app detail %s" % count)
+	db_conn.commit()
 
 channel_map = {
 			2	: [46, 47], #18183
@@ -1838,11 +1931,13 @@ def step2():
 	get_lenovo_shop_detail(30)
 	get_meizu_detail(25)
 	get_wostore_detail(31)
+	get_xiaomi_web_detail(999)
 
 def get_muzhiwan_detail():
 	pass	
 
 def get_itools_detail():
+	#详情页面信息质量不高
 	pass
 
 def get_360_gamebox_web_detail():

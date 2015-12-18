@@ -196,9 +196,12 @@ def get_xiaomi_game_rank(page, rank_id):
 				"rank_id"		:rank_id,
 				"type"			:"rank"
 				}
-	r = s.post(url, data=payload)
-	if r.status_code == 200:
-		return r.json()
+	try:
+		r = s.post(url, data=payload)
+		if r.status_code == 200:
+			return r.json()
+	except Exception,e:
+		mylogger.error(traceback.format_exc())
 	return None
 
 
