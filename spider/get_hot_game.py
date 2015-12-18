@@ -1486,7 +1486,7 @@ def main():
 	get_vivo_store_app_rank()
 	get_myaora_app_rank()
 	get_huawei_app_rank()
+	get_app12345_app_rank()
 
 if __name__ == '__main__':
-	#main()
-	get_app12345_app_rank()
+	main()
