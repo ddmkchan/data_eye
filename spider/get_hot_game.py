@@ -1402,7 +1402,7 @@ def get_huawei_app_rank():
 									#print rank, game_name, source, downloads
 									store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 		except Exception, e:
-			mylogger.error("get myaora  app rank \t%s" % (traceback.format_exc()))
+			mylogger.error("get huawei game center app rank \t%s" % (traceback.format_exc()))
 
 def get_app12345_app_rank():
 	url = "http://www.app12345.com/?area=cn&store=Apple%20Store&device=iPhone&pop_id=27&showdate=2015-12-18&showtime=12&genre_id=6014"
@@ -1424,7 +1424,7 @@ def get_app12345_app_rank():
 						source = source_map.get('app12345')
 						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 	except Exception, e:
-		mylogger.error("app12345 ex")
+		mylogger.error("app12345 ex %s" % traceback.format_exc())
 
 
 
