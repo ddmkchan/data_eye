@@ -105,6 +105,10 @@ source_map = {
 			"vivo_store_webgame" : 81,
 			"myaora_download" : 82,#易用汇下载榜
 			"myaora_rise" : 83,#易用汇
+			"huawei_single_weekly" : 84,
+			"huawei_webgame_weekly" : 85,
+			"huawei_newgame" : 86,
+			"huawei_hot" : 87,
 				}
 
 def get_baidu_hot_games():
@@ -1354,15 +1358,50 @@ def get_huawei_app_rank():
 			"huawei_newgame": "clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=8BE2222453F8466690700BD3D29AFDF9&isShake=0&iv=ykERKQ1C%2FSWBOJqRHDp0hA%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=-9010689806809620686&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105320000000%4021ED0F3A6FB3EB1012341D7446889DC3&trace=618FC606383111E5A1B100188DD60001&ts=1450347681402&uri=f7bdb327d25944009c49e85af1e57720&userId=2FCCA764709EA036AA7EFD260899DF6F&ver=1.1&nsp_key=cGFs8TLV6gZd3rWVLzFE7uCRzaI%3D",
 			"huawei_hot": "clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=8BE2222453F8466690700BD3D29AFDF9&isShake=0&iv=7a3zIqRoB2B%2FNmgu3dBBVQ%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=4847397490382914763&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105320000000%4021ED0F3A6FB3EB1012341D7446889DC3&trace=618FC606383111E5A1B100188DD60001&ts=1450347704924&uri=618FC606383111E5A1B100188DD60004&userId=086D895DD0AEC90355EE815AA89C30C2&ver=1.1&nsp_key=zMAT4fnASLck%2BcUsfvwMPhvuQBg%3D",
 			}
-	url = "http://hispaceclt1.hicloud.com:8080/hwmarket/api/storeApi2"
 	headers = {
 				'Content-Type': 'text/plain;charset=UTF-8',
 				'Postman-Token': '68cc02a1-4403-0c03-0e00-074e7b5eb866',
 				}
 	for gtype, raw_data in _dict.iteritems():
-		print gtype, 
-		r = requests.post(url, data=raw_data, headers=headers, timeout=10)
-		print 
+		print gtype
+		rank = 0
+		url = "http://hispaceclt1.hicloud.com:8080/hwmarket/api/storeApi2"
+		try:
+			r = requests.post(url, data=raw_data, headers=headers, timeout=10)
+			if r.status_code == 200:
+				j = r.json()
+				if j['layoutData'] is not None and len(j['layoutData'])>=1:
+					layoutData = j['layoutData']
+					if len(layoutData) == 1:
+						data_list = j['layoutData'][0]['dataList']
+						if data_list is not None:
+							for app in data_list:
+								rank += 1
+								game_name, img, downloads, size, popular, game_type, status, url = [u''] * 8
+								game_name = app.get('name', u'')
+								img = app.get('icon', u'')
+								downloads = app.get('downCountDesc', u'')
+								url = app.get('detailId', u'')
+								size = app.get('size', u'')
+								source = source_map.get(gtype)
+								#print rank, game_name, source, downloads
+								store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+					elif len(layoutData) >= 2:
+						for item in layoutData:
+							if item.get('dataList-type', 0) == 3:	
+								for app in item['dataList']:
+									rank += 1
+									game_name, img, downloads, size, popular, game_type, status, url = [u''] * 8
+									game_name = app.get('name', u'')
+									img = app.get('icon', u'')
+									downloads = app.get('downCountDesc', u'')
+									url = app.get('detailId', u'')
+									size = app.get('size', u'')
+									source = source_map.get(gtype)
+									#print rank, game_name, source, downloads
+									store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+		except Exception, e:
+			mylogger.error("get myaora  app rank \t%s" % (traceback.format_exc()))
 
 def store_data(ret):
 	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
@@ -1421,7 +1460,7 @@ def main():
 	get_mmstore_app_rank()
 	get_vivo_store_app_rank()
 	get_myaora_app_rank()
+	get_huawei_app_rank()
 
 if __name__ == '__main__':
 	main()
-	#get_huawei_app_rank()

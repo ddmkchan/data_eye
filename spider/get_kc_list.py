@@ -1710,6 +1710,7 @@ def get_wostore_kc():
 	db_conn.commit()
 
 def get_huawei_app_kc():
+	count = 0
 	url = "http://hispaceclt1.hicloud.com:8080/hwmarket/api/storeApi2"
 	headers = {
 				'Content-Type': 'text/plain;charset=UTF-8',
@@ -1737,23 +1738,26 @@ def get_huawei_app_kc():
 								if m is not None:
 									_date = u"%s-%s-%s" % (datetime.date.today().year, m.group(1), m.group(2))
 									publish_date = datetime.datetime.strptime(_date, '%Y-%m-%d')
+									publish_date = unicode(publish_date.date())
 									data_list = normal_card['dataList']
 									if data_list is not None:
 										for app in data_list:
 											print publish_date, app.get('name')
-											ins = db_conn.query(KC_LIST).filter(KC_LIST.game_id==product_id).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('wostore')).first()
-											if ins is None:
-												count += 1
-												item = KC_LIST(**{
-																"title": app.get('appName', u''),
-																"game_id": product_id,
-																"publish_date": publish_date,
-																"img": app.get('iconURL', u''),
-																"popular": app.get('downloadCount', u''),
-																"source": source_map.get('wostore')
-																})
-												db_conn.merge(item)
-			print 
+											product_id = app.get('detailId', u'')
+											if product_id:
+												ins = db_conn.query(KC_LIST).filter(KC_LIST.game_id==product_id).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('wostore')).first()
+												if ins is None:
+													count += 1
+													item = KC_LIST(**{
+																	"title": app.get('name', u''),
+																	"game_id": product_id,
+																	"pkg_name": app.get('package', u''),
+																	"publish_date": publish_date,
+																	"img": app.get('icon', u''),
+																	"popular": app.get('downCountDesc', u''),
+																	"source": source_map.get('huawei_app')
+																	})
+													db_conn.merge(item)
 	except Exception, e:
 		mylogger.error("## ## get huawei kc \t%s" % (traceback.format_exc()))
 
@@ -1889,5 +1893,5 @@ def main():
 	get_vivo_store_kc()
 
 if __name__ == '__main__':
-	main()
-	#get_huawei_app_kc()
+	#main()
+	get_huawei_app_kc()
