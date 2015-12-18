@@ -1884,6 +1884,7 @@ def main():
 	get_meizu_kc()
 	get_i4_kc(1)
 	get_xyzs_kc(1)
+	get_xyzs_kc(2)
 	get_91play_kc()
 	get_360_gamebox_kc(0)
 	get_muzhiwan_kc()
@@ -1891,7 +1892,7 @@ def main():
 	get_wostore_kc()
 	get_mmstore_kc(1)
 	get_vivo_store_kc()
+	get_huawei_app_kc()
 
 if __name__ == '__main__':
-	#main()
-	get_huawei_app_kc()
+	main()
