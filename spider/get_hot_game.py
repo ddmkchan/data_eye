@@ -1347,6 +1347,23 @@ def get_myaora_app_rank():
 		except Exception, e:
 			mylogger.error("get myaora  app rank \t%s" % (traceback.format_exc()))
 
+def get_huawei_app_rank():
+	_dict = {
+			"huawei_single_weekly": "clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=8BE2222453F8466690700BD3D29AFDF9&isShake=0&iv=jVRKhj%2Flrx0p0HvA9r8usg%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=-3169502808676295893&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105320000000%4021ED0F3A6FB3EB1012341D7446889DC3&trace=618FC606383111E5A1B100188DD60001&ts=1450347536594&uri=618FC606383111E5A1B100188DD60002&userId=5F04B6AE58FFB279B169FA8FA0DA4ED0&ver=1.1&nsp_key=ynhRv46WNXWL8Hcf1rBPrXGizto%3D",
+			"huawei_webgame_weekly": "clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=8BE2222453F8466690700BD3D29AFDF9&isShake=0&iv=Gn0QT5E4AY6OYv1B26Bhag%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=-747596652580722219&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105320000000%4021ED0F3A6FB3EB1012341D7446889DC3&trace=618FC606383111E5A1B100188DD60001&ts=1450347636420&uri=618FC606383111E5A1B100188DD60003&userId=0C838299767D23AD6DD0D966FA5A3CEF&ver=1.1&nsp_key=bZADz5EnfWc2wYMXk7vHH02Rw%2Fk%3D",
+			"huawei_newgame": "clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=8BE2222453F8466690700BD3D29AFDF9&isShake=0&iv=ykERKQ1C%2FSWBOJqRHDp0hA%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=-9010689806809620686&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105320000000%4021ED0F3A6FB3EB1012341D7446889DC3&trace=618FC606383111E5A1B100188DD60001&ts=1450347681402&uri=f7bdb327d25944009c49e85af1e57720&userId=2FCCA764709EA036AA7EFD260899DF6F&ver=1.1&nsp_key=cGFs8TLV6gZd3rWVLzFE7uCRzaI%3D",
+			"huawei_hot": "clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=8BE2222453F8466690700BD3D29AFDF9&isShake=0&iv=7a3zIqRoB2B%2FNmgu3dBBVQ%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=4847397490382914763&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105320000000%4021ED0F3A6FB3EB1012341D7446889DC3&trace=618FC606383111E5A1B100188DD60001&ts=1450347704924&uri=618FC606383111E5A1B100188DD60004&userId=086D895DD0AEC90355EE815AA89C30C2&ver=1.1&nsp_key=zMAT4fnASLck%2BcUsfvwMPhvuQBg%3D",
+			}
+	url = "http://hispaceclt1.hicloud.com:8080/hwmarket/api/storeApi2"
+	headers = {
+				'Content-Type': 'text/plain;charset=UTF-8',
+				'Postman-Token': '68cc02a1-4403-0c03-0e00-074e7b5eb866',
+				}
+	for gtype, raw_data in _dict.iteritems():
+		print gtype, 
+		r = requests.post(url, data=raw_data, headers=headers, timeout=10)
+		print 
+
 def store_data(ret):
 	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
 	dt = unicode(datetime.date.today())

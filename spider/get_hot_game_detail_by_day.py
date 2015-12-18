@@ -237,7 +237,7 @@ def get_appicsh_detail(channel_id):
 							db_conn.commit()
 			except Exception,e:
 				error_times += 1
-				mylogger.error("%s\t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("get appicsh detail %s\t%s" % (url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get appicsh detail %s" % count)
 	db_conn.commit()
 			
@@ -480,7 +480,7 @@ def get_gionee_detail(channel_id):
 						db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
-				mylogger.error("%s\t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("%s\t%s" % (url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get gionee play detail %s" % count)
 	db_conn.commit()
 
@@ -523,7 +523,7 @@ def get_leveno_detail(channel_id):
 			except Exception,e:
 				sleep(1.23)
 				error_times += 1
-				mylogger.error("%s\t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("get %s lenovo detail \t%s" % (url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get lenovo detail %s" % count)
 	db_conn.commit()
 
@@ -1180,7 +1180,7 @@ def get_360_app_detail(channel_id):
 							db_conn.commit()
 			except Exception,e:
 				error_times += 1
-				mylogger.error("360 app #### %s #### \t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("360 app detail #### %s #### \t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
 				
 	mylogger.info("get 360 app detail %s" % count)
 	db_conn.commit()
@@ -1220,7 +1220,7 @@ def get_i4_app_detail(channel_id):
 						db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
-				mylogger.error("i4 app #### %s #### \t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("i4 app detail #### #### \t%s" % (traceback.format_exc()))
 	mylogger.info("get i4 app detail %s" % count)
 	db_conn.commit()
 
@@ -1260,7 +1260,7 @@ def get_xyzs_app_detail(channel_id):
 						db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
-				mylogger.error("xyzs app #### %s #### \t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("xyzs app detail ####  #### \t%s" % (traceback.format_exc()))
 	mylogger.info("get xyzs app detail %s" % count)
 	db_conn.commit()
 
@@ -1303,7 +1303,7 @@ def get_91play_detail(channel_id):
 						db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
-				mylogger.error("91play app detail #### %s #### \t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("91play app detail #### %s #### \t%s" % (url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get 91play app detail %s" % count)
 	db_conn.commit()
 
@@ -1342,7 +1342,7 @@ def get_360_gamebox_detail(channel_id):
 						db_conn.merge(item)
 			except Exception,e:
 				error_times += 1
-				mylogger.error("360_gamebox app detail #### %s #### \t%s" % (pkg.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("360_gamebox app detail #### %s #### \t%s" % (url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get 360_gamebox app detail %s" % count)
 	db_conn.commit()
 
@@ -1621,7 +1621,6 @@ def get_wostore_detail(channel_id):
 						db_conn.merge(item)
 			else:
 				ins.download_num = get_wostore_download_count_by_id(pkg_id, dt)
-			break
 		except Exception,e:
 			mylogger.error("wostore app detail #### %s #### \t%s" % (pkg_id.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get wostore app detail %s" % count)

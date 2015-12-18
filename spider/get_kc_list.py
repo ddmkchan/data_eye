@@ -1710,13 +1710,27 @@ def get_wostore_kc():
 
 def get_huawei_app_kc():
 	url = "http://hispaceclt1.hicloud.com:8080/hwmarket/api/storeApi2"
-	headers = {'user-agent': 'Gamebox_6.31.71.301_Meizu'}
+	headers = {
+				'Content-Type': 'text/plain;charset=UTF-8',
+				'Postman-Token': '68cc02a1-4403-0c03-0e00-074e7b5eb866',
+				
+				}
 	raw_data = """clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=8BE2222453F8466690700BD3D29AFDF9&isShake=0&iv=wX%2B1e9JQvWrBOJLf7j5ANQ%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=-5469498271608711199&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105320000000%404697D3C011A742DC11B384CDF57C6349&trace=97bf368fefad407593b6855b86b8a0c2&ts=1450267895898&uri=f7bdb327d25944009c49e85af1e57720%7C1450267850388&userId=213DB50D94D265FFF89BD4A22D30114D&ver=1.1&nsp_key=pKED5sIghVAJjDQE4Sr1%2BCQLvHA%3D"""
-	r = requests.post(url, data=raw_data, headers=headers,timeout=10)
-	print r.text
-	if r.status_code == 200:
-		j = r.json()
-		print j['name']
+	kc_raw_data = "clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=8BE2222453F8466690700BD3D29AFDF9&isShake=0&iv=9hmgmufQA2njtsJogpTw5g%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=-6601459752367735463&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105320000000%4021ED0F3A6FB3EB1012341D7446889DC3&trace=97bf368fefad407593b6855b86b8a0c2&ts=1450347429967&uri=d055a11c37ee4f76a274b969e308da9c&userId=DD574A802FFADB144D4C84CBDF16A89E&ver=1.1&nsp_key=nv9Kn4PG91DHJ%2Fk33J0TfRhhIpE%3D"
+	try:
+		r = requests.post(url, data=raw_data, headers=headers,timeout=10)
+		if r.status_code == 200:
+			j = r.json()
+			if j['layoutData'] is not None:
+				for data in j['layoutData']:
+					if data.get('layoutName') == u'normalcard':
+						for app in data['dataList']:
+							for k, v in app.iteritems():
+								print k, v
+							print
+							break
+	except Exception, e:
+		mylogger.error("## ## get huawei kc \t%s" % (traceback.format_exc()))
 
 def get_mmstore_detail(url):
 	try:
