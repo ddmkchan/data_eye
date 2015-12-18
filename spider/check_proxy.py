@@ -150,6 +150,7 @@ def source_2_name():
 			"华为游戏中心周网游榜" : 85,
 			"华为游戏中心新游榜" : 86,
 			"华为游戏中心人气榜" : 87,
+			"app12345" : 88,
 			}
 
 	for k,v in source_map.iteritems():
