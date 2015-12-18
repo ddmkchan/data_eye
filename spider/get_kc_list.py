@@ -51,6 +51,7 @@ source_map = {
 			"wostore": 31,#沃商店
 			"mmstore": 32,
 			"vivo_store": 33,
+			"huawei_app": 34,
 				}
 
 class T:
@@ -1715,20 +1716,44 @@ def get_huawei_app_kc():
 				'Postman-Token': '68cc02a1-4403-0c03-0e00-074e7b5eb866',
 				
 				}
-	raw_data = """clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=8BE2222453F8466690700BD3D29AFDF9&isShake=0&iv=wX%2B1e9JQvWrBOJLf7j5ANQ%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=-5469498271608711199&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105320000000%404697D3C011A742DC11B384CDF57C6349&trace=97bf368fefad407593b6855b86b8a0c2&ts=1450267895898&uri=f7bdb327d25944009c49e85af1e57720%7C1450267850388&userId=213DB50D94D265FFF89BD4A22D30114D&ver=1.1&nsp_key=pKED5sIghVAJjDQE4Sr1%2BCQLvHA%3D"""
+	new_game_raw_data = """clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=8BE2222453F8466690700BD3D29AFDF9&isShake=0&iv=wX%2B1e9JQvWrBOJLf7j5ANQ%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=-5469498271608711199&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105320000000%404697D3C011A742DC11B384CDF57C6349&trace=97bf368fefad407593b6855b86b8a0c2&ts=1450267895898&uri=f7bdb327d25944009c49e85af1e57720%7C1450267850388&userId=213DB50D94D265FFF89BD4A22D30114D&ver=1.1&nsp_key=pKED5sIghVAJjDQE4Sr1%2BCQLvHA%3D"""
 	kc_raw_data = "clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=8BE2222453F8466690700BD3D29AFDF9&isShake=0&iv=9hmgmufQA2njtsJogpTw5g%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=-6601459752367735463&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105320000000%4021ED0F3A6FB3EB1012341D7446889DC3&trace=97bf368fefad407593b6855b86b8a0c2&ts=1450347429967&uri=d055a11c37ee4f76a274b969e308da9c&userId=DD574A802FFADB144D4C84CBDF16A89E&ver=1.1&nsp_key=nv9Kn4PG91DHJ%2Fk33J0TfRhhIpE%3D"
+	rds = [new_game_raw_data, kc_raw_data]
 	try:
-		r = requests.post(url, data=raw_data, headers=headers,timeout=10)
-		if r.status_code == 200:
-			j = r.json()
-			if j['layoutData'] is not None:
-				for data in j['layoutData']:
-					if data.get('layoutName') == u'normalcard':
-						for app in data['dataList']:
-							for k, v in app.iteritems():
-								print k, v
-							print
-							break
+		for raw_data in rds:
+			r = requests.post(url, data=raw_data, headers=headers,timeout=10)
+			if r.status_code == 200:
+				j = r.json()
+				if j['layoutData'] is not None:
+					layoutData = j['layoutData']
+					if len(layoutData) % 2 == 0:
+						for index in xrange(0, len(layoutData), 2):
+							items = layoutData[index:index+2]
+							title_card = items[0]
+							normal_card = items[1]
+							if title_card['dataList'] is not None and len(title_card['dataList']) == 1:
+								dt = title_card['dataList'][0].get('name')
+								m = re.search(u'(\d+)月(\d+)日', dt)
+								if m is not None:
+									_date = u"%s-%s-%s" % (datetime.date.today().year, m.group(1), m.group(2))
+									publish_date = datetime.datetime.strptime(_date, '%Y-%m-%d')
+									data_list = normal_card['dataList']
+									if data_list is not None:
+										for app in data_list:
+											print publish_date, app.get('name')
+											ins = db_conn.query(KC_LIST).filter(KC_LIST.game_id==product_id).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('wostore')).first()
+											if ins is None:
+												count += 1
+												item = KC_LIST(**{
+																"title": app.get('appName', u''),
+																"game_id": product_id,
+																"publish_date": publish_date,
+																"img": app.get('iconURL', u''),
+																"popular": app.get('downloadCount', u''),
+																"source": source_map.get('wostore')
+																})
+												db_conn.merge(item)
+			print 
 	except Exception, e:
 		mylogger.error("## ## get huawei kc \t%s" % (traceback.format_exc()))
 

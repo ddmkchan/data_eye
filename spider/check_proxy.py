@@ -49,7 +49,18 @@ def f():
 		re.dt = unicode(re.create_date.date())
 	db_conn.commit()
 
-if __name__ == '__main__':
+def channel_to_rank():
+	from get_hot_game_detail_by_day import channel_map
+	for k,v in channel_map.iteritems():
+		for ranking_id in v:
+			ins = db_conn.query(ChannelToRanking).filter(ChannelToRanking.channel_id==k).filter(ChannelToRanking.ranking_id==ranking_id).first()
+			if not ins:
+				item = ChannelToRanking(**{'channel_id': k, 'ranking_id':ranking_id})
+				db_conn.merge(item)
+	db_conn.commit()
+
+
+def source_2_name():
 	source_map = {
 			u"百度手机助手web"	: 0,
 			u"小米游戏活跃榜": 1,
@@ -131,6 +142,10 @@ if __name__ == '__main__':
 			"沃商店新游榜" : 77,
 			"沃商店热门榜" : 78,
 			"MM商店热门榜" : 79,
+			"vivo商店单机榜" : 80,
+			"vivo商店网游榜" : 81,
+			"易用汇下载榜" : 82,#易用汇下载榜
+			"易用汇飙升榜" : 83,#易用汇
 			}
 
 	for k,v in source_map.iteritems():
@@ -142,3 +157,5 @@ if __name__ == '__main__':
 			ins.name = k
 	db_conn.commit()
 	
+if __name__ == '__main__':
+	channel_to_rank()
