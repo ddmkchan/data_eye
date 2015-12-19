@@ -1742,7 +1742,6 @@ def get_huawei_app_kc():
 									data_list = normal_card['dataList']
 									if data_list is not None:
 										for app in data_list:
-											print publish_date, app.get('name')
 											product_id = app.get('detailId', u'')
 											if product_id:
 												ins = db_conn.query(KC_LIST).filter(KC_LIST.game_id==product_id).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('wostore')).first()

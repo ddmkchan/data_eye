@@ -617,7 +617,7 @@ def get_sogou_detail():
 											'rating' : g.get('score', u''),
 											'summary' : g.get('desc', u''),
 											'version' : g.get('vn', u''),
-											'game_type' : d['tgroup'].get('name', u''),
+											'game_type' : d.get('tgroup', {}).get('name', u''),
 											'download_num' : g.get('dc', u''),
 											'author' : g.get('author', u''),
 											'pkg_size' : g.get('size' u''),

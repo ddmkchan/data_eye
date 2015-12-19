@@ -1367,7 +1367,6 @@ def get_huawei_app_rank():
 				'Postman-Token': '68cc02a1-4403-0c03-0e00-074e7b5eb866',
 				}
 	for gtype, raw_data in _dict.iteritems():
-		print gtype
 		rank = 0
 		url = "http://hispaceclt1.hicloud.com:8080/hwmarket/api/storeApi2"
 		try:

@@ -887,7 +887,7 @@ def get_kuaiyong_detail(channel_id):
 def get_kuaiyong_detail_by_id(URL):
 	mydict = {}
 	try:
-		response = requests.get(URL, timeout=10)
+		response = requests.get(URL, timeout=20)
 		soup = BeautifulSoup(response.text)
 		base_right = soup.find('div', class_='base-right')
 		mydict = {}
