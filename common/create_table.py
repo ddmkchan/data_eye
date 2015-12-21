@@ -10,4 +10,4 @@ if __name__ == "__main__":
     #createtable(MTMapping2, PTPQ_ENGINE)
     #createtable(RankingChannel, PTPQ_ENGINE)
     #createtable(HotGameDetailByDay, PTPQ_ENGINE)
-    createtable(PublishGame, PTPQ_ENGINE)
+    createtable(ADRawData, PTPQ_ENGINE)

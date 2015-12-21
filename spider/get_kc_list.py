@@ -788,7 +788,6 @@ def get_wandoujia_kc():
 							detail = get_wandoujia_detail(detail_url)	
 							if detail is not None:
 								game_type, popular, publish_date = detail
-								print title, game_type, publish_date
 								if publish_date:
 										ins = db_conn.query(KC_LIST).filter(KC_LIST.url==detail_url).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('wandoujia')).first()
 										if ins is None:
@@ -1769,7 +1768,9 @@ def get_mmstore_detail(url):
 		if r.status_code == 200:
 			return r.json()
 	except Exception, e:
-		mylogger.error("## % ## get mmstore detail \t%s" % (url.encode('utf-8'), traceback.format_exc()))
+		if isinstance(url, unicode):
+			url = url.encode('utf-8')
+		mylogger.error("## %s ## get mmstore detail \t%s" % (url, traceback.format_exc()))
 	return None
 
 

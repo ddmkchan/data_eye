@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 #coding=utf-8
 from sqlalchemy import MetaData, Column, Integer, String, Float, CHAR
-from sqlalchemy import DateTime, func, Unicode, UnicodeText, Boolean, Date, Text
+from sqlalchemy import DateTime, func, Unicode, UnicodeText, Boolean, Date, Text, BLOB
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import UniqueConstraint
@@ -194,3 +194,15 @@ class RankingChannel(Base):
 	id = Column(Integer, primary_key=True, autoincrement=False)
 	name = Column(Unicode(100), nullable=False, default=u'', index=True)
 
+class ADRawData(Base):
+
+	__tablename__ = 'ad_raw_data'
+
+	id = Column(Integer, primary_key=True, autoincrement=True)
+	raw_data = Column(BLOB, nullable=False)
+	dt = Column(Unicode(100), nullable=False, default=u'', index=True)
+	src = Column(Unicode(500), nullable=False, default=u'')
+	channel = Column(Integer, nullable=False, default=0, index=True)
+	ad_type = Column(Integer, nullable=False, default=0)
+	create_date = Column(DateTime, nullable=False, default=datetime.now())#创建时间
+	last_update = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间
