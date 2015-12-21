@@ -20,7 +20,7 @@ def main():
 	count = 0
 	mydict = {}
 	from sqlalchemy import not_
-	for ret in new_session().query(KC_LIST).filter(KC_LIST.title!=u'').filter(not_(KC_LIST.source.in_((21, 22)))).filter(KC_LIST.publish_date>=u'2015-10-01'):
+	for ret in new_session().query(KC_LIST).filter(KC_LIST.title!=u'').filter(not_(KC_LIST.source.in_((21, 22)))).filter(KC_LIST.status==0).filter(KC_LIST.publish_date>=u'2015-10-01'):
 		segs = re.split(u'-|\(|\)|（|）|：|:|[\s]*-|－', ret.title)
 		if len(segs)>=2:
 			if ret.title.startswith('(') or ret.title.startswith(u'（'): 

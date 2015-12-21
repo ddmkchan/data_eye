@@ -23,7 +23,8 @@ def remove_duplicate_record():
 		ins = db_conn.execute("select min(id) from kc_list where source=%s and publish_date=\'%s\' and title=\'%s\'" % (source, publish_date, title)).first()
 		print 'delete %s' % ins[0]
 		delete_record = db_conn.query(KC_LIST).filter(KC_LIST.id==ins[0]).one()
-		db_conn.delete(delete_record)
+		delete_record.status = -1
+		#db_conn.delete(delete_record)
 	db_conn.commit()
 
 

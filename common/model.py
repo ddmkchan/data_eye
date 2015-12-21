@@ -137,7 +137,7 @@ class PublishGame(Base):
 	author = Column(Unicode(100), nullable=False, default=u'')
 	device = Column(Unicode(100), nullable=False, default=u'')
 	publish_status = Column(Unicode(100), nullable=False, default=u'')
-	kc_list_ids = Column(Unicode(200), nullable=False, default=u'')
+	kc_list_ids = Column(UnicodeText, nullable=False, default=u'')
 	channels = Column(UnicodeText, nullable=False, default=u'')
 	publish_dates = Column(UnicodeText, nullable=False, default=u'')
 	dt = Column(Unicode(100), nullable=False, default=u'')
