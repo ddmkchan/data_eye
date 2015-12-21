@@ -14,7 +14,7 @@ import datetime
 
 db_conn = new_session()
 
-mylogger = get_logger('merge_data')
+mylogger = get_logger('data_merge')
 
 def main():
 	count = 0
