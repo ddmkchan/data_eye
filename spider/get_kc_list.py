@@ -923,11 +923,8 @@ def get_dangle_kc():
 										"source": source_map.get('dangle')
 										})
 						db_conn.merge(item)
-					else:
-						ins.title2 = ret.get('id', u'')
-						ins.game_id = ret.get('id', u'')
 	except Exception,e:
-		mylogger.error("### %s ### %s" % (url, traceback.format_exc()))
+		mylogger.error("### get dangle kc ### %s" % (traceback.format_exc()))
 	mylogger.info("get %s records from dangle" % count)
 	db_conn.commit()
 				
