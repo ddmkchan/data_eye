@@ -207,3 +207,15 @@ class ADRawData(Base):
 	dt = Column(Unicode(100), nullable=False, default=u'', index=True)
 	create_date = Column(DateTime, nullable=False, default=datetime.now())#创建时间
 	last_update = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间
+
+class RankListGame(Base):
+
+	__tablename__ = 'ranklist_game'
+
+	id = Column(Integer, primary_key=True, autoincrement=True)
+	name = Column(Unicode(100), nullable=False, default=u'', index=True)
+	ranklists = Column(UnicodeText, nullable=False, default=u'')
+	create_date = Column(DateTime, nullable=False, default=datetime.now())#创建时间
+	last_update = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间
+
+
