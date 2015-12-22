@@ -1859,6 +1859,62 @@ def get_xiaomi_web_detail(channel_id):
 	mylogger.info("get xiaomi_web app detail %s" % count)
 	db_conn.commit()
 
+def get_oppo_hot_game_detail(channel_id):
+	count = 0
+	error_times = 0
+	mylogger.info("get oppo app detail start ...")
+	ids = channel_map.get(channel_id)
+	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
+	mylogger.info(_sql)
+	for ret in db_conn.execute(_sql):
+		game_name, game_url = ret
+		if error_times >= 10:
+			mylogger.info("oppo reach max error times ... ")
+			break
+		dt = unicode(date.today())
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==game_url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
+		if not ins:
+			try:
+				response = requests.get(game_url, timeout=10)
+				if response.status_code == 200:
+					json_result = response.json() 
+					game_content = json_result['game']
+					if game_content is not None :
+						count += 1 
+						detail_game_name = game_content.get('gameName', u'');
+						detail_download_num = game_content.get('gameDownloadNum', u'');
+						detail_game_categoryName = game_content.get('categoryName', u'');
+						detail_game_size = game_content.get('gameSize', u'');
+
+						detail_game_desc = json_result.get('gameDesc', u'')
+						detail_game_ver = json_result.get('gameVerName', u'')
+						imgs = []
+						for i in xrange(5):
+							_key = 'gamePicture%s' %i
+							p = json_result.get(_key, u'')
+							if p is not None and p:
+								imgs.append(p)
+						detail_game_commentNum = json_result.get('commentNum', u'')
+						item = HotGameDetailByDay(**{
+									'channel': channel_id,
+									'identifying': game_url,
+									'summary' : detail_game_desc,
+									'version' : detail_game_ver,
+									'game_type' : detail_game_categoryName,
+									'pkg_size' : detail_game_size,
+									'download_num' : detail_download_num,
+									'comment_num' : detail_game_commentNum,
+									'dt' : dt,
+									'imgs' : u",".join(imgs),
+										})
+						db_conn.merge(item)
+			except Exception,e:
+				error_times += 1
+				mylogger.error("oppo app detail #### %s #### \t%s" % (game_url.encode('utf-8'), traceback.format_exc()))
+	mylogger.info("get oppo app detail %s" % count)
+	db_conn.commit()
+
+
 channel_map = {
 			2	: [46, 47], #18183
 			4 	: [5, 6, 7, 48], #360助手app
@@ -1897,6 +1953,7 @@ channel_map = {
 			32	: [79], # mmstore
 			33	: [80, 81], # mmstore
 			997	: [82, 83], # 易用汇榜单
+			50	: [100, 101, 102], #oppo
 				}
 
 def main():
@@ -1913,6 +1970,7 @@ def main():
 	get_mmstore_detail(32)
 	get_vivo_store_detail(33)
 	get_myaora_detail(997)
+	get_oppo_hot_game_detail(50)
 	get_kuaiyong_detail(19)
 
 def step2():

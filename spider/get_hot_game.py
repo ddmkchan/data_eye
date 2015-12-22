@@ -110,6 +110,9 @@ source_map = {
 			"huawei_newgame" : 86,
 			"huawei_hot" : 87,
 			"app12345" : 88,
+			"oppo_app_download" : "102",
+			"oppo_app_newGame" : "101",
+			"oppo_app_active" : "100",
 				}
 
 def get_baidu_hot_games():
@@ -1428,6 +1431,40 @@ def get_app12345_app_rank():
 	except Exception, e:
 		mylogger.error("app12345 ex %s" % traceback.format_exc())
 
+def store_oppo_top_app_rank():
+	_dict = {'oppo_app_download': 'https://igame.oppomobile.com/gameapp/game/downloadRank?start=0&size=20', 
+			'oppo_app_newGame' : 'https://igame.oppomobile.com/gameapp/game/newGameRank?start=0&size=20',
+			'oppo_app_active' : 'https://igame.oppomobile.com/gameapp/game/activeRank?start=0&size=20'}
+	for gtype, url in _dict.iteritems():
+		get_oppo_app_rank(gtype, url)
+
+#oppo下载榜
+def get_oppo_app_rank(gtype, url):
+	rank = 0
+	try:
+		response = s.get(url, timeout=10)
+		if response.status_code == 200:
+			d = response.json()
+			if d['resultCode'] == 0:
+				new_games_list = d['gameList']
+				for game in new_games_list:
+					rank += 1
+					game_Id = game.get("gameId", u'')
+					game_name = game.get('gameName', u"")
+					game_type = game.get('categoryName', u"")
+					img = game.get('gameIcon', u"")
+					pkg_name = game.get('gamePackageName', u'')
+					download_num = game.get("gameDownloadNum", u'')
+					game_size = game.get('gameSize', u'')
+					source = source_map.get(gtype)
+					popular 	= u""
+					status 		= u""
+					url = u"https://igame.oppomobile.com/gameapp/game/detail?gameId=%s" % game_Id if game_Id else u''
+					
+					store_data((rank, game_name, img, download_num, game_size, source, popular, game_type, status, url))
+	except Exception,e:
+		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
+
 
 
 def store_data(ret):
@@ -1489,6 +1526,7 @@ def main():
 	get_myaora_app_rank()
 	get_huawei_app_rank()
 	get_app12345_app_rank()
+	store_oppo_top_app_rank()
 
 if __name__ == '__main__':
 	main()

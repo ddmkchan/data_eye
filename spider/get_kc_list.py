@@ -52,6 +52,7 @@ source_map = {
 			"mmstore": 32,
 			"vivo_store": 33,
 			"huawei_app": 34,
+			"oppo_app": 50,
 				}
 
 class T:
@@ -775,7 +776,7 @@ def get_wandoujia_kc():
 	urls = ["http://apis.wandoujia.com/apps/v1/topics/smart150/list?start=0&max=15", "http://apis.wandoujia.com/apps/v1/topics/smart438/list?start=0&max=15"]
 	try:
 		for url in urls:
-			r = requests.get(url, timeout=10)
+			r = requests.get(url, timeout=20)
 			if r.status_code == 200:
 				d = r.json()
 				for ret in d['entity']:
@@ -809,7 +810,7 @@ def get_wandoujia_kc():
 
 def get_wandoujia_detail(url):
 	try:
-		r = requests.get(url, timeout=10)
+		r = requests.get(url, timeout=30)
 		if r.status_code == 200:
 			d = r.json()
 			entity = d['entity']
@@ -1150,7 +1151,7 @@ def get_kuaiyong_kc(page):
 	count = 0
 	URL = "http://app.kuaiyong.com/list/index/appType/game/page/%s" % page
 	try:
-		response = s.get(URL, timeout=10)
+		response = s.get(URL, timeout=30)
 		if response.status_code == 200:
 			soup = BeautifulSoup(response.text)
 			for ret in soup.find_all('div', class_="app-item"):
@@ -1186,7 +1187,7 @@ def get_kuaiyong_kc(page):
 def get_kuaiyong_detail(URL):
 	mydict = {}
 	try:
-		response = s.get(URL, timeout=10)
+		response = s.get(URL, timeout=30)
 		if response.status_code == 200:
 			soup = BeautifulSoup(response.text)
 			base_right = soup.find('div', class_='base-right')
@@ -1656,7 +1657,7 @@ def get_wostroe_detail_by_id(product_id):
 				"settertype": "3",
 				"handphone": "00000000000"}
 		url = "http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=productDetail&productIndex=%s&resource=null&referer=null" % product_id
-		r = requests.get(url, timeout=10, headers=headers)
+		r = requests.get(url, timeout=30, headers=headers)
 		if r.status_code == 200:
 			return r.json()
 	except Exception, e:
@@ -1854,6 +1855,52 @@ def get_vivo_store_kc():
 	mylogger.info("get %s records from vivo_store" % count)
 	db_conn.commit()
 
+def get_oppo_kc(start):
+	count = 0
+	URL = "https://igame.oppomobile.com/gameapp/newGame/recommend?start=%s" % start
+	try:
+		response = requests.get(URL, timeout=10)
+		if response.status_code == 200:
+			rstData = response.json() 
+			if rstData['firstGameList'] is not None:
+				for rt in rstData['firstGameList']:
+					#for k, v in rt.iteritems():
+					#	print k, v
+					publish_date = unicode(date.today())
+					game_name = rt.get('gameName', u'')
+					game_id = rt.get('gameId', u'')
+					game_pkg_name = rt.get('gamePackageName', u'')
+					game_type = rt.get('categoryName', u'')
+					game_icon = rt.get('gameIcon', u'')
+					game_popular = rt.get('gameDownloadNum', u'');
+					game_detail_url = u"https://igame.oppomobile.com/gameapp/game/detail?gameId=%s" % game_id if game_id else u''
+					
+					if game_pkg_name and publish_date:
+						ins = db_conn.query(KC_LIST).filter(KC_LIST.game_id==game_id).filter(KC_LIST.source==source_map.get('oppo_app')).filter(KC_LIST.publish_date==publish_date).first()
+						if not ins:
+							count += 1
+							item = KC_LIST(**{
+										'publish_date': publish_date,
+										'title': game_name,
+										'title2': game_name,
+										'game_type': game_type,
+										'pkg_name': game_pkg_name,
+										'game_id': game_id,
+										'img': game_icon,
+										'source': source_map.get('oppo_app'),
+										'popular' : game_popular,
+										'url' : game_detail_url
+											}) 
+							db_conn.merge(item)
+						else:
+							ins.game_id = game_id
+							ins.pkg_name = game_pkg_name
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+	mylogger.info("get %s records from oppo_app " % (count))
+	db_conn.commit()
+
+
 
 def main():
 	mylogger.info("gogo")
@@ -1890,6 +1937,7 @@ def main():
 	get_mmstore_kc(1)
 	get_vivo_store_kc()
 	get_huawei_app_kc()
+	get_oppo_kc(0)
 
 if __name__ == '__main__':
 	main()

@@ -1558,6 +1558,62 @@ def get_vivo_store_detail():
 	mylogger.info("get vivo_store app detail %s" % count)
 	db_conn.commit()
 
+def get_oppo_kc_detail():
+	count = 0
+	error_times = 0
+	mylogger.info("get oppo app detail start ...")
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.pkg_name!=u'').filter(KC_LIST.source==50):
+		if not ret :
+			return
+		game_url = ret.url
+		if error_times >= 10:
+			mylogger.info("oppo reach max error times ... ")
+			break
+		dt = unicode(date.today())
+		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+		if not ins:
+			try:
+				response = requests.get(game_url, timeout=10)
+				if response.status_code == 200:
+					json_result = response.json() 
+					game_content = json_result['game']
+					if game_content:
+						count += 1 
+						detail_game_name = game_content.get('gameName', u'');
+						detail_download_num = game_content.get('gameDownloadNum', u'');
+						detail_game_categoryName = game_content.get('categoryName', u'');
+						detail_game_size = game_content.get('gameSize', u'');
+
+						detail_game_desc = json_result.get('gameDesc', u'')
+						detail_game_ver = json_result.get('gameVerName', u'')
+						detail_game_pic = json_result.get('gamePicture0', u'')
+						imgs = []
+						for i in xrange(5):
+							_key = 'gamePicture%s' %i
+							p = json_result.get(_key, u'')
+							if p is not None and p:
+								imgs.append(p)
+						detail_game_commentNum = json_result.get('commentNum', u'')
+						item = GameDetailByDay(**{
+									'kc_id': ret.id,
+									'name': detail_game_name,
+									'summary' : detail_game_desc,
+									'version' : detail_game_ver,
+									'game_type' : detail_game_categoryName,
+									'pkg_size' : detail_game_size,
+									'download_num' : detail_download_num,
+									'comment_num' : detail_game_commentNum,
+									'dt' : dt,
+									'imgs' : u",".join(imgs),
+										})
+						db_conn.merge(item)
+			except Exception,e:
+				error_times += 1
+				mylogger.error("oppo app detail #### %s #### \t%s" % (game_url.encode('utf-8'), traceback.format_exc()))
+	mylogger.info("get oppo app detail %s" % count)
+	db_conn.commit()
+
+
 def step1():
 	get_xiaomi_new_detail()
 	get_xiaomi_rpg_detail()
@@ -1587,6 +1643,7 @@ def step2():
 	get_wostore_detail()
 	get_mmstore_detail()
 	get_vivo_store_detail()
+	get_oppo_kc_detail()
 	get_huawei_detail()
 	get_kuaiyong_detail()
 
