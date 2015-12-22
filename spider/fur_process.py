@@ -237,6 +237,7 @@ def main():
 		if ranking_ids:
 			ins = db_conn.query(RankListGame).filter(RankListGame.name==title).first()
 			if ins is None:
+				count += 1
 				item = RankListGame(**{
 										"name": title,
 										"ranklists": u"^".join(ranking_ids),
