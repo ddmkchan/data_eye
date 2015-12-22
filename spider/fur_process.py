@@ -214,7 +214,6 @@ def main():
 	count = 0
 	mydict = {}
 	from sqlalchemy import not_
-	#for ret in new_session().query(HotGames).filter(HotGames.status==0).filter(HotGames.identifying!=u''):
 	for ret in db_conn.execute("select identifying, name from hot_games where status=0 and identifying!='' group by identifying, name"):
 		identifying, name = ret
 		segs = re.split(u'-|\(|\)|（|）|：|:|[\s]*-|－', name)
@@ -243,6 +242,9 @@ def main():
 										"ranklists": u"^".join(ranking_ids),
 										})
 				db_conn.merge(item)
+				if count % 500 == 0:
+					mylogger.info("hot games merge %s commit" % count)
+					db_conn.commit()
 			else:
 				ins.ranklists = u"^".join(ranking_ids)
 	db_conn.commit()

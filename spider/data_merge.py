@@ -31,6 +31,7 @@ def main():
 			mydict[ret.id] = ret.title
 	out = {}
 	titles = set(mydict.values())
+	mylogger.info("merge new publish game %s" % len(titles))
 	for t in titles:
 		out[t] = []
 	for k, v in mydict.iteritems():	
