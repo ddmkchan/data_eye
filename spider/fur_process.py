@@ -210,5 +210,29 @@ def func3():
 				re.identifying = urls[0]
 				re.last_update = datetime.datetime.now()
 
+def main():
+	count = 0
+	mydict = {}
+	from sqlalchemy import not_
+	for ret in new_session().query(HotGames).filter(HotGames.status==0):
+		segs = re.split(u'-|\(|\)|（|）|：|:|[\s]*-|－', ret.name)
+		if len(segs)>=2:
+			if ret.title.startswith('(') or ret.title.startswith(u'（'): 
+				mydict[ret.id] = segs[2]
+			else:
+				mydict[ret.id] = segs[0]
+		else:
+			mydict[ret.id] = ret.title
+	out = {}
+	titles = set(mydict.values())
+	for t in titles:
+		out[t] = []
+	for k, v in mydict.iteritems():	
+		if v in out:
+			out[v].append(str(k))
+	for title, ids in out.iteritems():
+		print title, ids
+
 if __name__ == '__main__':
-	remove_duplicate_record()
+	#remove_duplicate_record()
+	main()

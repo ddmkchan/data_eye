@@ -63,7 +63,7 @@ def main():
 									'publish_dates': publish_status.get('publish_date_list', u''),
 									})
 				db_conn.merge(item)
-				if count % 500 == 0:
+				if count % 1000 == 0:
 					db_conn.commit()
 					mylogger.info("merge data %s commit ..." % count)		
 			else:
@@ -83,6 +83,7 @@ def main():
 				ins.kc_list_ids = publish_status.get('kc_list_ids', u'')
 				ins.last_update = datetime.datetime.now()
 	db_conn.commit()
+	mylogger.info("merge data done !!!")		
 
 def get_publish_status(ids):
 	out = {}
