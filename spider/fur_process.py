@@ -214,15 +214,15 @@ def main():
 	count = 0
 	mydict = {}
 	from sqlalchemy import not_
-	for ret in new_session().query(HotGames).filter(HotGames.status==0):
+	for ret in new_session().query(HotGames).filter(HotGames.status==0).filter(HotGames.identifying!=u''):
 		segs = re.split(u'-|\(|\)|（|）|：|:|[\s]*-|－', ret.name)
 		if len(segs)>=2:
-			if ret.title.startswith('(') or ret.title.startswith(u'（'): 
+			if ret.name.startswith('(') or ret.name.startswith(u'（'): 
 				mydict[ret.id] = segs[2]
 			else:
 				mydict[ret.id] = segs[0]
 		else:
-			mydict[ret.id] = ret.title
+			mydict[ret.id] = ret.name
 	out = {}
 	titles = set(mydict.values())
 	for t in titles:
