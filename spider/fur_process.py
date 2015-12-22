@@ -227,14 +227,13 @@ def main():
 			mydict[identifying] = name
 	out = {}
 	titles = set(mydict.values())
-	print len(mydict)
+	mylogger.info("merge hot games %s" % len(mydict))
 	for t in titles:
 		out[t] = []
 	for k, v in mydict.iteritems():	
 		if v in out:
 			out[v].append(k)
 	for title, ids in out.iteritems():
-		print title, ids
 		ranking_ids = get_channel_info_by_ids(ids)
 		ins = db_conn.query(RankListGame).filter(RankListGame.name==title).first()
 		if ranking_ids and ins is None:
@@ -242,6 +241,7 @@ def main():
 									"name": title,
 									"ranklists": u"^".join(ranking_ids),
 									})
+			db_conn.merge(item)
 		else:
 			ins.ranklists = u"^".join(ranking_ids)
 	db_conn.commit()
