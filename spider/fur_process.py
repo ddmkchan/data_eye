@@ -235,15 +235,16 @@ def main():
 			out[v].append(k)
 	for title, ids in out.iteritems():
 		ranking_ids = get_channel_info_by_ids(ids)
-		ins = db_conn.query(RankListGame).filter(RankListGame.name==title).first()
-		if ranking_ids and ins is None:
-			item = RankListGame(**{
-									"name": title,
-									"ranklists": u"^".join(ranking_ids),
-									})
-			db_conn.merge(item)
-		else:
-			ins.ranklists = u"^".join(ranking_ids)
+		if ranking_ids:
+			ins = db_conn.query(RankListGame).filter(RankListGame.name==title).first()
+			if ins is None:
+				item = RankListGame(**{
+										"name": title,
+										"ranklists": u"^".join(ranking_ids),
+										})
+				db_conn.merge(item)
+			else:
+				ins.ranklists = u"^".join(ranking_ids)
 	db_conn.commit()
 	
 def get_ranking_name_map():
