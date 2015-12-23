@@ -240,14 +240,14 @@ def hot_games_merge():
 				count += 1
 				item = RankListGame(**{
 										"name": title,
-										"ranklists": u"^".join(ranking_ids),
+										"ranklists": u",".join(ranking_ids),
 										})
 				db_conn.merge(item)
 				if count % 500 == 0:
 					mylogger.info("hot games merge %s commit" % count)
 					db_conn.commit()
 			else:
-				ins.ranklists = u"^".join(ranking_ids)
+				ins.ranklists = u",".join(ranking_ids)
 	db_conn.commit()
 	
 def get_ranking_name_map():
@@ -261,7 +261,7 @@ def get_channel_info_by_ids(ids):
 	#print "select source, identifying from hot_games where identifying in (\'%s\') group by source, identifying" % ",".join(ids)
 	for ret in db_conn.execute("select source, identifying from hot_games where identifying in (\'%s\') group by source, identifying" % ",".join(ids)):
 		source, identifying = ret
-		ranking_ids.append("%s\t%s" % (source, identifying))
+		ranking_ids.append("%s^%s" % (source, identifying))
 	return ranking_ids
 
 
