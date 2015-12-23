@@ -238,7 +238,7 @@ def get_360_kc():
 def get_appicsh_kc():
 	count = 0
 	#url = "http://m5.qq.com/app/applist.htm?listType=18&pageSize=150" #pc url
-	url = "http://appicsh.qq.com/cgi-bin/appstage/FirstPublishTab?type=3&index=0&pageSize=20"
+	url = "http://appicsh.qq.com/cgi-bin/appstage/FirstPublishTab?type=3&index=0&pageSize=30"
 	try:
 		r = requests.get(url, timeout=10)
 		if r.status_code == 200:
