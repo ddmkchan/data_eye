@@ -40,12 +40,17 @@ def get_9game_detail():
 					count += 1
 					soup = BeautifulSoup(response.text)
 					spec_pic = soup.find('div', class_='spec-pic')
+					title_div = soup.find('div', class_='title')
+					title 	= u''
 					imgs 	= u''
 					rating 	= u''
 					game_type = u''
 					comments_num = u''
 					topic_num_day = u''
 					topic_num_total = u''
+					if title_div is not None:
+						if title_div.find('a') is not None:
+							title = title_div.find('a').text
 					if spec_pic is not None:
 						imgs = u','.join([pic.find('img').get('src') for pic in spec_pic.find_all('span', class_='img')])
 					tips = soup.find('div', class_='tips')
@@ -72,6 +77,7 @@ def get_9game_detail():
 									comments_num = m.group() if m is not None else u''
 
 					item = GameDetailByDay(**{'kc_id': ret.id,
+													'name' : title,
 													'dt' : dt,
 													'imgs' : imgs,
 													'summary' : summary,
@@ -124,6 +130,7 @@ def get_18183_detail():
 			try:
 				response = sess.get(ret.url, timeout=10)
 				count += 1
+				title = u''
 				topic_num_total = u''
 				game_type = u''
 				pkg_size = u''
@@ -147,6 +154,9 @@ def get_18183_detail():
 							except Exception,e:
 								mylogger.error("18183 topic page error and sleep 3s %s" % (traceback.format_exc()))
 								sleep(3)
+				h1titile = soup.find('li', class_='h1titile')
+				if h1titile is not None and h1titile.find('h1') is not None:
+					title = h1titile.find('h1').text
 				dwnli = soup.find('li', class_='dwnli')
 				if dwnli is not None:
 					if dwnli.find('p') is not None:
@@ -164,6 +174,7 @@ def get_18183_detail():
 					if icons:
 						imgs = u",".join(icons)
 				item = GameDetailByDay(**{'kc_id': ret.id,
+												'name' : title,
 												'dt' : dt,
 												'imgs' : imgs,
 												'summary' : summary,
@@ -206,6 +217,7 @@ def get_appicsh_detail():
 
 					item = GameDetailByDay(**{'kc_id': ret.id,
 												'dt' : dt,
+												'name' : appinfo.get('appName', u''),
 												'imgs' : u','.join([i for i in appinfo['screenshots']]),
 												'summary' : appinfo.get('description', u''),
 												'pkg_size' : appinfo.get('fileSize', u''),
@@ -255,6 +267,7 @@ def get_xiaomi_new_detail():
 								count += 1
 								item = GameDetailByDay(**{
 														'kc_id': id_map.get(game_id),
+														'name' : g.get('displayName', u''),
 														'summary' : g.get('introduction', u''),
 														'author' : g.get('publisherName', u''),
 														'game_type' : g.get('className', u''),
@@ -307,6 +320,7 @@ def get_xiaomi_rpg_detail():
 							if not ins:
 								count += 1
 								item = GameDetailByDay(**{
+														'name' : g.get('displayName', u''),
 														'kc_id': id_map.get(game_id),
 														'summary' : g.get('introduction', u''),
 														'author' : g.get('publisherName', u''),
@@ -353,6 +367,7 @@ def get_open_play_detail():
 					item = GameDetailByDay(**{
 												'kc_id': ret.id,
 												'summary' : g.get('game_introduction', u''),
+												'name' : g.get('game_name', u''),
 												'author' : g.get('cp_name', u''),
 												'game_type' : g.get('game_class', u''),
 												'version' : g.get('version', u''),
@@ -394,6 +409,7 @@ def get_vivo_detail():
 						count += 1 
 						item = GameDetailByDay(**{
 												'kc_id': ret.id,
+												'name' : g.get('name', u''),
 												'summary' : g.get('desc', u''),
 												'rating' : g.get('comment', u''),
 												'author' : g.get('gameDeveloper', u''),
@@ -436,6 +452,7 @@ def get_coolpad_detail():
 				item = GameDetailByDay(**{
 											'kc_id': ret.id,
 											'summary' : g.get('summary', u''),
+											'name' : g.get('@name', u''),
 											'rating' : g.get('score', u''),
 											'game_type' : g.get('levelname', u''),
 											'version' : g.get('version', u''),
@@ -462,6 +479,7 @@ def get_coolpad_detail_by_id(resid):
 			t = re.sub(u'\r|\n', '', r.text)
 			doc = xmltodict.parse(t)
 			d = doc['response']['reslist']['res']
+			print d
 			if d['@rid'] != u'':
 				return d
 	except Exception,e:
@@ -490,6 +508,7 @@ def get_gionee_detail():
 					count += 1 
 					item = GameDetailByDay(**{
 												'kc_id': ret.id,
+												'name' : g.get('name', u''),
 												'rating' : g.get('score', u''),
 												'download_num' : g.get('downloadCount', u''),
 												'author' : g.get('publisher', u''),
@@ -531,6 +550,7 @@ def get_leveno_detail():
 					item = GameDetailByDay(**{
 												'kc_id': ret.id,
 												'rating' : g.get('averageStar', u''),
+												'name' : g.get('name', u''),
 												'game_type' : g.get('categoryName', u''),
 												'version' : g.get('version', u''),
 												'pkg_size' : g.get('size' u''),
@@ -567,6 +587,7 @@ def get_iqiyi_detail():
 				count += 1 
 				item = GameDetailByDay(**{
 											'kc_id': ret.id,
+											'name' : g.get('name', u''),
 											'summary' : g.get('desc', u''),
 											'game_type' : g.get('cate_name', u''),
 											'version' : g.get('version', u''),
@@ -614,6 +635,7 @@ def get_sogou_detail():
 				count += 1 
 				item = GameDetailByDay(**{
 											'kc_id': ret.id,
+											'name' : g.get('name', u''),
 											'rating' : g.get('score', u''),
 											'summary' : g.get('desc', u''),
 											'version' : g.get('vn', u''),
@@ -653,6 +675,7 @@ def get_dangle_detail():
 					packageTOs = g['packageTOs'][0] if g['packageTOs'] else {}
 				item = GameDetailByDay(**{
 											'kc_id': ret.id,
+											'name' : g.get('name', u''),
 											'summary' : g.get('description', u''),
 											'game_type' : g.get('categoryName', u''),
 											'version' : packageTOs.get('versionName', u''),
@@ -727,6 +750,7 @@ def get_muzhiwan_detail():
 				count += 1 
 				item = GameDetailByDay(**{
 												'kc_id': ret.id,
+												'name' : g.get('name', u''),
 												'summary' : g.get('description', u''),
 												'version' : g.get(u'版本', u''),
 												'game_type' : g.get(u'分类', u''),
@@ -758,6 +782,9 @@ def get_muzhiwan_detail_by_id(url):
 	try:
 		response = requests.get(url, timeout=10)
 		soup = BeautifulSoup(response.text)
+		game_name = soup.find('div', class_='game_name')
+		if game_name is not None and game_name.find('h1') is not None:
+			mydict['name'] = game_name.find('h1').text
 		info = soup.find('div', class_='detail_info')
 		gid = soup.find('input', id='gid')
 		if gid is not None:
@@ -799,6 +826,7 @@ def get_huawei_detail():
 				count += 1 
 				item = GameDetailByDay(**{
 											'kc_id': ret.id,
+											'name' : g.get('name', u''),
 											'summary' : g.get('description', u''),
 											'version' : g.get(u'版本', u''),
 											'game_type' : g.get(u'分类', u''),
@@ -822,6 +850,9 @@ def get_huawei_detail_by_id(url):
 		p = proxies[random.randrange(len(proxies))]
 		response = requests.get(url, timeout=20, proxies=p)
 		soup = BeautifulSoup(response.text)
+		title = soup.find('span', class_='title')
+		if title is not None:
+			mydict['name'] = title.text
 		for d in soup.find_all('li', class_='ul-li-detail'):
 			if u'开发者：' in d.text:
 				mydict['author'] = d.find('span').get('title')
@@ -876,6 +907,7 @@ def get_kuaiyong_detail():
 				count += 1 
 				item = GameDetailByDay(**{
 											'kc_id': ret.id,
+											'name' : g.get('title', u''),
 											'summary' : g.get('description', u''),
 											'version' : g.get(u'版　　本', u''),
 											'game_type' : g.get(u'类　　别', u''),
@@ -1017,6 +1049,7 @@ def get_wandoujia_detail():
 				developer = g.get('developer', {})
 				item = GameDetailByDay(**{
 											'kc_id': ret.id,
+											'name' : g.get('title', u''),
 											'summary' : g.get('description', u''),
 											'version' : apk.get('versionName', u''),
 											'game_type' : game_type,
@@ -1082,6 +1115,7 @@ def get_meizu_detail():
 				count += 1 
 				item = GameDetailByDay(**{
 									'kc_id': ret.id,
+									'name' : g.get('name', u''),
 									'summary' : g.get('description', u''),
 									'version' : g.get('version_name', u''),
 									'game_type' : g.get('category_name', u''),
@@ -1128,6 +1162,7 @@ def get_youku_detail():
 				count += 1 
 				item = GameDetailByDay(**{
 									'kc_id': ret.id,
+									'name' : g.get('appname', u''),
 									'summary' : g.get('desc', u''),
 									'version' : g.get('version', u''),
 									'game_type' : g.get('type', u''),
@@ -1173,6 +1208,7 @@ def get_360zhushou_app_detail():
 							mylogger.error("360zhushou app comments #### #### \t%s" % (traceback.format_exc()))
 						item = GameDetailByDay(**{
 									'kc_id': ret.id,
+									'name' : g.get('name', u''),
 									'summary' : g.get('brief', u''),
 									'version' : g.get('version_name', u''),
 									'game_type' : g.get('category_name', u''),
@@ -1215,6 +1251,7 @@ def get_i4_app_detail():
 						count += 1 
 						item = GameDetailByDay(**{
 									'kc_id': ret.id,
+									'name' : g.get('appName', u''),
 									'summary' : g.get('shortNote', u''),
 									'version' : g.get('shortVersion', u''),
 									'game_type' : g.get('typeName', u''),
@@ -1254,6 +1291,7 @@ def get_xyzs_app_detail():
 						count += 1 
 						item = GameDetailByDay(**{
 									'kc_id': ret.id,
+									'name' : g.get('title', u''),
 									'summary' : g.get('content', u''),
 									'version' : g.get('version', u''),
 									'game_type' : g.get('apptypesno', u''),
@@ -1292,6 +1330,7 @@ def get_91play_detail():
 						count += 1 
 						item = GameDetailByDay(**{
 									'kc_id': ret.id,
+									'name' : g.get('name', u''),
 									'summary' : g.get('content', u''),
 									'rating' : g.get('score', u''),
 									'version' : g.get('version', u''),
@@ -1332,6 +1371,7 @@ def get_360_gamebox_detail():
 						#	print k, v
 						item = GameDetailByDay(**{
 									'kc_id': ret.id,
+									'name' : g.get('name', u''),
 									'summary' : g.get('brief', u''),
 									'rating' : g.get('rating', u''),
 									'version' : g.get('version_name', u''),
@@ -1374,6 +1414,7 @@ def get_lenovo_shop_detail():
 						#	print k, v
 						item = GameDetailByDay(**{
 									'kc_id': ret.id,
+									'name' : g.get('name', u''),
 									'summary' : g.get('description', u''),
 									'rating' : g.get('averageStar', u''),
 									'version' : g.get('version', u''),
@@ -1447,6 +1488,7 @@ def get_wostore_detail():
 						#	print k, v
 						item = GameDetailByDay(**{
 									'kc_id': ret.id,
+									'name' : g.get('name', u''),
 									'summary' : g.get('desc', u''),
 									'rating' : g.get('rate', u''),
 									'version' : g.get('versionName', u''),
@@ -1486,6 +1528,7 @@ def get_mmstore_detail():
 						count += 1 
 						item = GameDetailByDay(**{
 									'kc_id': ret.id,
+									'name' : g.get('appName', u''),
 									'summary' : g.get('description', u''),
 									'rating' : g.get('grade', u''),
 									'version' : g.get('versionName', u''),
@@ -1541,6 +1584,7 @@ def get_vivo_store_detail():
 						count += 1 
 						item = GameDetailByDay(**{
 									'kc_id': ret.id,
+									'name' : g.get('title_zh', u''),
 									'summary' : g.get('introduction', u''),
 									'rating' : g.get('score', u''),
 									'version' : g.get('version_name', u''),
@@ -1553,7 +1597,7 @@ def get_vivo_store_detail():
 										})
 						db_conn.merge(item)
 			except Exception,e:
-				error_times += 1
+				error_times += 1ppName
 				mylogger.error("vivo_store app detail ### #### \t%s" % (traceback.format_exc()))
 	mylogger.info("get vivo_store app detail %s" % count)
 	db_conn.commit()

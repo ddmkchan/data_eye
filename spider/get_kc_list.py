@@ -1892,9 +1892,6 @@ def get_oppo_kc(start):
 										'url' : game_detail_url
 											}) 
 							db_conn.merge(item)
-						else:
-							ins.game_id = game_id
-							ins.pkg_name = game_pkg_name
 	except Exception,e:
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
 	mylogger.info("get %s records from oppo_app " % (count))
