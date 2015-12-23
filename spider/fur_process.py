@@ -210,7 +210,7 @@ def func3():
 				re.identifying = urls[0]
 				re.last_update = datetime.datetime.now()
 
-def main():
+def hot_games_merge():
 	count = 0
 	mydict = {}
 	from sqlalchemy import not_
@@ -298,6 +298,88 @@ def get_hot_game_detail(identifying):
 			return (imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total)
 	return None
 
+def get_error_record():
+	for ret in db_conn.execute("select kc_id from game_detail_by_day where author!='' group by kc_id having count(distinct author)>=2"):
+		_sql = "select kc_id, author, count(1) as total from game_detail_by_day where kc_id=%s group by kc_id, author order by total" % ret[0]
+		for re in db_conn.execute(_sql):
+			kc_id, author, total = re
+			if total == 1:
+				print kc_id, author, total 
+				delete_record = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==kc_id).filter(GameDetailByDay.author==author).first()	
+				if delete_record.dt < '2015-12-01': 
+					print delete_record.dt, '***'
+					db_conn.delete(delete_record)
+					break
+	db_conn.commit()
+
+def get_game_author_by_ids(ids):
+	mydict = {}
+	ids = [str(i) for i in ids]
+	_sql =  "select kc_id, author from game_detail_by_day where kc_id in (%s) group by kc_id, author" % (",".join(ids))
+	for re in db_conn.execute(_sql):
+		kc_id, author = re
+		if author:
+			mydict[kc_id] = author
+	return mydict
+
+def publish_games_merge():
+	count = 0
+	mydict = {}
+	from sqlalchemy import not_
+	for ret in new_session().query(KC_LIST).filter(KC_LIST.title!=u'').filter(not_(KC_LIST.source.in_((21, 22)))).filter(KC_LIST.status==0).filter(KC_LIST.publish_date>=u'2015-10-01'):
+		segs = re.split(u'-|\(|\)|（|）|：|:|[\s]*-|－', ret.title)
+		if len(segs)>=2:
+			if ret.title.startswith('(') or ret.title.startswith(u'（'): 
+				mydict[ret.id] = segs[2]
+			else:
+				mydict[ret.id] = segs[0]
+		else:
+			mydict[ret.id] = ret.title
+	out = {}
+	titles = set(mydict.values())
+	mylogger.info("merge new publish game %s" % len(titles))
+	for t in titles:
+		out[t] = []
+	for k, v in mydict.iteritems():	
+		if v in out:
+			out[v].append(str(k))
+	for title, ids in out.iteritems():
+		unknown_ids = []
+		author_to_ids = {}
+		author_map = get_game_author_by_ids(ids)
+		for kc_id in ids:
+			author = author_map.get(int(kc_id), u'')
+			if author:
+				if author in author_to_ids:
+					author_to_ids[author].append(kc_id)
+				else:
+					is_match = False
+					for key in author_to_ids.keys():
+						if author and key and (author in key or key in author):
+							is_match =  True
+							author_to_ids[key].append(kc_id)
+					if not is_match:
+						author_to_ids[author] = [kc_id]
+			else:
+				unknown_ids.append(kc_id)
+		if len(unknown_ids) >= 2:
+			count += 1
+		if len(unknown_ids) == 1:
+			count4 += 1
+		if author_to_ids:
+			#print title, ",".join(author_to_ids.keys())
+			#print title, '****************'
+			#for k, v in author_to_ids.iteritems():
+			#	print k, v
+			if len(author_to_ids.keys()) == 1:
+				count2+=1
+			if len(author_to_ids.keys()) > 1:
+				count3+=1
+		#print title, "check list: ", unknown_ids
+	print count
+	print count4
+	print count2
+	print count3
 
 if __name__ == '__main__':
 	#remove_duplicate_record()

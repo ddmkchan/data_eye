@@ -38,49 +38,6 @@ def main():
 		if v in out:
 			out[v].append(str(k))
 	for title, ids in out.iteritems():
-		unknown_ids = []
-		author_to_ids = {}
-		author_map = get_game_author_by_ids(ids)
-		for kc_id in ids:
-			author = author_map.get(int(kc_id), u'')
-			if author:
-				if author in author_to_ids:
-					author_to_ids[author].append(kc_id)
-				else:
-					is_match = False
-					for key in author_to_ids.keys():
-						if author and key and (author in key or key in author):
-							is_match =  True
-							author_to_ids[key].append(kc_id)
-					if not is_match:
-						author_to_ids[author] = [kc_id]
-			else:
-				unknown_ids.append(kc_id)
-		if len(unknown_ids) >= 2:
-			count += 1
-		if author_to_ids:
-			#print title, ",".join(author_to_ids.keys())
-			print title, '****************'
-			for k, v in author_to_ids.iteritems():
-				print k, v
-			print 
-		#print title, "check list: ", unknown_ids
-	print count
-		
-		
-def get_game_author_by_ids(ids):
-	mydict = {}
-	ids = [str(i) for i in ids]
-	_sql =  "select kc_id, author from game_detail_by_day where kc_id in (%s) group by kc_id, author" % (",".join(ids))
-	for re in db_conn.execute(_sql):
-		kc_id, author = re
-		if author:
-			mydict[kc_id] = author
-	return mydict
-
-
-def ff():
-	if False:
 		publish_status = get_publish_status(ids)	
 		detail =  get_game_detail(ids)
 		if detail is not None:
