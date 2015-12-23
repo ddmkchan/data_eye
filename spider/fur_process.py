@@ -258,8 +258,8 @@ def get_ranking_name_map():
 
 def get_channel_info_by_ids(ids):
 	ranking_ids = []
-	#print "select source, identifying from hot_games where identifying in (\'%s\') group by source, identifying" % ",".join(ids)
-	for ret in db_conn.execute("select source, identifying from hot_games where identifying in (\'%s\') group by source, identifying" % ",".join(ids)):
+	ids = ["\'%s\'" %i for i in ids]
+	for ret in db_conn.execute("select source, identifying from hot_games where identifying in (%s) group by source, identifying" % ",".join(ids)):
 		source, identifying = ret
 		ranking_ids.append("%s^%s" % (source, identifying))
 	return ranking_ids
@@ -383,4 +383,4 @@ def publish_games_merge():
 
 if __name__ == '__main__':
 	#remove_duplicate_record()
-	main()
+	hot_games_merge()
