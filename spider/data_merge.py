@@ -42,47 +42,50 @@ def main():
 		detail =  get_game_detail(ids)
 		if detail is not None:
 			imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total = detail
-			ins = db_conn.query(PublishGame).filter(PublishGame.name==title).first()
-			#print title, ids, '*******', publish_status.get('logo', u'')
-			if ins is None:
-				count += 1
-				item = PublishGame(**{
-									'name': title,
-									'logo': publish_status.get('logo', u''),
-									'imgs': imgs,
-									'game_type': game_type,
-									'summary': summary,
-									'download_num': download_num,
-									'comment_num': comment_num,
-									'rating': rating,
-									'pkg_size': pkg_size,
-									'author': author,
-									'version': version,
-									'topic_num': topic_num_total,
-									'kc_list_ids': publish_status.get('kc_list_ids', u''),
-									'channels': publish_status.get('channel_list', u''),
-									'publish_dates': publish_status.get('publish_date_list', u''),
-									})
-				db_conn.merge(item)
-				if count % 1000 == 0:
-					db_conn.commit()
-					mylogger.info("merge data %s commit ..." % count)	
-			else:
-				#ins.imgs = imgs
-				#ins.game_type = game_type
-				#ins.summary = summary
-				ins.download_num = download_num
-				ins.comment_num = comment_num
-				ins.rating = rating
-				#ins.pkg_size = pkg_size
-				#ins.author = author
-				#ins.version = version
-				ins.topic_num = topic_num_total
-				ins.logo  = publish_status.get('logo', u'')
-				ins.channels = publish_status.get('channel_list', u'')
-				ins.publish_dates = publish_status.get('publish_date_list', u'')
-				ins.kc_list_ids = publish_status.get('kc_list_ids', u'')
-				ins.last_update = datetime.datetime.now()
+		else:
+			imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total = [u''] * 10
+		ins = db_conn.query(PublishGame).filter(PublishGame.name==title).first()
+		#print title, ids, '*******', publish_status.get('logo', u'')
+		if ins is None:
+			count += 1
+			item = PublishGame(**{
+								'name': title,
+								'logo': publish_status.get('logo', u''),
+								'imgs': imgs,
+								'game_type': game_type,
+								'summary': summary,
+								'download_num': download_num,
+								'comment_num': comment_num,
+								'rating': rating,
+								'pkg_size': pkg_size,
+								'author': author,
+								'version': version,
+								'topic_num': topic_num_total,
+								'kc_list_ids': publish_status.get('kc_list_ids', u''),
+								'channels': publish_status.get('channel_list', u''),
+								'publish_dates': publish_status.get('publish_date_list', u''),
+								})
+			db_conn.merge(item)
+			if count % 1000 == 0:
+				db_conn.commit()
+				mylogger.info("merge data %s commit ..." % count)	
+		else:
+			ins.imgs = imgs
+			ins.game_type = game_type
+			ins.summary = summary
+			ins.download_num = download_num
+			ins.comment_num = comment_num
+			ins.rating = rating
+			ins.pkg_size = pkg_size
+			ins.author = author
+			ins.version = version
+			ins.topic_num = topic_num_total
+			ins.logo  = publish_status.get('logo', u'')
+			ins.channels = publish_status.get('channel_list', u'')
+			ins.publish_dates = publish_status.get('publish_date_list', u'')
+			ins.kc_list_ids = publish_status.get('kc_list_ids', u'')
+			ins.last_update = datetime.datetime.now()
+		break
 	db_conn.commit()
 	mylogger.info("merge data done !!!")	
 

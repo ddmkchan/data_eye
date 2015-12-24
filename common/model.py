@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 #coding=utf-8
 from sqlalchemy import MetaData, Column, Integer, String, Float, CHAR
-from sqlalchemy import DateTime, func, Unicode, UnicodeText, Boolean, Date, Text, BLOB
+from sqlalchemy import DateTime, func, Unicode, UnicodeText, Boolean, Date, Text, BLOB, Date
 import sqlalchemy
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import UniqueConstraint
@@ -215,6 +215,29 @@ class RankListGame(Base):
 	id = Column(Integer, primary_key=True, autoincrement=True)
 	name = Column(Unicode(100), nullable=False, default=u'', index=True)
 	ranklists = Column(UnicodeText, nullable=False, default=u'')
+	create_date = Column(DateTime, nullable=False, default=datetime.now())#创建时间
+	last_update = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间
+
+
+class ADVRecord(Base):
+
+	__tablename__ = 'adv_record'
+
+	id = Column(Integer, primary_key=True, autoincrement=True)
+	position_type_id = Column(Integer, nullable=False, default=0)
+	channel_id = Column(Integer, nullable=False, default=-1, index=True)
+	new_type_id = Column(Integer, nullable=False, default=-1)
+	game_type_id = Column(Integer, nullable=False, default=-1)
+	game_theme_id = Column(Integer, nullable=False, default=-1)
+	frame_theme_id = Column(Integer, nullable=False, default=-1)
+	game_name = Column(Unicode(100), nullable=False, default=u'')
+	game_developer = Column(Unicode(100), nullable=False, default=u'')
+	img_path = Column(Unicode(500), nullable=False, default=u'')
+	update_date = Column(Date, nullable=False, default=date.today())
+	platform = Column(Unicode(100), nullable=False, default=u'')
+	position_name = Column(Unicode(100), nullable=False, default=u'')
+	identifying = Column(Unicode(500), nullable=False, default=u'')
+	platform = Column(Unicode(100), nullable=False, default=u'')
 	create_date = Column(DateTime, nullable=False, default=datetime.now())#创建时间
 	last_update = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间
 
