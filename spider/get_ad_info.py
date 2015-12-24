@@ -415,19 +415,76 @@ def get_360gamebox_raw_data():
 			
 
 
-def get_360_ad_raw_data():
+def get_360zhushou_app_ad():
 	prefix = u"http://125.88.193.234/AppStore/getRecomendAppsBytype?type=2&s_3pk=1&os=22&vc=300030515&withext=1&model=m2+note&sn=4.589389937671455&cu=mt6753&ca1=armeabi-v7a&ca2=armeabi&&se=1920x1080&webp=1&fm=gm001&m=13389b498494c1230fab6b4c04572848&s_stream_app=1&m2=1680ae9efad81fb51224ec048d296b6a&v=3.5.15&re=1&nt=1&ch=100130&ppi=1080x1920&cpc=1&startCount=0&snt=-1&timestamp=1450431524724"
 	for page in xrange(1, 3):
 		url = prefix + "&page=%s" % page
-		is_json = True
-		flag = u'360手机助手app首页大图_%s' % page
-		channel = source_map.get('360zhushou')
-		rd = get_data_from_api(url)
-		if rd is not None and rd: 
-			src = url
-			store_data((rd, src, channel, is_json, flag))
+		j = get_data_from_api(url)
+		if j is not None:
+			for data in j['data']:
+				if 'category' in data:
+					for br in data['category']:
+						channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+						game_name = br.get('name', u'')
+						if game_name:
+							picUrl = br.get('soft_large_logo_url', u'')
+						else:
+							picUrl = br.get('image_url_704_244', u'')
+						if picUrl:
+							channel = source_map.get('360zhushou')
+							position_name = u'首页大图'
+							position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+							insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+			for card in j['card_list']:
+				title = card.get('name', u'')
+				if title == u'每日单机':
+					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+					picUrl = card.get('banner', u'')
+					if picUrl:
+						channel = source_map.get('360zhushou')
+						position_name = title
+						position_type_id = position_type_map.get(u'热门图标推荐')
+						insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+					for game in card['apps']:
+						channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+						picUrl = game.get('logo_url', u'')
+						if picUrl:
+							game_name = game.get('name', u'')
+							position_name = title
+							position_type_id = position_type_map.get(u'热门图标推荐')
+							channel = source_map.get('360zhushou')
+							insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+		
+				if title == u'新游预约':
+					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+					picUrl = card.get('banner', u'')
+					if picUrl:
+						channel = source_map.get('360zhushou')
+						position_name = title
+						position_type_id = position_type_map.get(u'热门图标推荐')
+						insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+					for game in card['apps']:
+						channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+						picUrl = game.get('logo_url', u'')
+						if picUrl:
+							game_name = game.get('name', u'')
+							position_name = title
+							position_type_id = position_type_map.get(u'热门图标推荐')
+							channel = source_map.get('360zhushou')
+							insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+					for game in card['reserves']:
+						channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+						picUrl = game.get('logo_url', u'')
+						if picUrl:
+							game_name = game.get('name', u'')
+							position_name = title
+							position_type_id = position_type_map.get(u'热门图标推荐')
+							channel = source_map.get('360zhushou')
+							insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+		
 	
 
+def ff():
 	#360手机助手PC官网
 	url = u"http://zhushou.360.cn/Game/"
 	rd = get_data_from_api(url, jsondata=False)
@@ -436,7 +493,6 @@ def get_360_ad_raw_data():
 		flag = u'360手机助手PC官网'
 		channel = source_map.get('360zhushou')
 		src = url
-		store_data((rd, src, channel, is_json, flag))
 
 
 def get_vivo_gamecenter_raw_data():
@@ -469,6 +525,7 @@ def main():
 	get_9game_newgame()
 	get_9game_bbs()
 	get_360gamebox_raw_data()
+	get_360zhushou_app_ad()
 
 if __name__ == "__main__":
 	main()
