@@ -38,7 +38,7 @@ def get_imgs():
 		mylogger.error(traceback.format_exc())
 
 def get_imgs_from_db():
-	return [(re.img, re.id) for re in db_conn.query(ADVRecord).filter(ADVRecord.img!='')]
+	return [(re.img_path, re.id) for re in db_conn.query(ADVRecord).filter(ADVRecord.img_path!='')]
 
 if __name__ == '__main__':
 	get_imgs()
