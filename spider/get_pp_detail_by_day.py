@@ -40,6 +40,7 @@ def get_pp_detail():
 				count += 1 
 				item = GameDetailByDay(**{
 											'kc_id': ret.id,
+											'name' : g.get('name', u''),
 											'summary' : g.get('content', u''),
 											'version' : g.get('ver', u''),
 											'game_type' : g.get('catName', u''),

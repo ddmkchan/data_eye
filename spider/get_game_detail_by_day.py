@@ -479,7 +479,6 @@ def get_coolpad_detail_by_id(resid):
 			t = re.sub(u'\r|\n', '', r.text)
 			doc = xmltodict.parse(t)
 			d = doc['response']['reslist']['res']
-			print d
 			if d['@rid'] != u'':
 				return d
 	except Exception,e:
@@ -582,7 +581,7 @@ def get_iqiyi_detail():
 			d =  get_iqiyi_detail_by_id(ret.game_id)
 			if isinstance(d, EX):
 				error_times += 1
-			elif d is not None:
+			elif d is not None and 'app' in d:
 				g = d['app']
 				count += 1 
 				item = GameDetailByDay(**{
@@ -1597,7 +1596,7 @@ def get_vivo_store_detail():
 										})
 						db_conn.merge(item)
 			except Exception,e:
-				error_times += 1ppName
+				error_times += 1
 				mylogger.error("vivo_store app detail ### #### \t%s" % (traceback.format_exc()))
 	mylogger.info("get vivo_store app detail %s" % count)
 	db_conn.commit()
