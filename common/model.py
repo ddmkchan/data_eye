@@ -194,20 +194,6 @@ class RankingChannel(Base):
 	id = Column(Integer, primary_key=True, autoincrement=False)
 	name = Column(Unicode(100), nullable=False, default=u'', index=True)
 
-class ADRawData(Base):
-
-	__tablename__ = 'ad_raw_data'
-
-	id = Column(Integer, primary_key=True, autoincrement=True)
-	raw_data = Column(Text, nullable=False)
-	src = Column(UnicodeText, nullable=False, default=u'')
-	channel = Column(Integer, nullable=False, default=0, index=True)
-	is_json = Column(Boolean, nullable=False)
-	flag = Column(Unicode(50), nullable=False, default=u'', index=True)
-	dt = Column(Unicode(100), nullable=False, default=u'', index=True)
-	create_date = Column(DateTime, nullable=False, default=datetime.now())#创建时间
-	last_update = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间
-
 class RankListGame(Base):
 
 	__tablename__ = 'ranklist_game'
