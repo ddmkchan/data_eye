@@ -27,9 +27,13 @@ from get_kc_list import source_map
 
 def get_position_type_map():
 	mydict = {}
-	conn = MySQLdb.connect(host="127.0.0.1",port=3306,user="root",passwd="admin",charset="utf8")
+	localIP = socket.gethostbyname(socket.gethostname())
+	if localIP == u'192.168.1.215':
+		conn = MySQLdb.connect(host="127.0.0.1", port=3307, user="root", passwd="dc@2013", db='new_publish_game', charset="utf8")
+	else:
+		conn = MySQLdb.connect(host="127.0.0.1", port=3306, user="root", passwd="admin", db='dataeye', charset="utf8")
 	cursor = conn.cursor()
-	cursor.execute("select * from dataeye.position_type")
+	cursor.execute("select * from position_type")
 	for re in cursor.fetchall():
 		id, name = re
 		mydict[name] = id
