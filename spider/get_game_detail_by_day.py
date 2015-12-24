@@ -927,7 +927,7 @@ def get_kuaiyong_detail_by_id(URL):
 	mydict = {}
 	try:
 		p = proxies[random.randrange(len(proxies))]
-		response = requests.get(URL, timeout=15, proxies=p)
+		response = requests.get(URL, timeout=30, proxies=p)
 		soup = BeautifulSoup(response.text)
 		base_right = soup.find('div', class_='base-right')
 		mydict = {}
