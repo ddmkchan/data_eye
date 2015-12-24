@@ -447,7 +447,7 @@ def get_vivo_gamecenter_raw_data():
 def insert_ad_data(ret):
 	channel, position_type_id, position_name, img, game_name, identifying = ret
 	dt = datetime.date.today()
-	ins = db_conn.query(ADVRecord).filter(ADVRecord.update_date==dt).filter(ADRawData.channel==channel).filter(ADVRecord.position_type_id==position_type_id).filter(ADVRecord.img_path==img).filter(ADVRecord.position_name==position_name).first()
+	ins = db_conn.query(ADVRecord).filter(ADVRecord.update_date==dt).filter(ADVRecord.channel==channel).filter(ADVRecord.position_type_id==position_type_id).filter(ADVRecord.img_path==img).filter(ADVRecord.position_name==position_name).first()
 	if ins is None:
 		item = ADVRecord(**{
 						"channel_id"		: channel,
