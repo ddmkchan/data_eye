@@ -650,7 +650,6 @@ def get_open_play_ad():
 						picUrl = item.get('game_icon', u'')
 						if picUrl:
 							game_name = item.get('game_name')
-							print game_name, picUrl
 							position_name = u'必玩'
 							position_type_id = position_type_map.get(u'热门图标推荐')
 							channel = source_map.get('open_play')
@@ -669,7 +668,6 @@ def get_wostore_ad():
 			picUrl = app.get('appIconURL', u'')
 			if picUrl:
 				game_name = app.get('appName', u'')
-				print game_name, picUrl
 				position_name = u'首页大图'
 				position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
 				channel = source_map.get('wostore')
@@ -690,7 +688,6 @@ def get_wostore_ad():
 							position_type_id = position_type_map.get(u'热门图标推荐')
 							channel = source_map.get('wostore')
 							#insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
-				#print d.get('appName'), d.get('isBigPic')
 				if d.get('isBigPic', -1) == u'1':
 					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
 					picUrl = d.get('iconURL', u'')
@@ -1007,7 +1004,6 @@ def insert_ad_data(ret):
 						})
 		db_conn.merge(item)
 	db_conn.commit()
-
 
 
 def main():
