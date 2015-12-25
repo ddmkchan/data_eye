@@ -25,7 +25,7 @@ source_map = {
 			"xiaomi_new": 5,#小米app 最新
 			"xiaomi_rpg": 6,#小米app rpg
 			"open_play": 7,#爱游戏app
-			"vivo": 8,
+			"vivo": 8,#vivo游戏中心
 			"coolpad": 9,
 			"gionee": 10,
 			"lenovo": 11,
@@ -53,6 +53,7 @@ source_map = {
 			"vivo_store": 33,
 			"huawei_app": 34,
 			"oppo_app": 50,
+			"wogame": 998,
 				}
 
 class T:

@@ -486,14 +486,14 @@ def get_360zhushou_app_ad():
 
 def get_360zhushou_web_ad():
 	#360手机助手PC官网
-	url = u"http://zhushou.360.cn/Game/"
+	url = "http://zhushou.360.cn/Game/"
 	soup = get_page_source_from_web(url, timeout=30)
 	if soup is not None and soup:
 		slideCon = soup.find('div', class_='slideCon')
 		if slideCon is not None:
 			for br in slideCon.find_all('a'):
 				channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
-				img_div = br.find('a')
+				img_div = br.find('img')
 				if img_div is not None:
 					game_name = img_div.get('alt')
 					picUrl = img_div.get('src')
@@ -501,23 +501,495 @@ def get_360zhushou_web_ad():
 						position_name = u'首页大图'
 						position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
 						channel = source_map.get('360zhushou_web')
-						print game_name, picUrl
-		tpcimg = soup.find('dt', id='tpcimg')
-		if tpcimg is not None:
-			app = tpcimg.find('a')
-			if app is not None:
-				game_name = app.get('title')
-				img_div = app.find('img')
-				if img_div is not None:
-					picUrl = img_div.get('src')
-					print game_name, picUrl, '***'
+						insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+		mrit = soup.find('div', class_='fr mrit')
+		if mrit is not None:
+			scripts = mrit.find_all('script')
+			if len(scripts) == 3:
+				tpcdata = scripts[2].text
+				names= re.findall(u"title : '([\u4e00-\u9fa5\S]+)'", tpcdata)
+				icons= re.findall(u"sicon : '([\S]+)'", tpcdata)
+				if len(names) == len(icons):
+					for i in xrange(len(names)):
+						channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+						game_name = names[i]
+						picUrl = icons[i]
 				
+						position_name = u'首页大图'
+						position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+						channel = source_map.get('360zhushou_web')
+						insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+		ctcon = soup.find('div', class_='ctcon')
+		if ctcon is not None:
+			ul = ctcon.find('ul', class_='sty1')
+			if ul is not None:
+				for li in ul.find_all('li'):
+					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+					infos = li.find_all('a')
+					if len(infos) == 2:
+						game_info = infos[1]
+						href =  game_info.get('href')
+						for param in re.split('&', href):
+							segs = param.split('=')
+							if len(segs) == 2:
+								if segs[0] == 'name':
+									game_name = segs[1]
+					app = li.find('a')
+					if app is not None:
+						img_div = app.find('img')
+						if img_div is not None:
+							picUrl = img_div.get('src')
+							position_name = u'精品推荐'
+							position_type_id = position_type_map.get(u'热门图标推荐')
+							channel = source_map.get('360zhushou_web')
+							insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+
+def get_mmstore_ad():
+	#游戏 推荐
+	url = "http://odp.mmarket.com/t.do?requestid=json_hot_recommend_game_library"
+	headers = {
+				"appname": "MM5.3.0.001.01_CTAndroid_JT", 
+				"ua":"android-19-720x1280-CHE2-UL00"}
+	j = get_data_from_api(url, headers=headers, timeout=30)
+	if j is not None:
+		for item in j['cards']:
+			for adv in item['advs']:
+				channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+				game_name = adv.get('slogan', u'')
+				picUrl = adv.get('picurl', u'')
+				if picUrl:
+					position_name = u'首页大图'
+					position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+					channel = source_map.get('mmstore')
+					insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+		
+	for i in xrange(1,7):
+		url = "http://odp.mmarket.com/t.do?requestid=android_mm5.0_index&pktype=mmindex&adKey=adList_MM5_AD_CATEGORY&outputWay=list&currentPage=%s&totalRows=33" % i
+		j = get_data_from_api(url, headers=headers, timeout=30)
+		if j is not None:
+			for item in j['cards']:
+				title = item.get('title', u'')
+				if title in [u'热门游戏', u'精选单机', u'天天有奖', u'新游试玩']:
+					for game in item['items']:
+						channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+						game_name = game.get('name', u'')
+						picUrl = game.get('iconUrl', u'')
+						if picUrl:
+							position_name = title
+							position_type_id = position_type_map.get(u'热门图标推荐')
+							channel = source_map.get('mmstore')
+							insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+				if 'advs' in item:
+					for adv in item['advs']:
+						channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+						picUrl = adv.get('picurl', u'')
+						game_name = adv.get('slogan', u'')
+						if picUrl:
+							position_name = u'首页大图'
+							position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+							channel = source_map.get('mmstore')
+							insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
 
 
-def get_vivo_gamecenter_raw_data():
+def get_open_play_ad():
+	url = "http://open.play.cn/api/v2/mobile/channel/content.json?channel_id=728&terminal_id=18166&current_page=0&rows_of_page=1"
+	j = get_data_from_api(url)
+	if j is not None:
+		if j['code'] == 0:
+			sub_channel = j['ext']['main']['content']['sub_channel']
+			if len(sub_channel) >= 1:
+				channel = sub_channel[0]
+				adv_url = channel['game_list'][0]['image_detail']['link_url']
+				ad_data =  get_data_from_api(adv_url)
+				if ad_data is not None:
+					for item in ad_data['ext']['main']['content']['game_list']:
+						channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+						image_detail = item.get('image_detail')
+						if image_detail is not None:
+							picUrl = image_detail.get('img_url', u'')
+							if picUrl:
+								position_name = u'首页大图'
+								position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+								channel = source_map.get('open_play')
+								insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+						game_detail = item.get('game_detail')
+						if game_detail is not None:
+							game_name = game_detail.get('game_name', u'')
+							picUrl = game_detail.get('game_icon', u'')
+							if picUrl:
+								position_name = u'游戏推荐'
+								position_type_id = position_type_map.get(u'热门图标推荐')
+								channel = source_map.get('open_play')
+								insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+							
+	#网游频道banner	
+	url = "http://open.play.cn/api/v2/mobile/channel/version/show_advs.json?channel_id=762&terminal_id=18166&vc=770"
+	j = get_data_from_api(url)
+	if j is not None:
+		if j['code'] == 0:
+			for adv in j['ext'][0]['detail_list']:
+				channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+				picUrl = adv.get('img_url')
+				if picUrl:
+					position_name = u'大屏轮播图'
+					position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+					channel = source_map.get('open_play')
+					insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+		
+	#必玩
+	url = "http://open.play.cn/api/v2/mobile/channel/content.json?channel_id=1807&terminal_id=18166&current_page=0&rows_of_page=20&order_id=0"
+	j = get_data_from_api(url)
+	if j is not None:
+		if j['code'] == 0:
+			for d in ad_data['ext']['main']['content']['game_list']:
+				if d['game_detail'] is not None:
+					
+					item = d['game_detail']
+					if item is not None:
+						channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+						picUrl = item.get('game_icon', u'')
+						if picUrl:
+							game_name = item.get('game_name')
+							print game_name, picUrl
+							position_name = u'必玩'
+							position_type_id = position_type_map.get(u'热门图标推荐')
+							channel = source_map.get('open_play')
+							insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
 
-	flags = [u'首页大图'] 
-	urls = [u'http://main.gamecenter.vivo.com.cn/clientRequest/recommendTop?appVersionName=2.0.1&patch_sup=1&appVersion=38&imei=867570024967881&e=150100523832314d4200fe7dc6356213&elapsedtime=11636411&origin=20&adrVerName=5.1&cs=0&pixel=3.0&type=top&av=22&model=m2+note&s=2%7C2009401673']
+def get_wostore_ad():
+	headers = {"phoneAccessMode": "3",
+				"version": "android_v5.0.3",
+				"handphone": "00000000000"}
+	#必玩顶部广告
+	url = "http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=ADListNew&channel=1"
+	j = get_data_from_api(url, headers=headers)
+	if j is not None:
+		for app in j['RANKINGAPP']:
+			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+			picUrl = app.get('appIconURL', u'')
+			if picUrl:
+				game_name = app.get('appName', u'')
+				print game_name, picUrl
+				position_name = u'首页大图'
+				position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+				channel = source_map.get('wostore')
+				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+
+	#必玩
+	for p in xrange(1, 6):
+		url = "http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=appList&channel=18&pageNum=%s&count=20" % p
+		j = get_data_from_api(url, headers=headers)
+		if j is not None:
+			for d in j['WOSTORE']:
+				if d.get('appType', -1) == 6:
+					for g in d['appArray']:
+						picUrl = g.get('iconURL', u'')
+						if picUrl:
+							game_name = g.get('appName', u'')
+							position_name = u'图标推荐'
+							position_type_id = position_type_map.get(u'热门图标推荐')
+							channel = source_map.get('wostore')
+							#insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+				#print d.get('appName'), d.get('isBigPic')
+				if d.get('isBigPic', -1) == u'1':
+					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+					picUrl = d.get('iconURL', u'')
+					if picUrl:
+						game_name = d.get('appName', u'')
+						position_name = u'首页大图'
+						position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+						channel = source_map.get('wostore')
+						insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+
+	#礼包频道
+	for p in xrange(1,5):
+		url = "http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=appList&channel=19&categoryID=0&pageNum=%s&count=20" % p
+		j = get_data_from_api(url, headers=headers)
+		if j is not None:
+			for d in j['WOSTORE']:
+				if d.get('isBigPic', -1) == u'1':
+					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+					picUrl = d.get('iconURL', u'')
+					if picUrl:
+						game_name = d.get('appName', u'')
+						position_name = u'首页大图'
+						position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+						channel = source_map.get('wostore')
+						insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+	
+
+def get_wogame_ad():
+	
+	headers = {
+				"phoneAccessMode": "3",
+				"imei": "865931027730878",
+				"IP": "", 
+				"networkOperator": "4",
+				"UUID": "97fed435-aef3-4acf-aa06-0ac3be255723",
+				"channel_id": "12243",
+				"version_code": "20151117",
+				"If-Modified-Since": "Fri, 25 Dec 2015 06:29:37 GMT+00:00",
+				"phone_num": "18565778352",
+				"wogame_version": "20151117",
+				"user_id": "8910319542245213232",
+				"imsi": "460015776509846",
+				"phone_model": "MI 4LTE",
+				"User-Agent": "Dalvik/1.6.0 (Linux; U; Android 4.4.4; MI 4LTE MIUI/V7.0.5.0.KXDCNCI)"
+				}
+
+	#banner
+	url = "http://wogame4.wostore.cn/wogame/getBannerList.do"
+	j = get_data_from_api(url, headers=headers)
+	if j is not None:
+		for br in j['banners']:
+			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+			picUrl = br.get('banner_url', u'')
+			if picUrl:
+				game_name = br.get('title', u'')
+				position_name = u'大屏轮播图'
+				position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+				channel = source_map.get('wogame')
+				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+	
+
+	#首页
+	url = "http://wogame4.wostore.cn/wogame/initialize.do"
+	j = get_data_from_api(url, headers=headers)
+	if j is not None:
+		for tp in j['data']['template']:
+			title = tp.get('name', u'')
+			load_url = tp.get('load_url')
+			if title in [u'推荐网游', u'猜你喜欢', u'精选单机']:
+				detail_url = "http://wogame4.wostore.cn/wogame%s" % load_url
+				j = get_data_from_api(detail_url, headers=headers)
+				if j is not None:
+					for game in j['data']:
+						channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+						picUrl = game.get('icon_url', u'')
+						if picUrl:
+							game_name = game.get('game_name', u'')
+							position_name = title
+							position_type_id = position_type_map.get(u'热门图标推荐')
+							channel = source_map.get('wogame')
+							insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+			if title == u'光棍福利大派送':
+				detail_url = "http://wogame4.wostore.cn/wogame%s" % load_url
+				j = get_data_from_api(detail_url, headers=headers)
+				if j is not None:
+					for game in j['data']:
+						channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+						picUrl = game.get('banner_url', u'')
+						if picUrl:
+							game_name = game.get('game_name', u'')
+							position_name = title
+							position_type_id = position_type_map.get(u'热门图标推荐')
+							channel = source_map.get('wogame')
+							insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+			if title == u'最IN网游':
+				detail_url = "http://wogame4.wostore.cn/wogame%s" % load_url
+				j = get_data_from_api(detail_url, headers=headers)
+				if j is not None:
+					for item in j['data']:
+						game = item['game']
+						channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+						picUrl = game.get('banner_url', u'')
+						if picUrl:
+							game_name = game.get('game_name', u'')
+							position_name = title
+							position_type_id = position_type_map.get(u'热门图标推荐')
+							channel = source_map.get('wogame')
+							insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+
+	#礼包
+	url = "http://wogame4.wostore.cn/wogame/interestGifts.do?jsondata=%7B%22data%22%3A%5B%22-20151117%22%5D%7D"
+	j = get_data_from_api(url, headers=headers)
+	if j is not None:
+		for item in j['data']:
+			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+			br = item['game']
+			picUrl = br.get('icon_url', u'')
+			if picUrl:
+				game_name = br.get('game_name', u'')
+				position_name = u'你可能感兴趣的礼包'
+				position_type_id = position_type_map.get(u'热门图标推荐')
+				channel = source_map.get('wogame')
+					
+				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+	
+def get_oppo_ad():
+	#单机
+	single_url = "https://igame.oppomobile.com/gameapp/game/single"
+	#网游
+	online_url = "https://igame.oppomobile.com/gameapp/game/online"
+	for url in [single_url, online_url]:
+		j = get_data_from_api(url)
+		if j is not None:
+			if 'banners' in j:
+				brs = j['banners']
+			else:
+				brs = j['bannerList']
+			for br in brs:
+				channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+				picUrl = br.get('showPicUrl', u'')
+				if picUrl:
+					game_name = br.get('showText', u'')
+					game_name = u'' if game_name is None else game_name
+					position_name = u'首页大图'
+					position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+					channel = source_map.get('oppo_app')
+						
+					insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+
+	#首页
+	url = "https://igame.oppomobile.com/gameapp/game/index"
+	j = get_data_from_api(url)
+	if j is not None:
+		for game in j['bigBannerList']:
+			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+			picUrl = game.get('showPicUrl', u'')
+			if picUrl:
+				game_name = br.get('showText', u'')
+				game_name = u'' if game_name is None else game_name
+				position_name = u'大屏轮播图'
+				position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+				channel = source_map.get('oppo_app')
+				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+		if len(j['gameList']) >= 1:
+			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+			game = j['gameList'][0]
+			picUrl = game.get('gameIcon', u'')
+			if picUrl:
+				game_name = game.get('gameName', u'')
+				position_name = u'每日一荐'
+				position_type_id = position_type_map.get(u'热门图标推荐')
+				channel = source_map.get('oppo_app')
+				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+
+
+	#新游热度榜
+	url = "https://igame.oppomobile.com/gameapp/newGame/recommend?start=0"
+	j = get_data_from_api(url)
+	if j is not None:
+		if 'rankUnit' in j:
+			for game in j['rankUnit']['gameList']:
+				channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+				picUrl = game.get('gameIcon', u'')
+				if picUrl:
+					game_name = game.get('gameName', u'')
+					position_name = u'新游热度榜'
+					position_type_id = position_type_map.get(u'精品速递/专题推荐')
+					channel = source_map.get('oppo_app')
+					insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+
+def get_vivo_gamecenter_ad():
+
+	#首页banner
+	url = "http://main.gamecenter.vivo.com.cn/clientRequest/recommendTop?appVersionName=2.0.0&adrVerName=4.4.4&model=MI+4LTE&e=11010030313647453200da18b1312200&pixel=3.0&appVersion=37&elapsedtime=352889163&imei=865931027730878&origin=20&type=top&av=19&patch_sup=1&cs=0&s=2%7C2434573514"
+	j = get_data_from_api(url)
+	if j is not None:
+		for ad in j['adinfo']:
+			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+			picUrl = ad.get('picUrl', u'')
+			game_name = ad.get('showText', u'')
+			game_name = u'' if game_name is None else game_name
+			position_name = u'大屏轮播图'
+			position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+			channel = source_map.get('vivo')
+			insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+
+	#首页详情
+	url = "http://main.gamecenter.vivo.com.cn/clientRequest/recommendBottomList?appVersionName=2.0.0&model=MI+4LTE&e=11010030313647453200da18b1312200&page_index=1&pixel=3.0&imei=865931027730878&origin=20&type=list&av=19&patch_sup=1&cs=0&adrVerName=4.4.4&appVersion=37&elapsedtime=352889173&s=2%7C2094637094"
+	j = get_data_from_api(url)
+	if j is not None:
+		for game in j['app'][:4]:
+			#每日一荐
+			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+			picUrl = game.get('icon', u'')
+			game_name = game.get('name', u'')
+			position_name = u'每日一荐'
+			position_type_id = position_type_map.get(u'热门图标推荐')
+			channel = source_map.get('vivo')
+			insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+		for item in j['module']:
+			if item.get('title') == u'小编推荐':
+				for game in item['msg']:
+					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+					picUrl = game.get('icon', u'')
+					if picUrl:
+						game_name = game.get('name', u'')
+						position_name = item.get('title')
+						position_type_id = position_type_map.get(u'热门图标推荐')
+						channel = source_map.get('vivo')
+						insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+	
+	url = "http://main.gamecenter.vivo.com.cn/clientRequest/recommendBottomList?appVersionName=2.0.0&model=MI+4LTE&e=11010030313647453200da18b1312200&page_index=2&pixel=3.0&imei=865931027730878&origin=20&type=list&av=19&patch_sup=1&cs=0&adrVerName=4.4.4&appVersion=37&elapsedtime=355152353&s=2%7C1435892598"
+	j = get_data_from_api(url)
+	if j is not None:
+		for item in j['module']:
+			if item.get('title') == u'抢鲜推荐':
+				for game in item['msg']:
+					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+					picUrl = game.get('icon', u'')
+					if picUrl:
+						game_name = game.get('name', u'')
+						position_name = item.get('title')
+						position_type_id = position_type_map.get(u'热门图标推荐')
+						channel = source_map.get('vivo')
+						insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+
+			
+			
+	#网游banner
+	url = "http://main.gamecenter.vivo.com.cn/clientRequest/onlineTop?appVersionName=2.0.0&model=MI+4LTE&e=11010030313647453200da18b1312200&pixel=3.0&showPosition=0&imei=865931027730878&origin=515&type=top&av=19&patch_sup=1&cs=0&adrVerName=4.4.4&appVersion=37&elapsedtime=353790968&s=2%7C4261617499"
+	j = get_data_from_api(url)
+	if j is not None:
+		for ad in j['adinfo']:
+			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+			picUrl = ad.get('picUrl', u'')
+			if picUrl:
+				game_name = ad.get('showText', u'')
+				game_name = u'' if game_name is None else game_name
+				position_name = u'大屏轮播图'
+				position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+				channel = source_map.get('vivo')
+				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+		for ad in j['excellentNewGames']:
+			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+			picUrl = ad.get('icon', u'')
+			if picUrl:
+				game_name = ad.get('name', u'')
+				game_name = u'' if game_name is None else game_name
+				position_name = u'优秀新游'
+				position_type_id = position_type_map.get(u'热门图标推荐')
+				channel = source_map.get('vivo')
+				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+		for ad in j['fashionableGames']:
+			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+			picUrl = ad.get('icon', u'')
+			if picUrl:
+				game_name = ad.get('name', u'')
+				game_name = u'' if game_name is None else game_name
+				position_name = u'流行精品'
+				position_type_id = position_type_map.get(u'热门图标推荐')
+				channel = source_map.get('vivo')
+				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+
+	#单机
+	url = "http://main.gamecenter.vivo.com.cn/clientRequest/aloneTop?appVersionName=2.0.0&model=MI+4LTE&e=11010030313647453200da18b1312200&pixel=3.0&showPosition=0&imei=865931027730878&origin=517&type=top&av=19&patch_sup=1&cs=0&adrVerName=4.4.4&appVersion=37&elapsedtime=354896896&s=2%7C3844052902"
+
+	j = get_data_from_api(url)
+	if j is not None:
+		for ad in j['weeklyTopGames']:
+			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+			picUrl = ad.get('icon', u'')
+			if picUrl:
+				game_name = ad.get('name', u'')
+				game_name = u'' if game_name is None else game_name
+				position_name = u'本周最佳'
+				position_type_id = position_type_map.get(u'热门图标推荐')
+				channel = source_map.get('vivo')
+				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+
 
 def insert_ad_data(ret):
 	channel, position_type_id, position_name, img, game_name, identifying = ret
@@ -545,7 +1017,13 @@ def main():
 	get_9game_bbs()
 	get_360gamebox_raw_data()
 	get_360zhushou_app_ad()
+	get_360zhushou_web_ad()
+	get_mmstore_ad()
+	get_open_play_ad()
+	get_wostore_ad()
+	get_wogame_ad()
+	get_oppo_ad()
+	get_vivo_gamecenter_ad()
 
 if __name__ == "__main__":
 	main()
-	#get_360zhushou_web_ad()
