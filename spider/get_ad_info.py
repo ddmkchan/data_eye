@@ -1068,7 +1068,7 @@ def main():
 	get_wogame_ad()
 	get_oppo_ad()
 	get_vivo_gamecenter_ad()
+	get_coolpad_ad()
 
 if __name__ == "__main__":
-	#main()
-	get_coolpad_ad()
+	main()
