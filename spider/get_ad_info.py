@@ -484,15 +484,34 @@ def get_360zhushou_app_ad():
 		
 	
 
-def ff():
+def get_360zhushou_web_ad():
 	#360手机助手PC官网
 	url = u"http://zhushou.360.cn/Game/"
-	rd = get_data_from_api(url, jsondata=False)
-	if rd is not None and rd:
-		is_json = False
-		flag = u'360手机助手PC官网'
-		channel = source_map.get('360zhushou')
-		src = url
+	soup = get_page_source_from_web(url, timeout=30)
+	if soup is not None and soup:
+		slideCon = soup.find('div', class_='slideCon')
+		if slideCon is not None:
+			for br in slideCon.find_all('a'):
+				channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+				img_div = br.find('a')
+				if img_div is not None:
+					game_name = img_div.get('alt')
+					picUrl = img_div.get('src')
+					if picUrl:
+						position_name = u'首页大图'
+						position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+						channel = source_map.get('360zhushou_web')
+						print game_name, picUrl
+		tpcimg = soup.find('dt', id='tpcimg')
+		if tpcimg is not None:
+			app = tpcimg.find('a')
+			if app is not None:
+				game_name = app.get('title')
+				img_div = app.find('img')
+				if img_div is not None:
+					picUrl = img_div.get('src')
+					print game_name, picUrl, '***'
+				
 
 
 def get_vivo_gamecenter_raw_data():
@@ -529,3 +548,4 @@ def main():
 
 if __name__ == "__main__":
 	main()
+	#get_360zhushou_web_ad()

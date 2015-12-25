@@ -85,7 +85,6 @@ def main():
 			ins.publish_dates = publish_status.get('publish_date_list', u'')
 			ins.kc_list_ids = publish_status.get('kc_list_ids', u'')
 			ins.last_update = datetime.datetime.now()
-		break
 	db_conn.commit()
 	mylogger.info("merge data done !!!")	
 
