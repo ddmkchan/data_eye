@@ -987,6 +987,55 @@ def get_vivo_gamecenter_ad():
 				channel = source_map.get('vivo')
 				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
 
+def get_coolpad_ad():
+	#banner
+	url = "http://gamecenter.coolyun.com/gameAPI/API/getSubjectList?key=0"
+	raw_data = """<?xml version="1.0" encoding="utf-8"?><request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064" ><syncflag>0</syncflag><subjecttype>1</subjecttype><max>10</max></request>"""
+	
+	r = requests.post(url, data=raw_data, headers={'Content-Type': 'application/xml'}, timeout=10)
+	if r.status_code == 200:
+		t = re.sub(u'\r|\n', '', r.text)
+		doc = xmltodict.parse(t)
+		for ad in doc['response']['ads']['ad']:
+			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+			picUrl = ad.get('@picurl', u'')
+			if picUrl and 'res' in ad:
+				game_name = ad['res'].get('@name', u'')
+				position_name = u'大屏轮播图'
+				position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+				channel = source_map.get('coolpad')
+				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+
+	#首页广告位
+	raw_data = """<?xml version="1.0" encoding="utf-8"?><request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064" ><syncflag>0</syncflag><subjecttype>2</subjecttype><max>10</max></request>"""
+	r = requests.post(url, data=raw_data, headers={'Content-Type': 'application/xml'}, timeout=10)
+	if r.status_code == 200:
+		t = re.sub(u'\r|\n', '', r.text)
+		doc = xmltodict.parse(t)
+		for ad in doc['response']['ads']['ad'][:10]:
+			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+			picUrl = ad.get('@picurl', u'')
+			if picUrl:
+				game_name = ad['res'].get('@name', u'')
+				position_name = u'首页大图'
+				position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+				channel = source_map.get('coolpad')
+				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+	#网游广告位
+	raw_data = """<?xml version="1.0" encoding="utf-8"?><request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064" ><syncflag>0</syncflag><subjecttype>4</subjecttype><max>4</max></request>"""
+	r = requests.post(url, data=raw_data, headers={'Content-Type': 'application/xml'}, timeout=10)
+	if r.status_code == 200:
+		t = re.sub(u'\r|\n', '', r.text)
+		doc = xmltodict.parse(t)
+		for ad in doc['response']['ads']['ad'][:4]:
+			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+			picUrl = ad.get('@picurl', u'')
+			if picUrl:
+				game_name = ad['res'].get('@name', u'')
+				position_name = u'首页大图'
+				position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+				channel = source_map.get('coolpad')
+				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
 
 def insert_ad_data(ret):
 	channel, position_type_id, position_name, img, game_name, identifying = ret
@@ -1005,7 +1054,6 @@ def insert_ad_data(ret):
 		db_conn.merge(item)
 	db_conn.commit()
 
-
 def main():
 	get_appicsh_raw_data()
 	get_9game_raw_data()
@@ -1022,4 +1070,5 @@ def main():
 	get_vivo_gamecenter_ad()
 
 if __name__ == "__main__":
-	main()
+	#main()
+	get_coolpad_ad()
