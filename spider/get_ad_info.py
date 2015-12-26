@@ -1046,16 +1046,59 @@ def get_gionee_gamecenter_ad():
 		'version': '1.6.1.b'}
 	#top banner
 	url = "http://game.gionee.com/Api/Local_Home/slideAd"
-
+	j = get_data_from_api(url, params=raw_data)
+	if j is not None:
+		for slide in j['data']['slideItems']:
+			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+			picUrl = slide.get('imageUrl', u'')
+			if picUrl:
+				game_name = slide.get('title', u'')
+				position_name = u'大屏轮播图'
+				position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+				channel = source_map.get('gionee')
+				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
 	for p in xrange(1, 3):
 		url = "http://game.gionee.com/api/Local_Home/newRecomendList?&page=%s" % p
 		j = get_data_from_api(url, params=raw_data)
 		if j is not None:
 			for item in j['data']['list']:
-				print item.get('listItemType'), item.get('title')
+				item_type = item.get('listItemType', u'')
+				title = item.get('title', u'')
+				if item_type == u'SimpleBanner':
+					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+					picUrl = item.get('bannerImg', u'')
+					if picUrl:
+						game_name = item.get('title', u'')
+						position_name = u'首页大图'
+						position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+						channel = source_map.get('gionee')
+						insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+				else:
+					if len(item.get('gameItems', []))>=1:
+						for game in item['gameItems']:
+							channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+							picUrl = game.get(u'img', u'')
+							if picUrl:
+								game_name = game.get('name', u'')
+								position_name = title
+								position_type_id = position_type_map.get(u'热门图标推荐')
+								channel = source_map.get('gionee')
+								insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+
 		
 	#每日一推荐
 	url = "http://game.gionee.com/api/Local_Home/dailyRecommend"
+	j = get_data_from_api(url, params=raw_data)
+	if j is not None:
+		for slide in j['data']['list']:
+			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+			picUrl = slide.get('img', u'')
+			if picUrl:
+				game_name = slide.get('title', u'')
+				position_name = u'每日一荐'
+				position_type_id = position_type_map.get(u'热门图标推荐')
+				channel = source_map.get('gionee')
+				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
 
 
 def insert_ad_data(ret):
@@ -1090,7 +1133,7 @@ def main():
 	get_oppo_ad()
 	get_vivo_gamecenter_ad()
 	get_coolpad_ad()
+	get_gionee_gamecenter_ad()
 
 if __name__ == "__main__":
 	main()
-	#get_gionee_gamecenter_ad()
