@@ -1119,6 +1119,7 @@ def insert_ad_data(ret):
 	db_conn.commit()
 
 def main():
+	mylogger.info("get ad info ...")
 	get_appicsh_raw_data()
 	get_9game_raw_data()
 	get_9game_newgame()
