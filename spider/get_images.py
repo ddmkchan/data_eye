@@ -17,7 +17,7 @@ socket.setdefaulttimeout(30)
 import multiprocessing
 from multiprocessing.dummy import Pool as ThreadPool
 
-if localIp == u'192.168.1.215':
+if localIP == u'192.168.1.215':
 	imgs_path = "/root/yanpengchen/data_eye/spider/imgs"
 else:
 	imgs_path = "/home/cyp/data_eye/spider/imgs"

@@ -42,11 +42,11 @@ def get_position_type_map():
 position_type_map = get_position_type_map()
 
 
-def get_data_from_api(url, timeout=10, headers={}, proxies={}):
+def get_data_from_api(url, timeout=10, headers={}, proxies={}, params={}):
 	if isinstance(url, unicode):
 		url = url.encode('utf-8')
 	try:
-		r = requests.get(url, timeout=timeout, headers=headers, proxies=proxies)
+		r = requests.get(url, timeout=timeout, params=params, headers=headers, proxies=proxies)
 		if r.status_code == 200:
 			return r.json()
 	except Exception,e:
@@ -1037,6 +1037,27 @@ def get_coolpad_ad():
 				channel = source_map.get('coolpad')
 				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
 
+def get_gionee_gamecenter_ad():
+	raw_data = {
+		'brand': 'Xiaomi',
+		'client_pkg': 'gn.com.android.gamehall',
+		'imei': 'F69F31CE88DEBF8569A00B953A43343E',
+		'sp': 'MI%2B4LTE_1.6.1.b_null_Android4.4.4_1080*1920_N06000_wifi_F69F31CE88DEBF8569A00B953A43343E',
+		'version': '1.6.1.b'}
+	#top banner
+	url = "http://game.gionee.com/Api/Local_Home/slideAd"
+
+	for p in xrange(1, 3):
+		url = "http://game.gionee.com/api/Local_Home/newRecomendList?&page=%s" % p
+		j = get_data_from_api(url, params=raw_data)
+		if j is not None:
+			for item in j['data']['list']:
+				print item.get('listItemType'), item.get('title')
+		
+	#每日一推荐
+	url = "http://game.gionee.com/api/Local_Home/dailyRecommend"
+
+
 def insert_ad_data(ret):
 	channel, position_type_id, position_name, img, game_name, identifying = ret
 	dt = datetime.date.today()
@@ -1072,3 +1093,4 @@ def main():
 
 if __name__ == "__main__":
 	main()
+	#get_gionee_gamecenter_ad()
