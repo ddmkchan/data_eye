@@ -54,6 +54,7 @@ source_map = {
 			"huawei_app": 34,
 			"oppo_app": 50,
 			"wogame": 998,
+			"myaora": 997,#易用汇
 				}
 
 class T:

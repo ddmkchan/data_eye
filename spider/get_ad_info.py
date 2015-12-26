@@ -1100,6 +1100,86 @@ def get_gionee_gamecenter_ad():
 				channel = source_map.get('gionee')
 				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
 
+def get_myaora_ad():
+	url = "http://adres.myaora.net:81/api.php"
+	raw_data = {"API_VERSION":7,"IS_APP":0,"MODEL":"MI 4LTE","MARKET_IMEI":"865931027730878","TAG":"GAME_BANNER_LIST","MARKET_KEY":"0f1cb7f18e7fb49f049cbead725f990d"}
+	try:
+		r = requests.post(url, timeout=20, data=json.dumps(raw_data))
+		if r.status_code == 200:
+			j = r.json()
+			for slide in j['ARRAY']:
+				channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+				picUrl = slide.get('IMG_URL', u'')
+				if picUrl:
+					game_name = slide.get('AD_NAME', u'')
+					position_name = u'大屏轮播图'
+					position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+					channel = source_map.get('myaora')
+					insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+	except Exception,e:
+		mylogger.error("get jsondata from ### %s ### \n%s" % (url, traceback.format_exc()))
+
+
+def get_iqiyi_ad():
+	url = "http://store.iqiyi.com/gc/home?callback=rs&t=1451141147179"
+	try:
+		r = requests.get(url)
+		if r.status_code == 200:
+			m = re.search(u'rs\\(([\s\S]*)\\)\\;', r.text)
+			if m is not None:
+				j = json.loads(m.group(1))
+				for slide in j['focuses']:
+					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+					picUrl = slide.get('pic', u'')
+					if picUrl:
+						game_name = slide.get('name', u'')
+						position_name = u'大屏轮播图'
+						position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+						channel = source_map.get('iqiyi')
+						insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+				#每日一荐
+				dailyapp = j['dailyapp']
+				if dailyapp is not None:
+					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+					picUrl = dailyapp.get('icon', u'')
+					if picUrl:
+						game_name = dailyapp.get('name', u'')
+						position_name = u'每日一荐'
+						position_type_id = position_type_map.get(u'热门图标推荐')
+						channel = source_map.get('iqiyi')
+						insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+				for item in j['collectionApps']:
+					title = item.get('name', u'')
+					for game in item['apps']:
+						channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+						picUrl = game.get(u'icon', u'')
+						if picUrl:
+							game_name = game.get('name', u'')
+							position_name = title
+							position_type_id = position_type_map.get(u'精品速递/专题推荐')
+							channel = source_map.get('iqiyi')
+							insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+				for game in j['newapps']:
+					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+					picUrl = game.get(u'icon', u'')
+					if picUrl:
+						game_name = game.get('name', u'')
+						position_name = u'每日新游'
+						position_type_id = position_type_map.get(u'精品速递/专题推荐')
+						channel = source_map.get('iqiyi')
+						insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+
+				for game in j['hotapps']:
+					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+					picUrl = game.get(u'icon', u'')
+					if picUrl:
+						game_name = game.get('name', u'')
+						position_name = u'热门游戏'
+						position_type_id = position_type_map.get(u'热门图标推荐')
+						channel = source_map.get('iqiyi')
+						insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+	except Exception, e:
+		mylogger.error("get iqiyi ad ### \n%s" % (traceback.format_exc()))
 
 def insert_ad_data(ret):
 	channel, position_type_id, position_name, img, game_name, identifying = ret
@@ -1135,6 +1215,8 @@ def main():
 	get_vivo_gamecenter_ad()
 	get_coolpad_ad()
 	get_gionee_gamecenter_ad()
+	get_myaora_ad()
+	get_iqiyi_ad()
 
 if __name__ == "__main__":
 	main()
