@@ -17,13 +17,17 @@ socket.setdefaulttimeout(30)
 import multiprocessing
 from multiprocessing.dummy import Pool as ThreadPool
 
+if localIp == u'192.168.1.215':
+	imgs_path = "/root/yanpengchen/data_eye/spider/imgs"
+else:
+	imgs_path = "/home/cyp/data_eye/spider/imgs"
 
 def download_pic(args):
 	try:
 		url, name = args
-		if not os.path.isfile("%s/imgs/%s" % (os.getcwd(), name)):
+		if not os.path.isfile("%s/%s" % (imgs_path, name)):
 			mylogger.info("downloading pic ... %s" % name)
-			urllib.urlretrieve(url, "%s/imgs/%s" % (os.getcwd(), name))
+			urllib.urlretrieve(url, "%s/%s" % (imgs_path, name))
 	except Exception,e:
 		mylogger.error(traceback.format_exc())
 
