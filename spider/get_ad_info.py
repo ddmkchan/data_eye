@@ -1077,7 +1077,7 @@ def get_gionee_gamecenter_ad():
 					if len(item.get('gameItems', []))>=1:
 						for game in item['gameItems']:
 							channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
-							picUrl = game.get(u'img', u'')
+							picUrl = game.get('img', u'')
 							if picUrl:
 								game_name = game.get('name', u'')
 								position_name = title
@@ -1152,7 +1152,7 @@ def get_iqiyi_ad():
 					title = item.get('name', u'')
 					for game in item['apps']:
 						channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
-						picUrl = game.get(u'icon', u'')
+						picUrl = game.get('icon', u'')
 						if picUrl:
 							game_name = game.get('name', u'')
 							position_name = title
@@ -1161,7 +1161,7 @@ def get_iqiyi_ad():
 							insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
 				for game in j['newapps']:
 					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
-					picUrl = game.get(u'icon', u'')
+					picUrl = game.get('icon', u'')
 					if picUrl:
 						game_name = game.get('name', u'')
 						position_name = u'每日新游'
@@ -1171,7 +1171,7 @@ def get_iqiyi_ad():
 
 				for game in j['hotapps']:
 					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
-					picUrl = game.get(u'icon', u'')
+					picUrl = game.get('icon', u'')
 					if picUrl:
 						game_name = game.get('name', u'')
 						position_name = u'热门游戏'
@@ -1180,6 +1180,54 @@ def get_iqiyi_ad():
 						insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
 	except Exception, e:
 		mylogger.error("get iqiyi ad ### \n%s" % (traceback.format_exc()))
+
+def get_jinshan_pc_ad():
+	#首页弹出广告
+	url = "http://app.sjk.ijinshan.com/app/activity-mask-layer/maskLayer.json"
+	j = get_data_from_api(url)
+	if j is not None and j['data'] is not None:
+		slide = j['data']
+		channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+		picUrl = slide.get('imageUrl', u'')
+		if picUrl:
+			game_name = slide.get('appName', u'')
+			position_name = u'首页弹出广告'
+			position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+			channel = source_map.get('jinshan')
+			insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+			
+
+	#本周精品
+	url = "http://app.sjk.ijinshan.com/app/api/cdn/label/mix-label-list/778.json?rows=20&page=1"
+	j = get_data_from_api(url)
+	if j is not None and j['data'] is not None:
+		if j['data']['label-apps'] is not None and len(j['data']['label-apps']) >= 1:
+			top_games = j['data']['label-apps'][0]['tagApps']
+			for game in top_games:
+				channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+				picUrl = game.get('logoThUrls', u'')
+				if picUrl:
+					game_name = game.get('name', u'')
+					position_name = u'本周精品'
+					position_type_id = position_type_map.get(u'精品速递/专题推荐')
+					channel = source_map.get('jinshan')
+					insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+
+
+	#轮播图
+	url = "http://app.sjk.ijinshan.com/app/api/redbanners.json?type=1"
+	j = get_data_from_api(url)
+	if j is not None and j['data'] is not None:
+		for game in j['data']:
+			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+			picUrl = game.get('logoThUrls', u'')
+			if picUrl:
+				game_name = game.get('name', u'')
+				position_name = u'轮播图'
+				position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+				channel = source_map.get('jinshan')
+				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+
 
 def insert_ad_data(ret):
 	channel, position_type_id, position_name, img, game_name, identifying = ret
@@ -1217,6 +1265,7 @@ def main():
 	get_gionee_gamecenter_ad()
 	get_myaora_ad()
 	get_iqiyi_ad()
+	get_jinshan_pc_ad()
 
 if __name__ == "__main__":
 	main()

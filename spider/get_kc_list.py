@@ -55,6 +55,7 @@ source_map = {
 			"oppo_app": 50,
 			"wogame": 998,
 			"myaora": 997,#易用汇
+			"jinshan": 996,#金山手机助手
 				}
 
 class T:

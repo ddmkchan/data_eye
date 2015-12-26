@@ -45,4 +45,5 @@ def get_imgs_from_db():
 	return [(re.img_path, re.id) for re in db_conn.query(ADVRecord).filter(ADVRecord.img_path!=u'')]
 
 if __name__ == '__main__':
+	mylogger.info("download imgs ...")
 	get_imgs()
