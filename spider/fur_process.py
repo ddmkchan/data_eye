@@ -280,34 +280,33 @@ def get_game_detail(identifyings):
 		_sql =  "select max(dt) as dt, identifying, channel from hot_game_detail_by_day where identifying=\'%s\' and channel=%s group by identifying, channel" % (identifying, channel)
 		rs = db_conn.execute(_sql).fetchone()
 		if rs is not None:
-			channel, identifying, dt = rs
-			print channel, identifying, dt
-			ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.identifying==identifying).filter(HotGameDetailByDay.source==source).first()
-		#if ins is not None:
-		#	if not imgs:
-		#		imgs = ins.imgs
-		#	if not game_type:
-		#		game_type = ins.game_type
-		#	if not summary:
-		#		summary = ins.summary
-		#	if not download_num or download_num == u'0':
-		#		download_num = ins.download_num
-		#	if not comment_num or comment_num == u'0':
-		#		comment_num = ins.comment_num
-		#	if not rating or rating == u'0':
-		#		rating = ins.rating
-		#	if not pkg_size:
-		#		size = ins.pkg_size
-		#		if ins.pkg_size and u'M' not in ins.pkg_size.upper() and u'G' not in ins.pkg_size.upper():
-		#			size = "%sM" % round(int(ins.pkg_size)/1024.0/1024.0, 2)
-		#		pkg_size = size
-		#	if not author:
-		#		author = ins.author
-		#	if not version:
-		#		version = ins.version
-		#	if not topic_num_total or topic_num_total == u'0':
-		#		topic_num_total = ins.topic_num_total
-		#	return (imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total)
+			dt, identifying, channel = rs
+			ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.identifying==identifying).filter(HotGameDetailByDay.channel=channel).first()
+			if ins is not None:
+				if not imgs:
+					imgs = ins.imgs
+				if not game_type:
+					game_type = ins.game_type
+				if not summary:
+					summary = ins.summary
+				if not download_num or download_num == u'0':
+					download_num = ins.download_num
+				if not comment_num or comment_num == u'0':
+					comment_num = ins.comment_num
+				if not rating or rating == u'0':
+					rating = ins.rating
+				if not pkg_size:
+					size = ins.pkg_size
+					if ins.pkg_size and u'M' not in ins.pkg_size.upper() and u'G' not in ins.pkg_size.upper():
+						size = "%sM" % round(int(ins.pkg_size)/1024.0/1024.0, 2)
+					pkg_size = size
+				if not author:
+					author = ins.author
+				if not version:
+					version = ins.version
+				if not topic_num_total or topic_num_total == u'0':
+					topic_num_total = ins.topic_num_total
+				return (imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total)
 	return None
 
 def get_error_record():
