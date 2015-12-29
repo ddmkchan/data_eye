@@ -48,26 +48,29 @@ def hot_games_merge():
 			ins = db_conn.query(RanklistGame).filter(RanklistGame.name==title).first()
 			logo = logos[0] if len(logos)>=1 else u''
 			dts.sort()
-			dt = dts[0]
-			if ins is None:
-				count += 1
-				item = RanklistGame(**{
-										"name": title,
-										"logo": logo, 
-										"dt": dt, 
-										"channel_ids": u",".join(channel_ids), 
-										"ranklists": u",".join(ranking_ids),
-										})
-				db_conn.merge(item)
-				if count % 500 == 0:
-					mylogger.info("hot games merge %s commit" % count)
-					db_conn.commit()
+			if len(dts) >= 1:
+				dt = dts[0]
+				if ins is None:
+					count += 1
+					item = RanklistGame(**{
+											"name": title,
+											"logo": logo, 
+											"dt": dt, 
+											"channel_ids": u",".join(channel_ids), 
+											"ranklists": u",".join(ranking_ids),
+											})
+					db_conn.merge(item)
+					if count % 500 == 0:
+						mylogger.info("hot games merge %s commit" % count)
+						db_conn.commit()
+				else:
+					ins.logo = logo
+					ins.dt = dt
+					ins.channel_ids = u",".join(channel_ids)
+					ins.ranklists = u",".join(ranking_ids)
+					ins.last_update = datetime.datetime.now()
 			else:
-				ins.logo = logo
-				ins.dt = dt
-				ins.channel_ids = u",".join(channel_ids)
-				ins.ranklists = u",".join(ranking_ids)
-				ins.last_update = datetime.datetime.now()
+				mylogger.info("%s\t%s dt is None" % (title.encode('utf-8'), ids.encode('utf-8')))
 	db_conn.commit()
 	
 def get_channel_info_by_ids(ids):
