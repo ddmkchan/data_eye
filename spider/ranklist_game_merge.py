@@ -43,11 +43,11 @@ def hot_games_merge():
 		ranking_ids = channel_info.get('ranking_ids')
 		logos = channel_info.get('logos')
 		if ranking_ids:
-			ins = db_conn.query(RankListGame).filter(RankListGame.name==title).first()
+			ins = db_conn.query(RanklistGame).filter(RanklistGame.name==title).first()
 			logo = logos[0] if len(logos)>=1 else u''
 			if ins is None:
 				count += 1
-				item = RankListGame(**{
+				item = RanklistGame(**{
 										"name": title,
 										"logo": logo, 
 										"ranklists": u",".join(ranking_ids),
@@ -90,7 +90,7 @@ def get_game_detail(ranklists):
 		rs = db_conn.execute(_sql).fetchone()
 		if rs is not None:
 			dt, identifying, channel = rs
-			ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.identifying==identifying).filter(HotGameDetailByDay.channel=channel).first()
+			ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.identifying==identifying).filter(HotGameDetailByDay.channel==channel).first()
 			if ins is not None:
 				if not imgs:
 					imgs = ins.imgs
@@ -125,7 +125,7 @@ def get_hot_game_info():
 		ins = db_conn.query(RanklistGameDetail).filter(RanklistGameDetail.id==ret.id).first()
 		if ins is None:
 			item = RanklistGameDetail(**{
-								'id': detail.id
+								'id': detail.id,
 								'name': detail.name,
 								'logo': detail.logo,
 								'imgs': imgs,
