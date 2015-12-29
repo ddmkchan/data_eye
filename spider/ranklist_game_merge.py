@@ -33,11 +33,12 @@ def hot_games_merge():
 	out = {}
 	titles = set(mydict.values())
 	for t in titles:
-		out[t] = []
+		out[t.lower()] = []
 	mylogger.info("merge hot games %s" % len(titles))
 	for k, v in mydict.iteritems():	
-		if v in out:
-			out[v].append(k)
+		title = v.lower()
+		if title in out:
+			out[title].append(k)
 	for title, ids in out.iteritems():
 		channel_info = get_channel_info_by_ids(ids)
 		ranking_ids = channel_info.get('ranking_ids')

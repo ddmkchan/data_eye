@@ -33,10 +33,11 @@ def main():
 	titles = set(mydict.values())
 	mylogger.info("merge new publish game %s" % len(titles))
 	for t in titles:
-		out[t] = []
+		out[t.lower()] = []
 	for k, v in mydict.iteritems():	
-		if v in out:
-			out[v].append(str(k))
+		title = v.lower()
+		if title in out:
+			out[title].append(str(k))
 	for title, ids in out.iteritems():
 		publish_status = get_publish_status(ids)	
 		detail =  get_game_detail(ids)
