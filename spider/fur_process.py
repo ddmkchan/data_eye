@@ -265,37 +265,40 @@ def get_channel_info_by_ids(ids):
 	return ranking_ids
 
 
-def get_hot_game_detail(identifying):
+def get_game_detail(identifyings):
 	imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total = [u''] * 10
-	_sql =  "select max(dt) as dt, kc_id from game_detail_by_day where kc_id in (%s) group by kc_id" % (",".join(ids))
-	for re in db_conn.execute(_sql):
-		dt, kc_id = re
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.dt==dt).filter(GameDetailByDay.kc_id==kc_id).first()
-		if ins is not None:
-			if not imgs:
-				imgs = ins.imgs
-			if not game_type:
-				game_type = ins.game_type
-			if not summary:
-				summary = ins.summary
-			if not download_num or download_num == u'0':
-				download_num = ins.download_num
-			if not comment_num or comment_num == u'0':
-				comment_num = ins.comment_num
-			if not rating or rating == u'0':
-				rating = ins.rating
-			if not pkg_size:
-				size = ins.pkg_size
-				if ins.pkg_size and u'M' not in ins.pkg_size.upper() and u'G' not in ins.pkg_size.upper():
-					size = "%sM" % round(int(ins.pkg_size)/1024.0/1024.0, 2)
-				pkg_size = size
-			if not author:
-				author = ins.author
-			if not version:
-				version = ins.version
-			if not topic_num_total or rating == u'0':
-				topic_num_total = ins.topic_num_total
-			return (imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total)
+	for seg in identifyings.split(','):
+		channel, identifying = seg.split('^')
+		_sql =  "select max(dt) as dt, identifying, channel from hot_game_detail_by_day where identifying=\'%s\' and channel=%s group by identifying, channel" % (identifying, channel)
+		re = db_conn.execute(_sql)
+		dt = re
+		print channel, identifying, dt
+		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.dt==dt).filter(GameDetailByDay.identifying==identifying).filter(HotGameDetailByDay.source==source).first()
+		#if ins is not None:
+		#	if not imgs:
+		#		imgs = ins.imgs
+		#	if not game_type:
+		#		game_type = ins.game_type
+		#	if not summary:
+		#		summary = ins.summary
+		#	if not download_num or download_num == u'0':
+		#		download_num = ins.download_num
+		#	if not comment_num or comment_num == u'0':
+		#		comment_num = ins.comment_num
+		#	if not rating or rating == u'0':
+		#		rating = ins.rating
+		#	if not pkg_size:
+		#		size = ins.pkg_size
+		#		if ins.pkg_size and u'M' not in ins.pkg_size.upper() and u'G' not in ins.pkg_size.upper():
+		#			size = "%sM" % round(int(ins.pkg_size)/1024.0/1024.0, 2)
+		#		pkg_size = size
+		#	if not author:
+		#		author = ins.author
+		#	if not version:
+		#		version = ins.version
+		#	if not topic_num_total or topic_num_total == u'0':
+		#		topic_num_total = ins.topic_num_total
+		#	return (imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total)
 	return None
 
 def get_error_record():
@@ -383,4 +386,5 @@ def publish_games_merge():
 
 if __name__ == '__main__':
 	#remove_duplicate_record()
-	hot_games_merge()
+	#hot_games_merge()
+	get_game_detail('20^http://game.gionee.com/Api/Local_Gameinfo/getDetails?gameId=4642,68^http://yx.lenovomm.com/business/app!getAppDetail5.action?dpi=480&height=1920&dev=ph&width=1080&cpu=armeabi-v7a&pn=wb.gc.ggbond.bblm.lenovo&uid=72DB07100FC223A2EDE82F4A44AE96B4&os=4.4.4&perf=hp&model=MI 4LTE&type=0&density=xx&mac=7A031DAB40535B3F5E204582EB961FC5,76^http://api-game.meizu.com/games/public/detail/2471074')

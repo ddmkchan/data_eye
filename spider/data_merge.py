@@ -135,7 +135,7 @@ def get_game_detail(ids):
 				author = ins.author
 			if not version:
 				version = ins.version
-			if not topic_num_total or rating == u'0':
+			if not topic_num_total or topic_num_total == u'0':
 				topic_num_total = ins.topic_num_total
 			return (imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total)
 	return None
