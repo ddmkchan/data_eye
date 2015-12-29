@@ -252,8 +252,8 @@ def hot_games_merge():
 	
 def get_ranking_name_map():
 	mydict = {}
-	for re in db_conn.query(ChannelToRanking):
-		mydict[re.id] = re.name
+	for ret in db_conn.query(ChannelToRanking):
+		mydict[ret.id] = ret.name
 	return mydict
 
 def get_channel_info_by_ids(ids):
@@ -264,16 +264,25 @@ def get_channel_info_by_ids(ids):
 		ranking_ids.append("%s^%s" % (source, identifying))
 	return ranking_ids
 
+def get_ranking_2_channel():
+	mydict = {}
+	for ret in db_conn.execute("select * from channel_to_ranking"):
+		channel_id, ranking_id= ret
+		mydict[str(ranking_id)] = channel_id
+	return mydict
 
 def get_game_detail(identifyings):
+	ranking_2_channel = get_ranking_2_channel()
 	imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total = [u''] * 10
 	for seg in identifyings.split(','):
-		channel, identifying = seg.split('^')
+		source, identifying = seg.split('^')
+		channel = ranking_2_channel.get(source)
 		_sql =  "select max(dt) as dt, identifying, channel from hot_game_detail_by_day where identifying=\'%s\' and channel=%s group by identifying, channel" % (identifying, channel)
-		re = db_conn.execute(_sql)
-		dt = re
-		print channel, identifying, dt
-		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.dt==dt).filter(GameDetailByDay.identifying==identifying).filter(HotGameDetailByDay.source==source).first()
+		rs = db_conn.execute(_sql).fetchone()
+		if rs is not None:
+			channel, identifying, dt = rs
+			print channel, identifying, dt
+			ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.identifying==identifying).filter(HotGameDetailByDay.source==source).first()
 		#if ins is not None:
 		#	if not imgs:
 		#		imgs = ins.imgs
