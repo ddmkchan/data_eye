@@ -42,15 +42,19 @@ def hot_games_merge():
 		channel_info = get_channel_info_by_ids(ids)
 		ranking_ids = channel_info.get('ranking_ids')
 		logos = channel_info.get('logos')
+		dts = channel_info.get('dts')
 		channel_ids = channel_info.get('channel_ids')
 		if ranking_ids:
 			ins = db_conn.query(RanklistGame).filter(RanklistGame.name==title).first()
 			logo = logos[0] if len(logos)>=1 else u''
+			dts.sort()
+			dt = dts[0]
 			if ins is None:
 				count += 1
 				item = RanklistGame(**{
 										"name": title,
 										"logo": logo, 
+										"dt": dt, 
 										"channel_ids": u",".join(channel_ids), 
 										"ranklists": u",".join(ranking_ids),
 										})
@@ -60,6 +64,7 @@ def hot_games_merge():
 					db_conn.commit()
 			else:
 				ins.logo = logo
+				ins.dt = dt
 				ins.channel_ids = u",".join(channel_ids)
 				ins.ranklists = u",".join(ranking_ids)
 				ins.last_update = datetime.datetime.now()
@@ -68,15 +73,17 @@ def hot_games_merge():
 def get_channel_info_by_ids(ids):
 	ranking_2_channel = get_ranking_2_channel()
 	logos = []
+	dts = []
 	ranking_ids = []
 	channel_ids = set([])
 	ids = ["\'%s\'" %i for i in ids]
 	for ret in db_conn.execute("select source, identifying from hot_games where identifying in (%s) group by source, identifying" % ",".join(ids)):
 		source, identifying = ret
 		ranking_ids.append("%s^%s" % (source, identifying))
-		ins = db_conn.query(HotGames).filter(HotGames.source==source).filter(HotGames.identifying==identifying).first()
+		ins = db_conn.query(HotGames).filter(HotGames.source==source).filter(HotGames.identifying==identifying).filter(HotGames.dt!='').first()
 		if ins is not None:
 			logos.append(ins.img)
+			dts.append(ins.dt)
 		channel_id = ranking_2_channel.get(str(source), -1)
 		if channel_id != -1:
 			channel_ids.add(unicode(channel_id))
