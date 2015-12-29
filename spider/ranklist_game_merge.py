@@ -92,7 +92,7 @@ def get_channel_info_by_ids(ids):
 			channel_ids.add(unicode(channel_id))
 		#else:
 		#	mylogger.info("source id # %s # has no channel_id" % source)
-	return {'ranking_ids' : ranking_ids, 'logos': logos, 'channel_ids': channel_ids}
+	return {'ranking_ids' : ranking_ids, 'logos': logos, 'channel_ids': channel_ids, 'dts':dts}
 
 def get_ranking_2_channel():
 	mydict = {}
