@@ -32,9 +32,9 @@ def hot_games_merge():
 			mydict[identifying] = name
 	out = {}
 	titles = set(mydict.values())
-	mylogger.info("merge hot games %s" % len(mydict))
 	for t in titles:
 		out[t] = []
+	mylogger.info("merge hot games %s" % len(titles))
 	for k, v in mydict.iteritems():	
 		if v in out:
 			out[v].append(k)
