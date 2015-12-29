@@ -71,14 +71,14 @@ def get_channel_info_by_ids(ids):
 	channel_ids = []
 	ids = ["\'%s\'" %i for i in ids]
 	for ret in db_conn.execute("select source, identifying from hot_games where identifying in (%s) group by source, identifying" % ",".join(ids)):
+		source, identifying = ret
+		ranking_ids.append("%s^%s" % (source, identifying))
+		ins = db_conn.query(HotGames).filter(HotGames.source==source).filter(HotGames.identifying==identifying).first()
+		if ins is not None:
+			logos.append(ins.img)
 		channel_id = ranking_2_channel.get(str(source), -1)
 		if channel_id != -1:
 			channel_ids.append(channel_id)
-			source, identifying = ret
-			ranking_ids.append("%s^%s" % (source, identifying))
-			ins = db_conn.query(HotGames).filter(HotGames.source==source).filter(HotGames.identifying==identifying).first()
-			if ins is not None:
-				logos.append(ins.img)
 		else:
 			mylogger.info("source id # %s # has no channel_id" % source)
 	return {'ranking_ids' : ranking_ids, 'logos': logos, 'channel_ids': channel_ids}
