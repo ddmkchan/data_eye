@@ -194,7 +194,7 @@ class RankingChannel(Base):
 	id = Column(Integer, primary_key=True, autoincrement=False)
 	name = Column(Unicode(100), nullable=False, default=u'', index=True)
 
-class RankListGame(Base):
+class RanklistGame(Base):
 
 	__tablename__ = 'ranklist_game'
 
