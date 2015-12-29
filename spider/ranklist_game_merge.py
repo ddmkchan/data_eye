@@ -62,6 +62,7 @@ def hot_games_merge():
 				ins.logo = logo
 				ins.channel_ids = u",".join(channel_ids)
 				ins.ranklists = u",".join(ranking_ids)
+				ins.last_update = datetime.datetime.now()
 	db_conn.commit()
 	
 def get_channel_info_by_ids(ids):
