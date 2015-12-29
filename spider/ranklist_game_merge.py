@@ -118,7 +118,7 @@ def get_game_detail(ranklists):
 						#size = ins.pkg_size
 						#if ins.pkg_size and u'M' not in ins.pkg_size.upper() and u'G' not in ins.pkg_size.upper():
 						#	size = "%sM" % round(int(ins.pkg_size)/1024.0/1024.0, 2)
-						pkg_size = ins.size
+						pkg_size = ins.pkg_size
 					if not author:
 						author = ins.author
 					if not version:
