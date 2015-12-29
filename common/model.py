@@ -200,6 +200,7 @@ class RanklistGame(Base):
 
 	id = Column(Integer, primary_key=True, autoincrement=True)
 	name = Column(Unicode(100), nullable=False, default=u'', index=True)
+	channel_ids = Column(UnicodeText, nullable=False, default=u'')
 	ranklists = Column(UnicodeText, nullable=False, default=u'')
 	logo = Column(Unicode(500), nullable=False, default=u'')
 	create_date = Column(DateTime, nullable=False, default=datetime.now())#创建时间

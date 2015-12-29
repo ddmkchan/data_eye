@@ -42,6 +42,7 @@ def hot_games_merge():
 		channel_info = get_channel_info_by_ids(ids)
 		ranking_ids = channel_info.get('ranking_ids')
 		logos = channel_info.get('logos')
+		channel_ids = channel_info.get('channel_ids')
 		if ranking_ids:
 			ins = db_conn.query(RanklistGame).filter(RanklistGame.name==title).first()
 			logo = logos[0] if len(logos)>=1 else u''
@@ -50,6 +51,7 @@ def hot_games_merge():
 				item = RanklistGame(**{
 										"name": title,
 										"logo": logo, 
+										"channel_ids": u",".join(channel_ids), 
 										"ranklists": u",".join(ranking_ids),
 										})
 				db_conn.merge(item)
@@ -58,10 +60,12 @@ def hot_games_merge():
 					db_conn.commit()
 			else:
 				ins.logo = logo
+				ins.channel_ids = u",".join(channel_ids)
 				ins.ranklists = u",".join(ranking_ids)
 	db_conn.commit()
 	
 def get_channel_info_by_ids(ids):
+	ranking_2_channel = get_ranking_2_channel()
 	logos = []
 	ranking_ids = []
 	ids = ["\'%s\'" %i for i in ids]
@@ -71,7 +75,12 @@ def get_channel_info_by_ids(ids):
 		ins = db_conn.query(HotGames).filter(HotGames.source==source).filter(HotGames.identifying==identifying).first()
 		if ins is not None:
 			logos.append(ins.img)
-	return {'ranking_ids' : ranking_ids, 'logos': logos}
+		channel_id = ranking_2_channel.get(str(source), -1)
+		if channel_id != -1:
+			channel_ids.append(channel_id)
+		else:
+			mylogger.info("source id # %s # has no channel_id" % source)
+	return {'ranking_ids' : ranking_ids, 'logos': logos, 'channel_ids': channel_ids}
 
 def get_ranking_2_channel():
 	mydict = {}
