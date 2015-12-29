@@ -70,7 +70,7 @@ def hot_games_merge():
 					ins.ranklists = u",".join(ranking_ids)
 					ins.last_update = datetime.datetime.now()
 			else:
-				mylogger.info("%s\t%s dt is None" % (title.encode('utf-8'), ids.encode('utf-8')))
+				mylogger.info("%s\t%s dt is None" % (title.encode('utf-8'), u','.join(ids).encode('utf-8')))
 	db_conn.commit()
 	
 def get_channel_info_by_ids(ids):
