@@ -68,7 +68,7 @@ def get_channel_info_by_ids(ids):
 	ranking_2_channel = get_ranking_2_channel()
 	logos = []
 	ranking_ids = []
-	channel_ids = []
+	channel_ids = set([])
 	ids = ["\'%s\'" %i for i in ids]
 	for ret in db_conn.execute("select source, identifying from hot_games where identifying in (%s) group by source, identifying" % ",".join(ids)):
 		source, identifying = ret
@@ -78,7 +78,7 @@ def get_channel_info_by_ids(ids):
 			logos.append(ins.img)
 		channel_id = ranking_2_channel.get(str(source), -1)
 		if channel_id != -1:
-			channel_ids.append(unicode(channel_id))
+			channel_ids.add(unicode(channel_id))
 		#else:
 		#	mylogger.info("source id # %s # has no channel_id" % source)
 	return {'ranking_ids' : ranking_ids, 'logos': logos, 'channel_ids': channel_ids}
