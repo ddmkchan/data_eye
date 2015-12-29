@@ -106,10 +106,10 @@ def get_game_detail(ranklists):
 					if not rating or rating == u'0':
 						rating = ins.rating
 					if not pkg_size:
-						size = ins.pkg_size
-						if ins.pkg_size and u'M' not in ins.pkg_size.upper() and u'G' not in ins.pkg_size.upper():
-							size = "%sM" % round(int(ins.pkg_size)/1024.0/1024.0, 2)
-						pkg_size = size
+						#size = ins.pkg_size
+						#if ins.pkg_size and u'M' not in ins.pkg_size.upper() and u'G' not in ins.pkg_size.upper():
+						#	size = "%sM" % round(int(ins.pkg_size)/1024.0/1024.0, 2)
+						pkg_size = ins.size
 					if not author:
 						author = ins.author
 					if not version:
@@ -120,11 +120,13 @@ def get_game_detail(ranklists):
 
 
 def get_hot_game_info():
+	count =0
 	for ret in db_conn.query(RanklistGame):
 		detail = get_game_detail(ret.ranklists)
 		imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total = detail
 		ins = db_conn.query(RanklistGameDetail).filter(RanklistGameDetail.id==ret.id).first()
 		if ins is None:
+			count += 1
 			item = RanklistGameDetail(**{
 								'id': ret.id,
 								'name': ret.name,
@@ -155,7 +157,7 @@ def get_hot_game_info():
 			ins.author = author
 			ins.version = version
 			ins.topic_num = topic_num_total
-			ins.logo = detail.logo
+			ins.logo = ret.logo
 			ins.last_update = datetime.datetime.now()
 	db_conn.commit()
 	mylogger.info("merge ranklist game data done !!!")	
