@@ -203,6 +203,7 @@ class RanklistGame(Base):
 	channel_ids = Column(UnicodeText, nullable=False, default=u'')
 	ranklists = Column(UnicodeText, nullable=False, default=u'')
 	logo = Column(Unicode(500), nullable=False, default=u'')
+	dt = Column(Unicode(100), nullable=False, default=u'', index=True)
 	create_date = Column(DateTime, nullable=False, default=datetime.now())#创建时间
 	last_update = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间
 

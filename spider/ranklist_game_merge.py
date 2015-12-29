@@ -47,8 +47,8 @@ def hot_games_merge():
 		if ranking_ids:
 			ins = db_conn.query(RanklistGame).filter(RanklistGame.name==title).first()
 			logo = logos[0] if len(logos)>=1 else u''
-			dts.sort()
 			if len(dts) >= 1:
+				dts.sort()
 				dt = dts[0]
 				if ins is None:
 					count += 1
