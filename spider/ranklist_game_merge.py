@@ -126,9 +126,9 @@ def get_hot_game_info():
 		ins = db_conn.query(RanklistGameDetail).filter(RanklistGameDetail.id==ret.id).first()
 		if ins is None:
 			item = RanklistGameDetail(**{
-								'id': detail.id,
-								'name': detail.name,
-								'logo': detail.logo,
+								'id': ret.id,
+								'name': ret.name,
+								'logo': ret.logo,
 								'imgs': imgs,
 								'game_type': game_type,
 								'summary': summary,
