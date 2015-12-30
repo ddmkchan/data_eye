@@ -1717,15 +1717,15 @@ def get_huawei_app_kc():
 				'Postman-Token': '68cc02a1-4403-0c03-0e00-074e7b5eb866',
 				
 				}
-	new_game_raw_data = """clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=8BE2222453F8466690700BD3D29AFDF9&isShake=0&iv=wX%2B1e9JQvWrBOJLf7j5ANQ%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=-5469498271608711199&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105320000000%404697D3C011A742DC11B384CDF57C6349&trace=97bf368fefad407593b6855b86b8a0c2&ts=1450267895898&uri=f7bdb327d25944009c49e85af1e57720%7C1450267850388&userId=213DB50D94D265FFF89BD4A22D30114D&ver=1.1&nsp_key=pKED5sIghVAJjDQE4Sr1%2BCQLvHA%3D"""
-	kc_raw_data = "clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=8BE2222453F8466690700BD3D29AFDF9&isShake=0&iv=9hmgmufQA2njtsJogpTw5g%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=-6601459752367735463&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105320000000%4021ED0F3A6FB3EB1012341D7446889DC3&trace=97bf368fefad407593b6855b86b8a0c2&ts=1450347429967&uri=d055a11c37ee4f76a274b969e308da9c&userId=DD574A802FFADB144D4C84CBDF16A89E&ver=1.1&nsp_key=nv9Kn4PG91DHJ%2Fk33J0TfRhhIpE%3D"
+	new_game_raw_data = """clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=95C3DCD7358A462B8A235DD349C83E6F&isShake=0&iv=6LLe%2F8W1L2r2VfFxvdPRww%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=4944739978082606370&serviceType=5&shakeReqPageNum=0&sign=99001011cs11105820000000%403CB547495C4E9571A7B7D641932545CC&trace=97bf368fefad407593b6855b86b8a0c2&ts=1451441383342&uri=f7bdb327d25944009c49e85af1e57720%7C1451441340682&userId=F92BED683CBB555EB76EAC9C534C3C77&ver=1.1&nsp_key=D2N%2F9Keaf0NLsyy6KWzP2EP55jw%3D"""
+	kc_raw_data = "clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=95C3DCD7358A462B8A235DD349C83E6F&isShake=0&iv=ddI%2FExPpnAROsOh8TWli2g%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=5608873950279478640&serviceType=5&shakeReqPageNum=0&sign=99001011cs11105820000000%403CB547495C4E9571A7B7D641932545CC&trace=97bf368fefad407593b6855b86b8a0c2%3B4d68256c0cb04a1f8ae6c9a1aae68f8d%7C1451441340694&ts=1451441833594&uri=d055a11c37ee4f76a274b969e308da9c&userId=38C8FB95ACEB81C70973CBD3B53F6E5A&ver=1.1&nsp_key=dtg8h4hm1Fa88DhDPryG7w3mLjQ%3D"
 	rds = [new_game_raw_data, kc_raw_data]
 	try:
 		for raw_data in rds:
 			r = requests.post(url, data=raw_data, headers=headers,timeout=10)
 			if r.status_code == 200:
 				j = r.json()
-				if j['layoutData'] is not None:
+				if 'layoutData' in j and j['layoutData'] is not None:
 					layoutData = j['layoutData']
 					if len(layoutData) % 2 == 0:
 						for index in xrange(0, len(layoutData), 2):
@@ -1734,6 +1734,26 @@ def get_huawei_app_kc():
 							normal_card = items[1]
 							if title_card['dataList'] is not None and len(title_card['dataList']) == 1:
 								dt = title_card['dataList'][0].get('name')
+								if dt == u'今天':
+									publish_date = unicode(datetime.date.today())	
+									data_list = normal_card['dataList']
+									if data_list is not None:
+										for app in data_list:
+											product_id = app.get('detailId', u'')
+											if product_id:
+												ins = db_conn.query(KC_LIST).filter(KC_LIST.game_id==product_id).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('huawei_app')).first()
+												if ins is None:
+													count += 1
+													item = KC_LIST(**{
+																	"title": app.get('name', u''),
+																	"game_id": product_id,
+																	"pkg_name": app.get('package', u''),
+																	"publish_date": publish_date,
+																	"img": app.get('icon', u''),
+																	"popular": app.get('downCountDesc', u''),
+																	"source": source_map.get('huawei_app')
+																	})
+													db_conn.merge(item)
 								m = re.search(u'(\d+)月(\d+)日', dt)
 								if m is not None:
 									_date = u"%s-%s-%s" % (datetime.date.today().year, m.group(1), m.group(2))
@@ -1744,7 +1764,7 @@ def get_huawei_app_kc():
 										for app in data_list:
 											product_id = app.get('detailId', u'')
 											if product_id:
-												ins = db_conn.query(KC_LIST).filter(KC_LIST.game_id==product_id).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('wostore')).first()
+												ins = db_conn.query(KC_LIST).filter(KC_LIST.game_id==product_id).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('huawei_app')).first()
 												if ins is None:
 													count += 1
 													item = KC_LIST(**{
@@ -1758,7 +1778,8 @@ def get_huawei_app_kc():
 																	})
 													db_conn.merge(item)
 	except Exception, e:
-		mylogger.error("## ## get huawei kc \t%s" % (traceback.format_exc()))
+		mylogger.error("## ## get huawei gamecenter kc \t%s" % (traceback.format_exc()))
+	db_conn.commit()
 
 def get_mmstore_detail(url):
 	try:
@@ -1940,4 +1961,5 @@ def main():
 	get_oppo_kc(0)
 
 if __name__ == '__main__':
-	main()
+	#main()
+	get_huawei_app_kc()
