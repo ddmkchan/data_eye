@@ -871,7 +871,7 @@ def get_huawei_detail_by_id(url):
 						mydict['download_num'] = m.group()
 		imgs = soup.find('ul', class_="imgul")	
 		if imgs is not None:
-			mydict['imgs'] = [i.find('img').get('src') for i in imgs.find_all('li')]
+			mydict['imgs'] = [i.find('img', class_='showimg').get('src') for i in imgs.find_all('li')]
 		summary = soup.find('div', id="app_strdesc")
 		if summary is not None:
 			mydict['description'] = summary.text
@@ -1691,4 +1691,5 @@ def step2():
 	get_kuaiyong_detail()
 
 if __name__ == '__main__':
-	step1()
+	#step1()
+	get_huawei_detail_by_id('http://appstore.huawei.com/app/C10393384')
