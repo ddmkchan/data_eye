@@ -26,7 +26,7 @@ class KC_LIST(Base):
 	publish_status = Column(Unicode(50), nullable=False, default=u'')
 	game_type = Column(Unicode(50), nullable=False, default=u'')
 	game_id = Column(Unicode(50), nullable=False, default=u'')
-	pkg_name = Column(Unicode(100), nullable=False, default=u'')
+	pkg_name = Column(Unicode(200), nullable=False, default=u'')
 	popular = Column(Unicode(50), nullable=False, default=u'')
 	publish_date = Column(Unicode(50), nullable=False, default=u'')
 	source = Column(Integer, nullable=False, default=0)

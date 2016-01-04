@@ -1739,14 +1739,13 @@ def get_huawei_app_kc():
 									data_list = normal_card['dataList']
 									if data_list is not None:
 										for app in data_list:
-											product_id = app.get('detailId', u'')
-											if product_id:
-												ins = db_conn.query(KC_LIST).filter(KC_LIST.game_id==product_id).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('huawei_app')).first()
+											pkg_name = app.get('package', u'')
+											if pkg_name:
+												ins = db_conn.query(KC_LIST).filter(KC_LIST.pkg_name==pkg_name).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('huawei_app')).first()
 												if ins is None:
 													count += 1
 													item = KC_LIST(**{
 																	"title": app.get('name', u''),
-																	"game_id": product_id,
 																	"pkg_name": app.get('package', u''),
 																	"publish_date": publish_date,
 																	"img": app.get('icon', u''),
@@ -1762,14 +1761,13 @@ def get_huawei_app_kc():
 									data_list = normal_card['dataList']
 									if data_list is not None:
 										for app in data_list:
-											product_id = app.get('detailId', u'')
-											if product_id:
-												ins = db_conn.query(KC_LIST).filter(KC_LIST.game_id==product_id).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('huawei_app')).first()
+											pkg_name = app.get('package', u'')
+											if pkg_name:
+												ins = db_conn.query(KC_LIST).filter(KC_LIST.pkg_name==pkg_name).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('huawei_app')).first()
 												if ins is None:
 													count += 1
 													item = KC_LIST(**{
 																	"title": app.get('name', u''),
-																	"game_id": product_id,
 																	"pkg_name": app.get('package', u''),
 																	"publish_date": publish_date,
 																	"img": app.get('icon', u''),
