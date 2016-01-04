@@ -348,12 +348,12 @@ def get_360gamebox_raw_data():
 		for br in j['data']['topic']['list']:
 			title = br.get('title', u'')
 			if title in [u'必玩的精品网游', u'口碑游戏', u'优秀新游戏']:
-				banner = br['banner']
+				banner = br.get('banner')
 				if banner is not None:
 					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
 					picUrl = banner.get('logo', u'')
 					if picUrl:
-						info = banner['game']
+						info = banner.get('game',{})
 						game_name = info.get('name', u'')
 						position_name = u'图标推荐' 
 						position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
@@ -992,7 +992,7 @@ def get_coolpad_ad():
 	
 	r = requests.post(url, data=raw_data, headers={'Content-Type': 'application/xml'}, timeout=10)
 	if r.status_code == 200:
-		t = re.sub(u'\r|\n', '', r.text)
+		t = re.sub(u'\n', u'', r.text)
 		doc = xmltodict.parse(t)
 		for ad in doc['response']['ads']['ad']:
 			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
@@ -1250,7 +1250,6 @@ def main():
 	get_9game_raw_data()
 	get_9game_newgame()
 	get_9game_bbs()
-	get_360gamebox_raw_data()
 	get_360zhushou_app_ad()
 	get_360zhushou_web_ad()
 	get_mmstore_ad()
@@ -1259,11 +1258,12 @@ def main():
 	get_wogame_ad()
 	get_oppo_ad()
 	get_vivo_gamecenter_ad()
-	get_coolpad_ad()
 	get_gionee_gamecenter_ad()
 	get_myaora_ad()
 	get_iqiyi_ad()
 	get_jinshan_pc_ad()
+	get_360gamebox_raw_data()
+	#get_coolpad_ad()
 
 if __name__ == "__main__":
 	main()

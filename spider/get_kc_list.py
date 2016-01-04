@@ -1892,8 +1892,10 @@ def get_vivo_store_kc():
 def get_oppo_kc(start):
 	count = 0
 	URL = "https://igame.oppomobile.com/gameapp/newGame/recommend?start=%s" % start
+	headers = {'sign':'78c0aa34494643c21ed00cde1a703dac', 'param':'imei=868008021943653&model=Che2-UL00&osversion=19'}
 	try:
-		response = requests.get(URL, timeout=10)
+		#response = requests.get(URL, timeout=10)
+		response = requests.get(URL, headers=headers, timeout=10)
 		if response.status_code == 200:
 			rstData = response.json() 
 			if rstData['firstGameList'] is not None:
@@ -1926,11 +1928,14 @@ def get_oppo_kc(start):
 										'url' : game_detail_url
 											}) 
 							db_conn.merge(item)
+						else:
+							ins.game_id = game_id
+							ins.pkg_name = game_pkg_name
 	except Exception,e:
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+		print traceback.format_exc()
 	mylogger.info("get %s records from oppo_app " % (count))
 	db_conn.commit()
-
 
 
 def main():

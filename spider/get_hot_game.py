@@ -1435,14 +1435,16 @@ def store_oppo_top_app_rank():
 	_dict = {'oppo_app_download': 'https://igame.oppomobile.com/gameapp/game/downloadRank?start=0&size=20', 
 			'oppo_app_newGame' : 'https://igame.oppomobile.com/gameapp/game/newGameRank?start=0&size=20',
 			'oppo_app_active' : 'https://igame.oppomobile.com/gameapp/game/activeRank?start=0&size=20'}
+	_header = {'param':'imei=868008021943653&model=Che2-UL00&osversion=19', 'sign': '053919f5ede78f8190c290017004ee54'}
+
 	for gtype, url in _dict.iteritems():
-		get_oppo_app_rank(gtype, url)
+		get_oppo_app_rank(gtype, url, _header)
 
 #oppo下载榜
-def get_oppo_app_rank(gtype, url):
+def get_oppo_app_rank(gtype, url, headers):
 	rank = 0
 	try:
-		response = s.get(url, timeout=10)
+		response = s.get(url, headers=headers, timeout=10)
 		if response.status_code == 200:
 			d = response.json()
 			if d['resultCode'] == 0:
@@ -1461,7 +1463,9 @@ def get_oppo_app_rank(gtype, url):
 					status 		= u""
 					url = u"https://igame.oppomobile.com/gameapp/game/detail?gameId=%s" % game_Id if game_Id else u''
 					
-					store_data((rank, game_name, img, download_num, game_size, source, popular, game_type, status, url))
+ 					#print game_name, img, download_num, game_size, source, popular, game_type, status, url, pkg_name
+ 					#print game_name, img
+					#store_data((rank, game_name, img, download_num, game_size, source, popular, game_type, status, url))
 	except Exception,e:
 		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 
