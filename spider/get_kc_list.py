@@ -498,7 +498,10 @@ def get_vivo_kc(page):
 				_date = u''
 				game_id = ret.get('id', u'')
 				try:
-					_date = u"%s-%s-%s" % (datetime.date.today().year, m.group(1), m.group(2))
+					if m.group(1) == u'12':
+						_date = u"2015-%s-%s" % (m.group(1), m.group(2))
+					else:
+						_date = u"%s-%s-%s" % (datetime.date.today().year, m.group(1), m.group(2))
 				except Exception, e:
 					mylogger.error("%s" % (traceback.format_exc()))
 				if _date and game_id:
@@ -619,7 +622,10 @@ def get_gionee_kc(page):
 				m = re.search(u'(\d+)月(\d+)日', dt)
 				publish_date = u''
 				try:
-					publish_date = u"%s-%s-%s" % (datetime.date.today().year, m.group(1), m.group(2))
+					if m.group(1) == u'12':
+						publish_date = u"2015-%s-%s" % (m.group(1), m.group(2))
+					else:
+						publish_date = u"%s-%s-%s" % (datetime.date.today().year, m.group(1), m.group(2))
 				except Exception, e:
 					mylogger.error("### %s ###\t%s" % (dt.encode('utf-8'), traceback.format_exc()))
 				if publish_date and game_id:
@@ -1583,7 +1589,10 @@ def get_360_gamebox_kc(start):
 						if open_time_human:
 							try:
 								m = re.search(u'(\d+)月(\d+)日', open_time_human)
-								str_dt = u"%s-%s-%s" % (unicode(datetime.date.today().year), m.group(1), m.group(2))
+								if m.group(1) == u'12':
+									str_dt = u"2015-%s-%s" % (m.group(1), m.group(2))
+								else:
+									str_dt = u"%s-%s-%s" % (unicode(datetime.date.today().year), m.group(1), m.group(2))
 								dt = datetime.datetime.strptime(str_dt, '%Y-%m-%d')
 								publish_date = unicode(dt.date())
 							except Exception, e:
@@ -1755,7 +1764,10 @@ def get_huawei_app_kc():
 													db_conn.merge(item)
 								m = re.search(u'(\d+)月(\d+)日', dt)
 								if m is not None:
-									_date = u"%s-%s-%s" % (datetime.date.today().year, m.group(1), m.group(2))
+									if m.group(1) == u'12':
+										_date = u"2015-%s-%s" % (m.group(1), m.group(2))
+									else:
+										_date = u"%s-%s-%s" % (datetime.date.today().year, m.group(1), m.group(2))
 									publish_date = datetime.datetime.strptime(_date, '%Y-%m-%d')
 									publish_date = unicode(publish_date.date())
 									data_list = normal_card['dataList']
