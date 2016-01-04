@@ -1961,5 +1961,4 @@ def main():
 	get_oppo_kc(0)
 
 if __name__ == '__main__':
-	#main()
-	get_huawei_app_kc()
+	main()
