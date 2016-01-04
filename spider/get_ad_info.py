@@ -246,10 +246,9 @@ def get_appicsh_raw_data():
 			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
 			picUrl = br.get('picUrl', u'')
 			if picUrl:
-				info = br['app']
-				if info is not None:
-					game_name = info.get('appName', u'')
-					identifying = info.get('pkgName', u'')
+				info = br.get('app', {})
+				game_name = info.get('appName', u'')
+				identifying = info.get('pkgName', u'')
 				position_name = u'游戏精选大图'
 				position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
 				channel = source_map.get('appicsh')
@@ -275,10 +274,9 @@ def get_appicsh_raw_data():
 			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
 			picUrl = br.get('picUrl', u'')
 			if picUrl:
-				info = br['app']
-				if info is not None:
-					game_name = info.get('appName', u'')
-					identifying = info.get('pkgName', u'')
+				info = br.get('app', {})
+				game_name = info.get('appName', u'')
+				identifying = info.get('pkgName', u'')
 				position_name = u'每日游戏精选大图'
 				position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
 				channel = source_map.get('appicsh')
