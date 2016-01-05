@@ -281,7 +281,7 @@ def get_game_detail(identifyings):
 		rs = db_conn.execute(_sql).fetchone()
 		if rs is not None:
 			dt, identifying, channel = rs
-			ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.identifying==identifying).filter(HotGameDetailByDay.channel=channel).first()
+			ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.identifying==identifying).filter(HotGameDetailByDay.channel==channel).first()
 			if ins is not None:
 				if not imgs:
 					imgs = ins.imgs
@@ -395,4 +395,10 @@ def publish_games_merge():
 if __name__ == '__main__':
 	#remove_duplicate_record()
 	#hot_games_merge()
-	get_game_detail('20^http://game.gionee.com/Api/Local_Gameinfo/getDetails?gameId=4642,68^http://yx.lenovomm.com/business/app!getAppDetail5.action?dpi=480&height=1920&dev=ph&width=1080&cpu=armeabi-v7a&pn=wb.gc.ggbond.bblm.lenovo&uid=72DB07100FC223A2EDE82F4A44AE96B4&os=4.4.4&perf=hp&model=MI 4LTE&type=0&density=xx&mac=7A031DAB40535B3F5E204582EB961FC5,76^http://api-game.meizu.com/games/public/detail/2471074')
+	import xmltodict
+	f = open('kk')
+	c = re.sub('<briefdescription>[\S\s]*</briefdescription>', '', f.read())
+	print c
+	c = re.sub('\r|\n', '', c)
+	doc = xmltodict.parse(c)
+	print doc

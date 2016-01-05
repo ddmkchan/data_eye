@@ -345,71 +345,77 @@ def get_360gamebox_raw_data():
 	flags = [u"首页精选", u"新游推荐"]
 	j = get_data_from_api('http://next.gamebox.360.cn/7/xgamebox/dashboardex?jdata=1450946296&bir=2&nonce=f5ace931-1c70-4018-acae-144065f7ad7a&clienttype=gameunion&v=41611&ch=100100&sk=19&md=mi+4lte&m1=72db07100fc223a2ede82f4a44ae96b4&m2=881f853779fe69ad88926d8ac5ec4930&nt=1&rkey=qe1QeJMtttWAwKjMNmz1sUGKvUW9hZcRPYCJlc0u0SAlJbOan9R3ZYbH%2BREB1MvA1nj%2Bmnc9IQJ%2BY8fhrbWNmEGzCapRZN3SI15iNDTdK2cGmxlvYxuOZkVattKui2NB4nfj4wfphYdIf3VpMfh8Hak1WKmszbBPO0hpBiBBhG8%3D&signid=x9vKfiKUGm%2F9twXAVCCFSVoIB0hHXf5053BA5B6bwzPAgVlvmily9g%3D%3D%0A')
 	if j is not None:
-		for br in j['data']['topic']['list']:
-			title = br.get('title', u'')
-			if title in [u'必玩的精品网游', u'口碑游戏', u'优秀新游戏']:
-				banner = br.get('banner')
-				if banner is not None:
+		try:
+			for br in j['data']['topic']['list']:
+				title = br.get('title', u'')
+				if title in [u'必玩的精品网游', u'口碑游戏', u'优秀新游戏']:
+					banner = br.get('banner')
+					if banner is not None:
+						channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+						picUrl = banner.get('logo', u'')
+						if picUrl:
+							info = banner.get('game',{})
+							game_name = info.get('name', u'')
+							position_name = u'图标推荐' 
+							position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+							channel = source_map.get('360_gamebox')
+							insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+					gamelist = br['games']
+					if gamelist is not None:
+						for game in gamelist:
+							channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+							picUrl = game.get('logo_url', u'')
+							if picUrl:
+								game_name = game.get('name', u'')
+								position_name = title 
+								position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+								channel = source_map.get('360_gamebox')
+								insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+		except Exception,e:
+			mylogger.error(traceback.format_exc())
+
+	j = get_data_from_api('http://next.gamebox.360.cn/7/xgamebox/newgame?nonce=7dd27e13-94c9-4ff0-889e-24df08880a43&clienttype=gameunion&v=41611&ch=100100&sk=19&md=mi+4lte&m1=72db07100fc223a2ede82f4a44ae96b4&m2=881f853779fe69ad88926d8ac5ec4930&nt=1&rkey=fs3KwB%2BEBQjaurPvRWJ3TmorukDpHgCGeh0XMgCibwlCPCJdgBnpEEddl7X6aL7YljJqhjcboCWhIKIkJl%2BYyFkEYJxDJRE%2BIGTMg6lEzPs5FRWJHzIKdfeWmJDrxJBAYi%2BSgNS2Z0ATaufVe1buU0L4bjATNb2NsRtQQmig8ms%3D&signid=PbtzCFU9AFQv6b081FU7zFQEruUM1ZyNDSCS6A8ihkKn2cydBwJJfw%3D%3D%0A')
+	if j is not None:
+		try:
+			for k, v in j['data'].iteritems():
+				if k == 'zone':
 					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
-					picUrl = banner.get('logo', u'')
+					picUrl = v.get('bg', u'')
 					if picUrl:
-						info = banner.get('game',{})
-						game_name = info.get('name', u'')
-						position_name = u'图标推荐' 
+						position_name = u'首页大图'
 						position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
 						channel = source_map.get('360_gamebox')
 						insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
-				gamelist = br['games']
-				if gamelist is not None:
-					for game in gamelist:
+				if k == 'newgame':
+					for game in v['games']:	
 						channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
 						picUrl = game.get('logo_url', u'')
 						if picUrl:
 							game_name = game.get('name', u'')
-							position_name = title 
+							position_name = u'新游关注榜' 
 							position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
 							channel = source_map.get('360_gamebox')
 							insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
-
-	j = get_data_from_api('http://next.gamebox.360.cn/7/xgamebox/newgame?nonce=7dd27e13-94c9-4ff0-889e-24df08880a43&clienttype=gameunion&v=41611&ch=100100&sk=19&md=mi+4lte&m1=72db07100fc223a2ede82f4a44ae96b4&m2=881f853779fe69ad88926d8ac5ec4930&nt=1&rkey=fs3KwB%2BEBQjaurPvRWJ3TmorukDpHgCGeh0XMgCibwlCPCJdgBnpEEddl7X6aL7YljJqhjcboCWhIKIkJl%2BYyFkEYJxDJRE%2BIGTMg6lEzPs5FRWJHzIKdfeWmJDrxJBAYi%2BSgNS2Z0ATaufVe1buU0L4bjATNb2NsRtQQmig8ms%3D&signid=PbtzCFU9AFQv6b081FU7zFQEruUM1ZyNDSCS6A8ihkKn2cydBwJJfw%3D%3D%0A')
-	if j is not None:
-		for k, v in j['data'].iteritems():
-			if k == 'zone':
-				channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
-				picUrl = v.get('bg', u'')
-				if picUrl:
-					position_name = u'首页大图'
-					position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
-					channel = source_map.get('360_gamebox')
-					insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
-			if k == 'newgame':
-				for game in v['games']:	
+				if k == 'ontest':
 					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
-					picUrl = game.get('logo_url', u'')
+					picUrl = v.get('bg', u'')
 					if picUrl:
-						game_name = game.get('name', u'')
-						position_name = u'新游关注榜' 
+						position_name = u'图标推荐'
 						position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
 						channel = source_map.get('360_gamebox')
 						insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
-			if k == 'ontest':
-				channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
-				picUrl = v.get('bg', u'')
-				if picUrl:
-					position_name = u'图标推荐'
-					position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
-					channel = source_map.get('360_gamebox')
-					insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
 
-				for game in v['games']:	
-					channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
-					picUrl = game.get('logo_url', u'')
-					if picUrl:
-						game_name = game.get('name', u'')
-						position_name = u'最近开测'
-						position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
-						channel = source_map.get('360_gamebox')
-						insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+					for game in v['games']:	
+						channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+						picUrl = game.get('logo_url', u'')
+						if picUrl:
+							game_name = game.get('name', u'')
+							position_name = u'最近开测'
+							position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+							channel = source_map.get('360_gamebox')
+							insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+		except Exception,e:
+			mylogger.error(traceback.format_exc())
 			
 
 
@@ -816,8 +822,15 @@ def get_oppo_ad():
 	single_url = "https://igame.oppomobile.com/gameapp/game/single"
 	#网游
 	online_url = "https://igame.oppomobile.com/gameapp/game/online"
+	headers = {'sign':'', 'param':'imei=868008021943653&model=Che2-UL00&osversion=19'}
+	md5_suffix = 'MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBANYFY/UJGSzhIhpx6YM5KJ9yRHc7YeURxzb9tDvJvMfENHlnP3DtVkOIjERbpsSd76fjtZnMWY60TpGLGyrNkvuV40L15JQhHAo9yURpPQoI0eg3SLFmTEI/MUiPRCwfwYf2deqKKlsmMSysYYHX9JiGzQuWiYZaawxprSuiqDGvAgMBAAECgYEAtQ0QV00gGABISljNMy5aeDBBTSBWG2OjxJhxLRbndZM81OsMFysgC7dq+bUS6ke1YrDWgsoFhRxxTtx/2gDYciGp/c/h0Td5pGw7T9W6zo2xWI5oh1WyTnn0Xj17O9CmOk4fFDpJ6bapL+fyDy7gkEUChJ9+p66WSAlsfUhJ2TECQQD5sFWMGE2IiEuz4fIPaDrNSTHeFQQr/ZpZ7VzB2tcG7GyZRx5YORbZmX1jR7l3H4F98MgqCGs88w6FKnCpxDK3AkEA225CphAcfyiH0ShlZxEXBgIYt3V8nQuc/g2KJtiV6eeFkxmOMHbVTPGkARvt5VoPYEjwPTg43oqTDJVtlWagyQJBAOvEeJLno9aHNExvznyD4/pR4hec6qqLNgMyIYMfHCl6d3UodVvC1HO1/nMPl+4GvuRnxuoBtxj/PTe7AlUbYPMCQQDOkf4sVv58tqslO+I6JNyHy3F5RCELtuMUR6rG5x46FLqqwGQbO8ORq+m5IZHTV/Uhr4h6GXNwDQRh1EpVW0gBAkAp/v3tPI1riz6UuG0I6uf5er26yl5evPyPrjrD299L4Qy/1EIunayC7JYcSGlR01+EDYYgwUkec+QgrRC/NstV'
+	import md5
+	md5_str = headers.get('param') + md5_suffix
+	hash = md5.new()
+	hash.update(md5_str)
+	headers['sign'] =  hash.hexdigest()
 	for url in [single_url, online_url]:
-		j = get_data_from_api(url)
+		j = get_data_from_api(url, headers=headers)
 		if j is not None:
 			if 'banners' in j:
 				brs = j['banners']
@@ -837,7 +850,7 @@ def get_oppo_ad():
 
 	#首页
 	url = "https://igame.oppomobile.com/gameapp/game/index"
-	j = get_data_from_api(url)
+	j = get_data_from_api(url, headers=headers)
 	if j is not None:
 		for game in j['bigBannerList']:
 			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
@@ -863,7 +876,11 @@ def get_oppo_ad():
 
 	#新游热度榜
 	url = "https://igame.oppomobile.com/gameapp/newGame/recommend?start=0"
-	j = get_data_from_api(url)
+	md5_str = headers.get('param') + "&start=0" + md5_suffix
+	hash = md5.new()
+	hash.update(md5_str)
+	headers['sign'] =  hash.hexdigest()
+	j = get_data_from_api(url, headers=headers)
 	if j is not None:
 		if 'rankUnit' in j:
 			for game in j['rankUnit']['gameList']:
@@ -990,50 +1007,60 @@ def get_coolpad_ad():
 	url = "http://gamecenter.coolyun.com/gameAPI/API/getSubjectList?key=0"
 	raw_data = """<?xml version="1.0" encoding="utf-8"?><request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064" ><syncflag>0</syncflag><subjecttype>1</subjecttype><max>10</max></request>"""
 	
-	r = requests.post(url, data=raw_data, headers={'Content-Type': 'application/xml'}, timeout=10)
-	if r.status_code == 200:
-		t = re.sub(u'\n', u'', r.text)
-		doc = xmltodict.parse(t)
-		for ad in doc['response']['ads']['ad']:
-			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
-			picUrl = ad.get('@picurl', u'')
-			if picUrl and 'res' in ad:
-				game_name = ad['res'].get('@name', u'')
-				position_name = u'大屏轮播图'
-				position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
-				channel = source_map.get('coolpad')
-				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+	try:	
+		r = requests.post(url, data=raw_data, headers={'Content-Type': 'application/xml'}, timeout=10)
+		if r.status_code == 200:
+			t = re.sub(u'<briefdescription>[\S\s]*</briefdescription>', u'', r.text)
+			t = re.sub(u'\r|\n', u'', t)
+			doc = xmltodict.parse(t)
+			for ad in doc['response']['ads']['ad']:
+				channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+				picUrl = ad.get('@picurl', u'')
+				if picUrl and 'res' in ad:
+					game_name = ad['res'].get('@name', u'')
+					position_name = u'大屏轮播图'
+					position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+					channel = source_map.get('coolpad')
+					insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+	except Exception,e:
+		mylogger.error(traceback.format_exc())
 
 	#首页广告位
 	raw_data = """<?xml version="1.0" encoding="utf-8"?><request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064" ><syncflag>0</syncflag><subjecttype>2</subjecttype><max>10</max></request>"""
-	r = requests.post(url, data=raw_data, headers={'Content-Type': 'application/xml'}, timeout=10)
-	if r.status_code == 200:
-		t = re.sub(u'\r|\n', '', r.text)
-		doc = xmltodict.parse(t)
-		for ad in doc['response']['ads']['ad'][:10]:
-			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
-			picUrl = ad.get('@picurl', u'')
-			if picUrl:
-				game_name = ad['res'].get('@name', u'')
-				position_name = u'首页大图'
-				position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
-				channel = source_map.get('coolpad')
-				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+	try:
+		r = requests.post(url, data=raw_data, headers={'Content-Type': 'application/xml'}, timeout=10)
+		if r.status_code == 200:
+			t = re.sub(u'\r|\n', '', r.text)
+			doc = xmltodict.parse(t)
+			for ad in doc['response']['ads']['ad'][:10]:
+				channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+				picUrl = ad.get('@picurl', u'')
+				if picUrl:
+					game_name = ad['res'].get('@name', u'')
+					position_name = u'首页大图'
+					position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+					channel = source_map.get('coolpad')
+					insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+	except Exception,e:
+		mylogger.error(traceback.format_exc())
 	#网游广告位
 	raw_data = """<?xml version="1.0" encoding="utf-8"?><request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064" ><syncflag>0</syncflag><subjecttype>4</subjecttype><max>4</max></request>"""
-	r = requests.post(url, data=raw_data, headers={'Content-Type': 'application/xml'}, timeout=10)
-	if r.status_code == 200:
-		t = re.sub(u'\r|\n', '', r.text)
-		doc = xmltodict.parse(t)
-		for ad in doc['response']['ads']['ad'][:4]:
-			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
-			picUrl = ad.get('@picurl', u'')
-			if picUrl:
-				game_name = ad['res'].get('@name', u'')
-				position_name = u'首页大图'
-				position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
-				channel = source_map.get('coolpad')
-				insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+	try:
+		r = requests.post(url, data=raw_data, headers={'Content-Type': 'application/xml'}, timeout=10)
+		if r.status_code == 200:
+			t = re.sub(u'\r|\n', '', r.text)
+			doc = xmltodict.parse(t)
+			for ad in doc['response']['ads']['ad'][:4]:
+				channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
+				picUrl = ad.get('@picurl', u'')
+				if picUrl:
+					game_name = ad['res'].get('@name', u'')
+					position_name = u'首页大图'
+					position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
+					channel = source_map.get('coolpad')
+					insert_ad_data((channel, position_type_id, position_name, picUrl, game_name, identifying))
+	except Exception,e:
+		mylogger.error(traceback.format_exc())
 
 def get_gionee_gamecenter_ad():
 	raw_data = {
@@ -1263,7 +1290,8 @@ def main():
 	get_iqiyi_ad()
 	get_jinshan_pc_ad()
 	get_360gamebox_raw_data()
-	#get_coolpad_ad()
+	get_coolpad_ad()
 
 if __name__ == "__main__":
-	main()
+	#main()
+	get_oppo_ad()
