@@ -22,7 +22,7 @@ def hot_games_merge():
 	from sqlalchemy import not_
 	for ret in db_conn.execute("select identifying, name from hot_games where status=0 and identifying!='' group by identifying, name"):
 		identifying, name = ret
-		segs = re.split(u'-|\(|\)|（|）|：|:|[\s]*-|－', name)
+		segs = re.split(u'-|\(|\)|（|）|[\s]*-|－', name)
 		if len(segs)>=2:
 			if name.startswith('(') or name.startswith(u'（'): 
 				mydict[identifying] = segs[2]

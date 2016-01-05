@@ -1360,10 +1360,10 @@ def get_myaora_app_rank():
 
 def get_huawei_app_rank():
 	_dict = {
-			"huawei_single_weekly": "clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=8BE2222453F8466690700BD3D29AFDF9&isShake=0&iv=jVRKhj%2Flrx0p0HvA9r8usg%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=-3169502808676295893&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105320000000%4021ED0F3A6FB3EB1012341D7446889DC3&trace=618FC606383111E5A1B100188DD60001&ts=1450347536594&uri=618FC606383111E5A1B100188DD60002&userId=5F04B6AE58FFB279B169FA8FA0DA4ED0&ver=1.1&nsp_key=ynhRv46WNXWL8Hcf1rBPrXGizto%3D",
-			"huawei_webgame_weekly": "clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=8BE2222453F8466690700BD3D29AFDF9&isShake=0&iv=Gn0QT5E4AY6OYv1B26Bhag%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=-747596652580722219&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105320000000%4021ED0F3A6FB3EB1012341D7446889DC3&trace=618FC606383111E5A1B100188DD60001&ts=1450347636420&uri=618FC606383111E5A1B100188DD60003&userId=0C838299767D23AD6DD0D966FA5A3CEF&ver=1.1&nsp_key=bZADz5EnfWc2wYMXk7vHH02Rw%2Fk%3D",
-			"huawei_newgame": "clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=8BE2222453F8466690700BD3D29AFDF9&isShake=0&iv=ykERKQ1C%2FSWBOJqRHDp0hA%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=-9010689806809620686&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105320000000%4021ED0F3A6FB3EB1012341D7446889DC3&trace=618FC606383111E5A1B100188DD60001&ts=1450347681402&uri=f7bdb327d25944009c49e85af1e57720&userId=2FCCA764709EA036AA7EFD260899DF6F&ver=1.1&nsp_key=cGFs8TLV6gZd3rWVLzFE7uCRzaI%3D",
-			"huawei_hot": "clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=8BE2222453F8466690700BD3D29AFDF9&isShake=0&iv=7a3zIqRoB2B%2FNmgu3dBBVQ%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=4847397490382914763&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105320000000%4021ED0F3A6FB3EB1012341D7446889DC3&trace=618FC606383111E5A1B100188DD60001&ts=1450347704924&uri=618FC606383111E5A1B100188DD60004&userId=086D895DD0AEC90355EE815AA89C30C2&ver=1.1&nsp_key=zMAT4fnASLck%2BcUsfvwMPhvuQBg%3D",
+			"huawei_single_weekly": "clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=21C3ECE83B2D4C8C81D83B13045EC7EE&isShake=0&iv=Dpij1TS4GeeSrHRPv%2BohZA%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=2528622652869830902&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105120000000%409DE209FE91B3D6CFB0D254FD208CBB30&trace=618FC606383111E5A1B100188DD60001&ts=1451959315948&uri=618FC606383111E5A1B100188DD60002&userId=EB1D1375A4E35DDC978314ADB99D316D&ver=1.1&nsp_key=YLfeh0bUDZG%2FhhlFGb%2FOdlWIKr4%3D",
+			"huawei_webgame_weekly": "clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=21C3ECE83B2D4C8C81D83B13045EC7EE&isShake=0&iv=tOhF8GjeJHc%2F8m4gk0R9kQ%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=-6956211721782037585&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105120000000%409DE209FE91B3D6CFB0D254FD208CBB30&trace=618FC606383111E5A1B100188DD60001&ts=1451959271130&uri=618FC606383111E5A1B100188DD60003&userId=072DC3E792004CAD1F8206FFC7899EE8&ver=1.1&nsp_key=rXVRdiBrA0mWOhwSXNLyM8SDEaE%3D",
+			"huawei_newgame": "clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=21C3ECE83B2D4C8C81D83B13045EC7EE&isShake=0&iv=cm2X8l4TgCo6VEX1HFTO3w%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=-1724548158893474278&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105120000000%409DE209FE91B3D6CFB0D254FD208CBB30&trace=618FC606383111E5A1B100188DD60001&ts=1451959227572&uri=f7bdb327d25944009c49e85af1e57720&userId=CD800481583DF3CF717CCF565FB64D15&ver=1.1&nsp_key=MVyL1aaz4vAQOmKRJ1ZsZ2li53U%3D",
+			"huawei_hot": "clientPackage=com.huawei.gamebox&cno=4010001&code=0500&hcrId=21C3ECE83B2D4C8C81D83B13045EC7EE&isShake=0&iv=BP%2FdycVxucyY4da4ohgE3A%3D%3D&maxResults=25&method=client.getTabDetail&net=1&reqPageNum=1&salt=-2829551210465774057&serviceType=5&shakeReqPageNum=0&sign=b9001011cs11105120000000%409DE209FE91B3D6CFB0D254FD208CBB30&trace=618FC606383111E5A1B100188DD60001&ts=1451958893094&uri=618FC606383111E5A1B100188DD60004&userId=7A0F9A1BD42F4972BD30751033DF13A2&ver=1.1&nsp_key=9J%2B507lPM4wFTwE1B4aErXl7U10%3D"
 			}
 	headers = {
 				'Content-Type': 'text/plain;charset=UTF-8',
@@ -1373,7 +1373,7 @@ def get_huawei_app_rank():
 		rank = 0
 		url = "http://hispaceclt1.hicloud.com:8080/hwmarket/api/storeApi2"
 		try:
-			r = requests.post(url, data=raw_data, headers=headers, timeout=10)
+			r = requests.post(url, data=raw_data, headers=headers, timeout=30)
 			if r.status_code == 200:
 				j = r.json()
 				if j['layoutData'] is not None and len(j['layoutData'])>=1:
@@ -1444,7 +1444,7 @@ def store_oppo_top_app_rank():
 def get_oppo_app_rank(gtype, url, headers):
 	rank = 0
 	try:
-		response = s.get(url, headers=headers, timeout=10)
+		response = s.get(url, headers=headers, timeout=30)
 		if response.status_code == 200:
 			d = response.json()
 			if d['resultCode'] == 0:
@@ -1464,8 +1464,7 @@ def get_oppo_app_rank(gtype, url, headers):
 					url = u"https://igame.oppomobile.com/gameapp/game/detail?gameId=%s" % game_Id if game_Id else u''
 					
  					#print game_name, img, download_num, game_size, source, popular, game_type, status, url, pkg_name
- 					#print game_name, img
-					#store_data((rank, game_name, img, download_num, game_size, source, popular, game_type, status, url))
+					store_data((rank, game_name, img, download_num, game_size, source, popular, game_type, status, url))
 	except Exception,e:
 		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 
