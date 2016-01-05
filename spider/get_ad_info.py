@@ -830,7 +830,7 @@ def get_oppo_ad():
 	hash.update(md5_str)
 	headers['sign'] =  hash.hexdigest()
 	for url in [single_url, online_url]:
-		j = get_data_from_api(url, headers=headers)
+		j = get_data_from_api(url, headers=headers, timeout=30)
 		if j is not None:
 			if 'banners' in j:
 				brs = j['banners']
@@ -850,7 +850,7 @@ def get_oppo_ad():
 
 	#首页
 	url = "https://igame.oppomobile.com/gameapp/game/index"
-	j = get_data_from_api(url, headers=headers)
+	j = get_data_from_api(url, headers=headers, timeout=30)
 	if j is not None:
 		for game in j['bigBannerList']:
 			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
@@ -880,7 +880,7 @@ def get_oppo_ad():
 	hash = md5.new()
 	hash.update(md5_str)
 	headers['sign'] =  hash.hexdigest()
-	j = get_data_from_api(url, headers=headers)
+	j = get_data_from_api(url, headers=headers, timeout=30)
 	if j is not None:
 		if 'rankUnit' in j:
 			for game in j['rankUnit']['gameList']:
@@ -1293,4 +1293,5 @@ def main():
 	get_coolpad_ad()
 
 if __name__ == "__main__":
-	main()
+	#main()
+	get_oppo_ad()
