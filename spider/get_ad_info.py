@@ -1293,5 +1293,4 @@ def main():
 	get_coolpad_ad()
 
 if __name__ == "__main__":
-	#main()
-	get_oppo_ad()
+	main()
