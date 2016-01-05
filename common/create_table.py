@@ -10,5 +10,5 @@ if __name__ == "__main__":
     #createtable(MTMapping2, PTPQ_ENGINE)
     #createtable(RankingChannel, PTPQ_ENGINE)
     #createtable(HotGameDetailByDay, PTPQ_ENGINE)
-    createtable(RanklistGame, PTPQ_ENGINE)
-    createtable(RanklistGameDetail, PTPQ_ENGINE)
+    createtable(ADVRecord2, PTPQ_ENGINE)
+    createtable(ADVGameDetail, PTPQ_ENGINE)

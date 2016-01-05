@@ -252,6 +252,36 @@ class ADVRecord(Base):
 	position_name = Column(Unicode(100), nullable=False, default=u'')
 	identifying = Column(Unicode(500), nullable=False, default=u'')
 	platform = Column(Unicode(100), nullable=False, default=u'')
+	img_local_path = Column(Unicode(500), nullable=False, default=u'')
 	create_date = Column(DateTime, nullable=False, default=datetime.now())#创建时间
 	last_update = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间
 
+class ADVRecord2(Base):
+
+	__tablename__ = 'adv_record_v2'
+
+	id = Column(Integer, primary_key=True, autoincrement=True)
+	adv_game_detail_id = Column(Integer, nullable=False, default=-1)
+	position_type_id = Column(Integer, nullable=False, default=0)
+	channel_id = Column(Integer, nullable=False, default=-1, index=True)
+	update_date = Column(Date, nullable=False, default=date.today())
+	update_time = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间
+	platform = Column(Unicode(50), nullable=False, default=u'Andorid')
+	position_name = Column(Unicode(500), nullable=False, default=u'')
+
+class ADVGameDetail(Base):
+
+	__tablename__ = 'adv_game_detail'
+
+	id = Column(Integer, primary_key=True, autoincrement=True)
+	dc_game_type_id = Column(Integer, nullable=False, default=-1)
+	game_name = Column(Unicode(100), nullable=False, default=u'', index=True)
+	img_url = Column(Unicode(500), nullable=False, default=u'')
+	img_path = Column(Unicode(500), nullable=False, default=u'')
+	pkg_name = Column(Unicode(100), nullable=False, default=u'')
+	game_developer = Column(Unicode(200), nullable=False, default=u'')
+	net_type_id = Column(Integer, nullable=False, default=-1)
+	game_theme_id = Column(Integer, nullable=False, default=-1)
+	frame_theme_id = Column(Integer, nullable=False, default=-1)
+	create_date = Column(DateTime, nullable=False, default=datetime.now())#创建时间
+	last_update = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间
