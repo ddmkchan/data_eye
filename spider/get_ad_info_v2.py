@@ -760,7 +760,7 @@ def get_wostore_ad():
 		try:
 			for app in j.get('RANKINGAPP', []):
 				channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
-				picUrl = app.get('appIconURL', u'')
+				picUrl = app.get('iconURL', u'')
 				if picUrl:
 					game_name = app.get('appName', u'')
 					game_id = insert_ad_game(game_name, picUrl)
