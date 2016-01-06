@@ -66,7 +66,7 @@ def download_pic_v2(img_url, pic_name):
 	return None
 
 def get_imgs_from_db():
-	return [(re.img_path, re.id) for re in db_conn.query(ADVRecord).filter(ADVRecord.    img_path!=u'')]
+	return [(re.img_path, re.id) for re in db_conn.query(ADVRecord).filter(ADVRecord.img_path!=u'')]
 
 def download_imgs():
 	count = 0
