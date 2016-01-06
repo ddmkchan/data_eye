@@ -392,13 +392,60 @@ def publish_games_merge():
 	print count2
 	print count3
 
+from get_ad_info_v2 import insert_ad_game
+
+def transfer_ad_info_to_new_table():
+	for ret in db_conn.query(ADVRecord):
+		print ret.channel_id, ret.position_name, ret.game_name
+		game_id = insert_ad_game(ret.game_name, ret.img_path)
+		channel = ret.channel_id
+		position_type_id = ret.position_type_id
+		position_name = ret.position_name
+		dt = ret.update_date
+		insert_ad_data((channel, position_type_id, position_name, game_id, dt))
+
+def insert_ad_data(ret):
+	channel, position_type_id, position_name, game_id, dt = ret
+	ins = db_conn.query(ADVRecord2).filter(ADVRecord2.update_date==dt).filter(ADVRecord2.channel_id==channel).filter(ADVRecord2.position_type_id==position_type_id).filter(ADVRecord2.adv_game_detail_id==game_id).filter(ADVRecord2.position_name==position_name).first()
+	if ins is None:
+		item = ADVRecord2(**{
+						"channel_id"		: channel,
+						"position_type_id"	: position_type_id,
+						"position_name"		: position_name,
+						"adv_game_detail_id": game_id,
+						"update_date"		: dt,
+						})
+		db_conn.merge(item)
+	db_conn.commit()
+
+import os
+import uuid
+import imghdr
+import shutil
+from get_images import imgs_path, imgs_path_v2, map_logger
+
+def transfer_img():
+	for ret in db_conn.query(ADVRecord).filter(ADVRecord.id==1):
+		img_file = "%s/%s" % (imgs_path, ret.id)
+		if os.path.exists(img_file):
+			img_type = imghdr.what(img_file)
+			uid = str(uuid.uuid1())
+			map_logger.info("###\t%s\t%s" % (ret.id, uid))
+			if img_type is not None:
+				new_img_file_name = "%s.%s" %(uid, img_type)
+			else:
+				new_img_file_name = uuid
+			new_img_file = "%s/%s" % (imgs_path_v2, new_img_file_name)
+			print img_file, '------>', new_img_file
+			if not os.path.isfile(new_img_file):
+				shutil.copy(img_file, new_img_file)
+			game_id = insert_ad_game(ret.game_name, ret.img_path)
+			ins = db_conn.query(ADVGameDetail).filter(ADVGameDetail.id==game_id).first()
+			if ins is not None:
+				print ins.id, ins.game_name
+				ins.img_path = new_img_file_name
+	db_conn.commit()
+			
 if __name__ == '__main__':
-	#remove_duplicate_record()
-	#hot_games_merge()
-	import xmltodict
-	f = open('kk')
-	c = re.sub('<briefdescription>[\S\s]*</briefdescription>', '', f.read())
-	print c
-	c = re.sub('\r|\n', '', c)
-	doc = xmltodict.parse(c)
-	print doc
+	transfer_ad_info_to_new_table()
+	transfer_img()

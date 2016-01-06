@@ -23,7 +23,7 @@ import imghdr
 
 if localIP == u'192.168.1.215':
 	imgs_path = "/root/yanpengchen/data_eye/spider/imgs"
-	imgs_path_v2 = "/root/yanpengchen/data_eye/spider/imgs_v2"
+	imgs_path_v2 = "/data2/yanpengchen/imgs_v2"
 else:
 	imgs_path = "/home/cyp/data_eye/spider/imgs"
 	imgs_path_v2 = "/home/cyp/data_eye/spider/imgs_v2"
