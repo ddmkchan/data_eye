@@ -79,7 +79,7 @@ def download_imgs():
 			if isinstance(pic_name, str):
 				pic_name = pic_name.decode('utf-8')
 			ret.img_path = pic_name
-		if count % 100:
+		if count % 100 == 0:
 			mylogger.info("update img_path %s commit" % count)
 			db_conn.commit()
 	db_conn.commit()
