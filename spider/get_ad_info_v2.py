@@ -981,7 +981,6 @@ def get_oppo_ad():
 				position_name = u'大屏轮播图'
 				position_type_id = position_type_map.get(u'首页大图/大屏轮播图/banner')
 				channel = source_map.get('oppo_app')
-				print position_name, game_name, '****'
 				insert_ad_data((channel, position_type_id, position_name, game_id, identifying))
 		if len(j['gameList']) >= 1:
 			channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
