@@ -452,5 +452,4 @@ def transfer_img():
 	db_conn.commit()
 
 if __name__ == '__main__':
-	transfer_ad_info_to_new_table()
-	transfer_img()
+	pass
