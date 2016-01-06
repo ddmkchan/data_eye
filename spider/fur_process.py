@@ -451,5 +451,23 @@ def transfer_img():
 					ins.img_path = new_img_file_name
 	db_conn.commit()
 
+def check_imgs():
+	count = 0
+	for ret in db_conn.query(ADVGameDetail).filter(ADVGameDetail.img_path!=u''):
+		source_img_file = "/root/yanpengchen/data_eye/spider/imgs_v2/%s" % (ret.img_path)
+		new_img_file = "%s/%s" % (imgs_path_v2, ret.img_path)
+		if not os.path.isfile(new_img_file):
+			#if os.path.isfile(source_img_file):
+		#		shutil.copy(source_img_file, new_img_file)
+			print ret.id, ret.img_path, os.path.isfile(source_img_file)
+			count +=1
+	t = os.listdir(imgs_path_v2)
+	print len(t)
+
+	t2 = [ret.img_path for ret in db_conn.query(ADVGameDetail).filter(ADVGameDetail.img_path!=u'')]
+	print len(t2)
+	print len(set(t)-set(t2))
+
+
 if __name__ == '__main__':
 	pass
