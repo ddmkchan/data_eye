@@ -70,7 +70,7 @@ def get_imgs_from_db():
 
 def download_imgs():
 	count = 0
-	for ret in db_conn.query(ADVGameDetail).filter(ADVGameDetail.img_url!=u'').filter(ADVGameDetail.img_path==u'').limit(10):
+	for ret in db_conn.query(ADVGameDetail).filter(ADVGameDetail.img_url!=u'').filter(ADVGameDetail.img_path==u''):
 		uid = str(uuid.uuid1())
 		map_logger.info("%s\t%s" % (ret.id, uid))
 		pic_name = download_pic_v2(ret.img_url, uid)
@@ -80,6 +80,7 @@ def download_imgs():
 				pic_name = pic_name.decode('utf-8')
 			ret.img_path = pic_name
 		if count % 100:
+			mylogger.info("update img_path %s commit" % count)
 			db_conn.commit()
 	db_conn.commit()
 		
