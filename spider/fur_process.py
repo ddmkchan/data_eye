@@ -425,27 +425,32 @@ import shutil
 from get_images import imgs_path, imgs_path_v2, map_logger
 
 def transfer_img():
-	for ret in db_conn.query(ADVRecord).filter(ADVRecord.id==1):
-		img_file = "%s/%s" % (imgs_path, ret.id)
-		if os.path.exists(img_file):
-			img_type = imghdr.what(img_file)
-			uid = str(uuid.uuid1())
-			map_logger.info("###\t%s\t%s" % (ret.id, uid))
-			if img_type is not None:
-				new_img_file_name = "%s.%s" %(uid, img_type)
-			else:
-				new_img_file_name = uuid
-			new_img_file = "%s/%s" % (imgs_path_v2, new_img_file_name)
-			print img_file, '------>', new_img_file
-			if not os.path.isfile(new_img_file):
-				shutil.copy(img_file, new_img_file)
-			game_id = insert_ad_game(ret.game_name, ret.img_path)
-			ins = db_conn.query(ADVGameDetail).filter(ADVGameDetail.id==game_id).first()
-			if ins is not None:
-				print ins.id, ins.game_name
-				ins.img_path = new_img_file_name
+	for tt in db_conn.execute(u"select game_name, img_path from adv_record group by game_name, img_path"):
+		game_name, img_path = tt
+		ret = db_conn.query(ADVRecord).filter(ADVRecord.game_name==game_name).filter(ADVRecord.img_path==img_path).first()
+		if ret is not None:
+
+	#for ret in db_conn.query(ADVRecord):
+			img_file = "%s/%s" % (imgs_path, ret.id)
+			if os.path.exists(img_file):
+				img_type = imghdr.what(img_file)
+				uid = str(uuid.uuid1())
+				map_logger.info("###\t%s\t%s" % (ret.id, uid))
+				if img_type is not None:
+					new_img_file_name = "%s.%s" %(uid, img_type)
+				else:
+					new_img_file_name = uid
+				new_img_file = "%s/%s" % (imgs_path_v2, new_img_file_name)
+				print img_file, '------>', new_img_file
+				if not os.path.isfile(new_img_file):
+					shutil.copy(img_file, new_img_file)
+				game_id = insert_ad_game(ret.game_name, ret.img_path)
+				ins = db_conn.query(ADVGameDetail).filter(ADVGameDetail.id==game_id).first()
+				if ins is not None:
+					print ins.id, ins.game_name
+					ins.img_path = new_img_file_name
 	db_conn.commit()
-			
+
 if __name__ == '__main__':
 	transfer_ad_info_to_new_table()
 	transfer_img()
