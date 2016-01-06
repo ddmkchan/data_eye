@@ -24,28 +24,34 @@ import imghdr
 if localIP == u'192.168.1.215':
 	imgs_path = "/root/yanpengchen/data_eye/spider/imgs"
 	imgs_path_v2 = "/data2/yanpengchen/imgs_v2"
+	kc_imgs_path = "/data2/yanpengchen/kc_imgs"
 else:
-	imgs_path = "/home/cyp/data_eye/spider/imgs"
-	imgs_path_v2 = "/home/cyp/data_eye/spider/imgs_v2"
+	imgs_path = "/tmp/imgs"
+	imgs_path_v2 = "/tmp/imgs_v2"
+	kc_imgs_path = "/tmp/kc_imgs"
 
 def download_pic(args):
 	try:
 		url, name = args
-		if not os.path.isfile("%s/%s" % (imgs_path, name)):
-			mylogger.info("downloading pic ... %s" % name)
-			urllib.urlretrieve(url, "%s/%s" % (imgs_path, name))
+		if not os.path.isfile("%s/%s" % (kc_imgs_path, name)):
+			mylogger.info("downloading kc pic ... %s" % name)
+			urllib.urlretrieve(url, "%s/%s" % (kc_imgs_path, name))
 	except Exception,e:
 		mylogger.error(traceback.format_exc())
 
-def get_imgs():
+def get_kc_imgs():
 	try:
 		pool = multiprocessing.Pool(processes=multiprocessing.cpu_count())
-		pics = get_imgs_from_db()
+		pics = get_kc_imgs_from_db()
 		pool.map_async(download_pic, pics)
 		pool.close()
 		pool.join()
 	except Exception,e:
 		mylogger.error(traceback.format_exc())
+
+def get_kc_imgs_from_db():
+	import datetime
+	return [(ret.img, ret.id) for ret in db_conn.query(KC_LIST).filter(KC_LIST.publish_date==unicode(datetime.date.today())).filter(KC_LIST.img!=u'')]
 
 def download_pic_v2(img_url, pic_name):
 	try:
@@ -87,3 +93,4 @@ def download_imgs():
 if __name__ == '__main__':
 	mylogger.info("download imgs ...")
 	download_imgs()
+	#get_kc_imgs()
