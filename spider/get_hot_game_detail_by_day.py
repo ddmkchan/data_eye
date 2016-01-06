@@ -1943,10 +1943,14 @@ def get_oppo_hot_game_detail(channel_id):
 	mylogger.info("get oppo app detail %s" % count)
 	db_conn.commit()
 
+
 def get_oppo_hot_game_detail(channel_id):
 	count = 0
 	error_times = 0
 	mylogger.info("get oppo app detail start ...")
+	req_headers = {'sign':'', 'param':'imei=868008021943653&model=Che2-UL00&osversion=19'}
+	md5_suffix = 'MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBANYFY/UJGSzhIhpx6YM5KJ9yRHc7YeURxzb9tDvJvMfENHlnP3DtVkOIjERbpsSd76fjtZnMWY60TpGLGyrNkvuV40L15JQhHAo9yURpPQoI0eg3SLFmTEI/MUiPRCwfwYf2deqKKlsmMSysYYHX9JiGzQuWiYZaawxprSuiqDGvAgMBAAECgYEAtQ0QV00gGABISljNMy5aeDBBTSBWG2OjxJhxLRbndZM81OsMFysgC7dq+bUS6ke1YrDWgsoFhRxxTtx/2gDYciGp/c/h0Td5pGw7T9W6zo2xWI5oh1WyTnn0Xj17O9CmOk4fFDpJ6bapL+fyDy7gkEUChJ9+p66WSAlsfUhJ2TECQQD5sFWMGE2IiEuz4fIPaDrNSTHeFQQr/ZpZ7VzB2tcG7GyZRx5YORbZmX1jR7l3H4F98MgqCGs88w6FKnCpxDK3AkEA225CphAcfyiH0ShlZxEXBgIYt3V8nQuc/g2KJtiV6eeFkxmOMHbVTPGkARvt5VoPYEjwPTg43oqTDJVtlWagyQJBAOvEeJLno9aHNExvznyD4/pR4hec6qqLNgMyIYMfHCl6d3UodVvC1HO1/nMPl+4GvuRnxuoBtxj/PTe7AlUbYPMCQQDOkf4sVv58tqslO+I6JNyHy3F5RCELtuMUR6rG5x46FLqqwGQbO8ORq+m5IZHTV/Uhr4h6GXNwDQRh1EpVW0gBAkAp/v3tPI1riz6UuG0I6uf5er26yl5evPyPrjrD299L4Qy/1EIunayC7JYcSGlR01+EDYYgwUkec+QgrRC/NstV'
+
 	ids = channel_map.get(channel_id)
 	_sql = "select name, url from hot_games where source in (%s) and url!='' group by name, url" % ",".join([str(i) for i in ids])
 	mylogger.info(_sql)
@@ -1959,7 +1963,18 @@ def get_oppo_hot_game_detail(channel_id):
 		ins = db_conn.query(HotGameDetailByDay).filter(HotGameDetailByDay.identifying==game_url).filter(HotGameDetailByDay.dt==dt).filter(HotGameDetailByDay.channel==channel_id).first()
 		if not ins:
 			try:
-				response = requests.get(game_url, timeout=10)
+				game_url_query = game_url.split('?')[-1]
+				if game_url_query:
+					if isinstance(game_url_query, unicode) :
+						game_url_query = game_url_query.encode('utf-8')
+					game_url_query = '&' + game_url_query
+				
+				md5_str = req_headers.get('param') + game_url_query + md5_suffix
+				hash = md5.new()
+				hash.update(md5_str)
+				req_headers['sign'] =  hash.hexdigest()
+
+				response = requests.get(game_url, headers=req_headers, timeout=10)
 				if response.status_code == 200:
 					json_result = response.json() 
 					game_content = json_result['game']
@@ -1972,6 +1987,7 @@ def get_oppo_hot_game_detail(channel_id):
 
 						detail_game_desc = json_result.get('gameDesc', u'')
 						detail_game_ver = json_result.get('gameVerName', u'')
+						detail_game_pic = json_result.get('gamePicture0', u'')
 						imgs = []
 						for i in xrange(5):
 							_key = 'gamePicture%s' %i
@@ -1990,6 +2006,8 @@ def get_oppo_hot_game_detail(channel_id):
 									'comment_num' : detail_game_commentNum,
 									'dt' : dt,
 									'imgs' : u",".join(imgs),
+									'create_date' : dt,
+									'last_update' : dt
 										})
 						db_conn.merge(item)
 			except Exception,e:
@@ -1997,7 +2015,6 @@ def get_oppo_hot_game_detail(channel_id):
 				mylogger.error("oppo app detail #### %s #### \t%s" % (game_url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get oppo app detail %s" % count)
 	db_conn.commit()
-
 
 channel_map = {
 			2	: [46, 47], #18183
