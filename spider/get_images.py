@@ -85,7 +85,7 @@ def download_imgs():
 	for ret in db_conn.query(ADVGameDetail).filter(ADVGameDetail.img_url!=u'').filter(ADVGameDetail.img_path==u''):
 		uid = str(uuid.uuid1())
 		map_logger.info("%s\t%s" % (ret.id, uid))
-		pic_name = download_pic_v2("http://p4.qhimg.com/t0116b09e6a34cfc25f.webp", uid)
+		pic_name = download_pic_v2(ret.img_url, uid)
 		if pic_name is not None:
 			count += 1
 			if isinstance(pic_name, str):
