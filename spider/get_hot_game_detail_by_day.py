@@ -1431,6 +1431,10 @@ def get_pp_detail(channel_id):
 			if isinstance(g, EX):
 				error_times += 1
 			elif g is not None:	
+				if g.get('ipadImgs', u''):
+					imgs = g.get('ipadImgs')
+				else:
+					imgs = g.get('iphoneImgs', u'')
 				comments_info = get_pp_comments_by_id(int(pkg_id))
 				count += 1 
 				item = HotGameDetailByDay(**{
@@ -1445,7 +1449,7 @@ def get_pp_detail(channel_id):
 											'topic_num_total' : g.get('collectCount', u''),
 											'rating' : g.get('allVerStar', u''),
 											'dt' : dt,
-											'imgs' : g.get('ipadImgs', u''),
+											'imgs' : imgs,
 												})
 				db_conn.merge(item)
 				if count % 50 == 0:

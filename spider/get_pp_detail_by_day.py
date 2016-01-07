@@ -36,6 +36,10 @@ def get_pp_detail():
 		if not ins:
 			g = get_pp_detail_by_id(ret.game_id)
 			if g is not None:	
+				if g.get('ipadImgs', ''):
+					imgs = g.get('ipadImgs')
+				else:
+					imgs = g.get('iphoneImgs', '')
 				comments_info = get_pp_comments_by_id(ret.game_id)
 				count += 1 
 				item = GameDetailByDay(**{
@@ -50,7 +54,7 @@ def get_pp_detail():
 											'topic_num_total' : g.get('collectCount', u''),
 											'rating' : g.get('allVerStar', u''),
 											'dt' : dt,
-											'imgs' : g.get('ipadImgs', u''),
+											'imgs' : imgs,
 												})
 				db_conn.merge(item)
 				if count % 50 == 0:
