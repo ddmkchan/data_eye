@@ -119,7 +119,7 @@ def get_game_detail(ids):
 				imgs = ins.imgs
 			if not game_type:
 				game_type = ins.game_type
-			if not summary:
+			if not summary and len(summary)<=20:
 				summary = ins.summary
 			if not download_num or download_num == u'0':
 				download_num = ins.download_num
