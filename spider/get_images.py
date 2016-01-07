@@ -53,6 +53,8 @@ def get_kc_imgs_from_db():
 	import datetime
 	return [(ret.img, ret.id) for ret in db_conn.query(KC_LIST).filter(KC_LIST.publish_date==unicode(datetime.date.today())).filter(KC_LIST.img!=u'')]
 
+from PIL import Image
+
 def download_pic_v2(img_url, pic_name):
 	try:
 		img_file = "%s/%s" % (imgs_path_v2, pic_name)
@@ -66,7 +68,10 @@ def download_pic_v2(img_url, pic_name):
 					os.rename(img_file, new_img_file)
 					return "%s.%s" % (pic_name, img_type)
 				else:
-					return pic_name
+					if img_url.endswith(u'webp'):
+						im = Image.open(img_file).convert("RGB")
+						im.save(img_file,"jpeg")
+					return "%s.jpg" % pic_name
 	except Exception,e:
 		mylogger.error(traceback.format_exc())
 	return None
@@ -76,7 +81,7 @@ def get_imgs_from_db():
 
 def download_imgs():
 	count = 0
-	for ret in db_conn.query(ADVGameDetail).filter(ADVGameDetail.img_url!=u'').filter(ADVGameDetail.img_path==u''):
+	for ret in db_conn.query(ADVGameDetail).filter(ADVGameDetail.img_url!=u'').filter(ADVGameDetail.img_path==u'').filter(ADVGameDetail.id==428):
 		uid = str(uuid.uuid1())
 		map_logger.info("%s\t%s" % (ret.id, uid))
 		pic_name = download_pic_v2(ret.img_url, uid)
@@ -91,6 +96,6 @@ def download_imgs():
 	db_conn.commit()
 		
 if __name__ == '__main__':
-	mylogger.info("download imgs ...")
+	mylogger.info("start download imgs ...")
 	download_imgs()
 	#get_kc_imgs()
