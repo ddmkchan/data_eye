@@ -53,7 +53,7 @@ def get_kc_imgs_from_db():
 	import datetime
 	return [(ret.img, ret.id) for ret in db_conn.query(KC_LIST).filter(KC_LIST.publish_date==unicode(datetime.date.today())).filter(KC_LIST.img!=u'')]
 
-from PIL import Image
+#from PIL import Image
 
 def download_pic_v2(img_url, pic_name):
 	try:
@@ -68,10 +68,11 @@ def download_pic_v2(img_url, pic_name):
 					os.rename(img_file, new_img_file)
 					return "%s.%s" % (pic_name, img_type)
 				else:
-					if img_url.endswith(u'webp'):
-						im = Image.open(img_file).convert("RGB")
-						im.save(img_file,"jpeg")
-					return "%s.jpg" % pic_name
+					#if img_url.endswith(u'webp'):
+					#	im = Image.open(img_file).convert("RGB")
+					#	im.save(img_file,"jpeg")
+					#return "%s.jpg" % pic_name
+					return pic_name
 	except Exception,e:
 		mylogger.error(traceback.format_exc())
 	return None
@@ -81,10 +82,10 @@ def get_imgs_from_db():
 
 def download_imgs():
 	count = 0
-	for ret in db_conn.query(ADVGameDetail).filter(ADVGameDetail.img_url!=u'').filter(ADVGameDetail.img_path==u'').filter(ADVGameDetail.id==428):
+	for ret in db_conn.query(ADVGameDetail).filter(ADVGameDetail.img_url!=u'').filter(ADVGameDetail.img_path==u''):
 		uid = str(uuid.uuid1())
 		map_logger.info("%s\t%s" % (ret.id, uid))
-		pic_name = download_pic_v2(ret.img_url, uid)
+		pic_name = download_pic_v2("http://p4.qhimg.com/t0116b09e6a34cfc25f.webp", uid)
 		if pic_name is not None:
 			count += 1
 			if isinstance(pic_name, str):
