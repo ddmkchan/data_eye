@@ -41,10 +41,7 @@ def main():
 	for title, ids in out.iteritems():
 		publish_status = get_publish_status(ids)	
 		detail =  get_game_detail(ids)
-		if detail is not None:
-			imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total = detail
-		else:
-			imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total = [u''] * 10
+		imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total = detail
 		ins = db_conn.query(PublishGame).filter(PublishGame.name==title).first()
 		#print title, ids, '*******', publish_status.get('logo', u'')
 		if ins is None:
@@ -138,8 +135,7 @@ def get_game_detail(ids):
 				version = ins.version
 			if not topic_num_total or topic_num_total == u'0':
 				topic_num_total = ins.topic_num_total
-			return (imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total)
-	return None
+	return (imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total)
 
 
 	#ids = (int(id) for id in ids)
