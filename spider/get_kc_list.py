@@ -839,7 +839,7 @@ def get_wandoujia_detail(url):
 
 def get_sogou_kc():
 	count = 0
-	url = "http://mobile.zhushou.sogou.com/android/rank/toplist.html?limit=25&start=25&group=2&id=13"
+	url = "http://mobile.zhushou.sogou.com/android/rank/toplist.html?limit=25&start=0&group=2&id=13"
 	try:
 		r = requests.get(url, timeout=10)
 		if r.status_code == 200:
@@ -1686,6 +1686,7 @@ def get_wostore_kc():
 				"settertype": "3",
 				"handphone": "00000000000"}
 	try:
+		url = ""
 		r = requests.get("http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=appList&channel=5&categoryID=0&pageNum=1&count=20", headers=headers, timeout=10)
 		if r.status_code == 200:
 			j = r.json()

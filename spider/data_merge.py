@@ -68,6 +68,7 @@ def main():
 				db_conn.commit()
 				mylogger.info("merge data %s commit ..." % count)	
 		else:
+			count += 1
 			ins.imgs = imgs
 			ins.game_type = game_type
 			ins.summary = summary
@@ -83,6 +84,9 @@ def main():
 			ins.publish_dates = publish_status.get('publish_date_list', u'')
 			ins.kc_list_ids = publish_status.get('kc_list_ids', u'')
 			ins.last_update = datetime.datetime.now()
+			if count % 1000 == 0:
+				db_conn.commit()
+				mylogger.info("update data %s commit ..." % count)	
 	db_conn.commit()
 	mylogger.info("merge data done !!!")	
 
