@@ -98,13 +98,13 @@ def main():
 def get_publish_status(ids):
 	out = {}
 	l1 = []
-	l2 = []
+	l2 = set([])
 	logos = []
 	_sql = "select b.name,publish_date, img from (select * from kc_list where id in (%s)) a join channel b on a.source=b.id order by publish_date" % ",".join(ids)
 	for ret in db_conn.execute(_sql):
 		channel, publish_date, img = ret
 		l1.append(publish_date)
-		l2.append(channel)
+		l2.add(channel)
 		if img:
 			logos.append(img)
 	out['publish_date_list'] = ",".join(l1)
