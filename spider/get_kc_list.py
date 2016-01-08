@@ -1122,7 +1122,8 @@ def get_huawei_kc(page):
 						img_div = info_ico_div.find('img')
 						if img_div is not None:
 							title = img_div.get('title')
-							img = img_div.get('src')
+							if img_div.get('lazyload') is not None:
+								img = img_div.get('lazyload')
 					date_p = unit.find('p', class_='date')	
 					if date_p is not None:
 						date_span = date_p.find('span')
@@ -1150,6 +1151,7 @@ def get_huawei_kc(page):
 									db_conn.merge(item)
 								else:
 									ins.url = url
+									ins.img = img
 	except Exception,e:
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
 	mylogger.info("get %s records from huawei" % count)
