@@ -16,10 +16,14 @@ db_conn = new_session()
 
 mylogger = get_logger('data_merge')
 
+def get_delete_game_name():
+	return set([ret[0] for ret in db_conn.execute("select name from dc_game_delete_log")])
+
 def main():
 	count = 0
 	mydict = {}
 	from sqlalchemy import not_
+	delete_game_name_list = get_delete_game_name()
 	for ret in new_session().query(KC_LIST).filter(KC_LIST.title!=u'').filter(not_(KC_LIST.source.in_((21, 22)))).filter(KC_LIST.status==0).filter(KC_LIST.publish_date>=u'2015-10-01'):
 		segs = re.split(u'-|\(|\)|（|）|[\s]*-|－', ret.title)
 		if len(segs)>=2:
@@ -45,28 +49,29 @@ def main():
 		ins = db_conn.query(PublishGame).filter(PublishGame.name==title).first()
 		#print title, ids, '*******', publish_status.get('logo', u'')
 		if ins is None:
-			count += 1
-			item = PublishGame(**{
-								'name': title,
-								'logo': publish_status.get('logo', u''),
-								'imgs': imgs,
-								'game_type': game_type,
-								'summary': summary,
-								'download_num': download_num,
-								'comment_num': comment_num,
-								'rating': rating,
-								'pkg_size': pkg_size,
-								'author': author,
-								'version': version,
-								'topic_num': topic_num_total,
-								'kc_list_ids': publish_status.get('kc_list_ids', u''),
-								'channels': publish_status.get('channel_list', u''),
-								'publish_dates': publish_status.get('publish_date_list', u''),
-								})
-			db_conn.merge(item)
-			if count % 1000 == 0:
-				db_conn.commit()
-				mylogger.info("merge data %s commit ..." % count)	
+			if title not in delete_game_name_list:
+				count += 1
+				item = PublishGame(**{
+									'name': title,
+									'logo': publish_status.get('logo', u''),
+									'imgs': imgs,
+									'game_type': game_type,
+									'summary': summary,
+									'download_num': download_num,
+									'comment_num': comment_num,
+									'rating': rating,
+									'pkg_size': pkg_size,
+									'author': author,
+									'version': version,
+									'topic_num': topic_num_total,
+									'kc_list_ids': publish_status.get('kc_list_ids', u''),
+									'channels': publish_status.get('channel_list', u''),
+									'publish_dates': publish_status.get('publish_date_list', u''),
+									})
+				db_conn.merge(item)
+				if count % 1000 == 0:
+					db_conn.commit()
+					mylogger.info("merge data %s commit ..." % count)	
 		else:
 			count += 1
 			ins.imgs = imgs
