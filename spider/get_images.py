@@ -91,7 +91,10 @@ def download_imgs():
 		elif ret.img_url.endswith(u'.png.webp'):
 			img_url = re.sub(u'.png.webp', u'.png', ret.img_url)
 		elif ret.img_url.endswith(u'.webp'):
-			img_url = re.sub(u'.webp', u'.png', ret.img_url)
+			if ret.img_url.startswith(u'http://img.wsdl.vivo'):
+				img_url = re.sub(u'.webp', u'.jpg', ret.img_url)
+			else:
+				img_url = re.sub(u'.webp', u'.png', ret.img_url)
 		mylogger.info("%s ====> %s" % (ret.img_url.encode('utf-8'), img_url.encode('utf-8')))
 		pic_name = download_pic_v2(img_url, uid)
 		if pic_name is not None:
