@@ -5,7 +5,7 @@ import os
 import urllib
 import requests
 import traceback
-
+import re
 from config import *
 mylogger = get_logger('get_images')
 map_logger = get_logger('image_map')
@@ -85,7 +85,15 @@ def download_imgs():
 	for ret in db_conn.query(ADVGameDetail).filter(ADVGameDetail.img_url!=u'').filter(ADVGameDetail.img_path==u''):
 		uid = str(uuid.uuid1())
 		map_logger.info("%s\t%s" % (ret.id, uid))
-		pic_name = download_pic_v2(ret.img_url, uid)
+		img_url = ret.img_url
+		if ret.img_url.endswith(u'.144.png.webp'):
+			img_url = re.sub(u'.144.png.webp', u'', ret.img_url)
+		elif ret.img_url.endswith(u'.png.webp'):
+			img_url = re.sub(u'.png.webp', u'.png', ret.img_url)
+		elif ret.img_url.endswith(u'.webp'):
+			img_url = re.sub(u'.webp', u'.png', ret.img_url)
+		mylogger.info("%s ====> %s" % (ret.img_url.encode('utf-8'), img_url.encode('utf-8')))
+		pic_name = download_pic_v2(img_url, uid)
 		if pic_name is not None:
 			count += 1
 			if isinstance(pic_name, str):
