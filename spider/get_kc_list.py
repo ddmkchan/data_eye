@@ -409,8 +409,9 @@ def get_xiaomi_rpg_kc(page):
 					if pubTime:
 						t = unicode(pubTime)[:10]
 						publish_date = unicode(datetime.date.fromtimestamp(int(t)))
-					if summary:
-						dt, publish_status = summary.split(u'|')
+					#if summary:
+						#if u'|' in summary:
+						#	dt, publish_status = summary.split(u'|')
 					if pkg_name and publish_date :
 						ins = db_conn.query(KC_LIST).filter(KC_LIST.pkg_name==pkg_name).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('xiaomi_rpg')).first()
 						if ins is None:
@@ -742,7 +743,11 @@ def get_iqiyi_pubtime_by_id(qipu_id):
 				except Exception, e:
 					mylogger.error("### %s ###\t%s" % (dt.encode('utf-8'), traceback.format_exc()))
 	except Exception, e:
-		mylogger.error("### %s ###\t%s" % (qipu_id.encode('utf-8'), traceback.format_exc()))
+		if isinstance(qipu_id, int):
+			qipu_id = str(qipu_id)
+		if isinstance(qipu_id, unicode):
+			qipu_id = qipu_id.encode('utf-8')
+		mylogger.error("### get iqiyi %s pubtime error ###\t%s" % (qipu_id, traceback.format_exc()))
 	return u''	
 	
 def get_youku_kc():
@@ -1979,4 +1984,5 @@ def main():
 	get_oppo_kc(0)
 
 if __name__ == '__main__':
-	main()
+	#main()
+	get_xiaomi_rpg_kc(1)
