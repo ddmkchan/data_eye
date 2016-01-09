@@ -28,7 +28,7 @@ def get_9game_detail():
 	error_times = 0
 	sess = requests.session()
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==0).filter(KC_LIST.publish_date>=u'2015-10-01'):
-		if error_times >= 20:
+		if error_times >= 50:
 			mylogger.info("9game reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
@@ -813,7 +813,7 @@ def get_huawei_detail():
 	error_times = 0
 	mylogger.info("get huawei detail start ...")
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==18):
-		if error_times >= 20:
+		if error_times >= 100:
 			mylogger.info("huawei reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
@@ -894,7 +894,7 @@ def get_kuaiyong_detail():
 	error_times = 0
 	mylogger.info("get kuaiyong detail start ...")
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==19):
-		if error_times >= 20:
+		if error_times >= 100:
 			mylogger.info("kuaiyong reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
@@ -1708,7 +1708,7 @@ def step2():
 	get_vivo_store_detail()
 	get_oppo_kc_detail()
 
-def setp3():
+def step3():
 	get_kuaiyong_detail()
 	get_9game_detail()
 	get_huawei_detail()
