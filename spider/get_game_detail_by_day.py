@@ -901,7 +901,14 @@ def get_kuaiyong_detail():
 			break
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==game_id).filter(GameDetailByDay.dt==dt).first()
-		if not ins:
+		if ins:
+			g = get_kuaiyong_detail_by_id(game_url)
+			if isinstance(g, EX):
+				error_times += 1
+			elif g:
+				ins.imgs = u','.join(g.get('imgs', []))
+				count += 1 
+		else:
 			g = get_kuaiyong_detail_by_id(game_url)
 			if isinstance(g, EX):
 				error_times += 1
@@ -953,7 +960,7 @@ def get_kuaiyong_detail_by_id(URL):
 		if detail is not None:
 			preview_contents = detail.find('div', class_='preview-content')
 			if preview_contents is not None:
-				mydict['imgs'] = [p.get('src') for p in preview_contents.find_all('img')]
+				mydict['imgs'] = [p.get('data-src') for p in preview_contents.find_all('img')]
 		detail_content = soup.find('div', class_='detail-content-inner')
 		if detail_content is not None:
 			mydict['description'] = detail_content.text
@@ -1716,4 +1723,6 @@ def step3():
 	get_huawei_detail()
 
 if __name__ == '__main__':
-	step1()
+	#step1()
+	for k, v in get_kuaiyong_detail_by_id('http://app.kuaiyong.com/view/com.mengxiaKY.www').iteritems():
+		print k, v
