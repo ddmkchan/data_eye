@@ -1723,6 +1723,4 @@ def step3():
 	get_huawei_detail()
 
 if __name__ == '__main__':
-	#step1()
-	for k, v in get_kuaiyong_detail_by_id('http://app.kuaiyong.com/view/com.mengxiaKY.www').iteritems():
-		print k, v
+	step1()
