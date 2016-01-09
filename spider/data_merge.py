@@ -82,7 +82,7 @@ def main():
 			ins.rating = rating
 			#ins.pkg_size = pkg_size
 			#ins.author = author
-			#ins.version = version
+			ins.version = version
 			ins.topic_num = topic_num_total
 			ins.logo  = publish_status.get('logo', u'')
 			ins.channels = publish_status.get('channel_list', u'')

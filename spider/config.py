@@ -17,4 +17,16 @@ from model import *
 
 check_date = date.today()+timedelta(-3)
 
-proxies = [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in new_session().query(ProxyList).filter(ProxyList.check_time>=unicode(check_date))]
+db_conn = new_session()
+
+proxies = [{rc.type: u"%s:%s" % (rc.ip, rc.port)} for rc in db_conn.query(ProxyList).filter(ProxyList.status==0).filter(ProxyList.check_time>=unicode(check_date))]
+
+
+def set_proxy_invalid(proxy):
+	for http_type, v in proxy.iteritems():
+		ip, port = v.split(u':')
+		ins = db_conn.query(ProxyList).filter(ProxyList.ip==ip).filter(ProxyList.port==port).filter(ProxyList.type==http_type).first()
+		if ins is not None:
+			ins.status = -1
+	db_conn.commit()
+

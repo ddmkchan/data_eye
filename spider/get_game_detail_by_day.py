@@ -893,14 +893,16 @@ def get_kuaiyong_detail():
 	count = 0
 	error_times = 0
 	mylogger.info("get kuaiyong detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==19):
+	#for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==19):
+	for ret in db_conn.execute("select id, url from kc_list where url!='' and source=19 order by create_date desc"):
+		game_id, game_url = ret
 		if error_times >= 100:
 			mylogger.info("kuaiyong reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
-		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==game_id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
-			g = get_kuaiyong_detail_by_id(ret.url)
+			g = get_kuaiyong_detail_by_id(game_url)
 			if isinstance(g, EX):
 				error_times += 1
 			elif g:
@@ -926,8 +928,8 @@ def get_kuaiyong_detail():
 
 def get_kuaiyong_detail_by_id(URL):
 	mydict = {}
+	p = proxies[random.randrange(len(proxies))]
 	try:
-		p = proxies[random.randrange(len(proxies))]
 		response = requests.get(URL, timeout=30, proxies=p)
 		soup = BeautifulSoup(response.text)
 		base_right = soup.find('div', class_='base-right')
