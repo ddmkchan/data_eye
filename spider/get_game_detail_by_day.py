@@ -908,6 +908,9 @@ def get_kuaiyong_detail():
 			elif g:
 				ins.imgs = u','.join(g.get('imgs', []))
 				count += 1 
+				if count % 100 == 0:
+					mylogger.info("kuaiyong detail commit %s" % count)
+					db_conn.commit()
 		else:
 			g = get_kuaiyong_detail_by_id(game_url)
 			if isinstance(g, EX):
