@@ -894,24 +894,14 @@ def get_kuaiyong_detail():
 	error_times = 0
 	mylogger.info("get kuaiyong detail start ...")
 	#for ret in db_conn.query(KC_LIST).filter(KC_LIST.url!=u'').filter(KC_LIST.source==19):
-	for ret in db_conn.execute("select id, url from kc_list where url!='' and source=19 order by create_date desc"):
+	for ret in db_conn.execute("select id, url from kc_list where url!='' and source=19 and create_date>='2015-12-01' order by create_date desc"):
 		game_id, game_url = ret
 		if error_times >= 100:
 			mylogger.info("kuaiyong reach max error times ... ")
 			break
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==game_id).filter(GameDetailByDay.dt==dt).first()
-		if ins:
-			g = get_kuaiyong_detail_by_id(game_url)
-			if isinstance(g, EX):
-				error_times += 1
-			elif g:
-				ins.imgs = u','.join(g.get('imgs', []))
-				count += 1 
-				if count % 100 == 0:
-					mylogger.info("kuaiyong detail commit %s" % count)
-					db_conn.commit()
-		else:
+		if not ins:
 			g = get_kuaiyong_detail_by_id(game_url)
 			if isinstance(g, EX):
 				error_times += 1

@@ -76,13 +76,15 @@ def main():
 			count += 1
 			ins.imgs = imgs
 			ins.game_type = game_type
-			ins.summary = summary
+			if not ins.summary:
+				ins.summary = summary
 			ins.download_num = download_num
 			ins.comment_num = comment_num
 			ins.rating = rating
 			#ins.pkg_size = pkg_size
 			#ins.author = author
-			ins.version = version
+			if not ins.version:
+				ins.version = version
 			ins.topic_num = topic_num_total
 			ins.logo  = publish_status.get('logo', u'')
 			ins.channels = publish_status.get('channel_list', u'')
