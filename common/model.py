@@ -266,7 +266,6 @@ class ADVRecord2(Base):
 	channel_id = Column(Integer, nullable=False, default=-1, index=True)
 	update_date = Column(Date, nullable=False, default=date.today())
 	update_time = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间
-	platform = Column(Unicode(50), nullable=False, default=u'Andorid')
 	position_name = Column(Unicode(500), nullable=False, default=u'')
 
 class ADVGameDetail(Base):
@@ -283,5 +282,6 @@ class ADVGameDetail(Base):
 	net_type_id = Column(Integer, nullable=False, default=-1)
 	game_theme_id = Column(Integer, nullable=False, default=-1)
 	frame_theme_id = Column(Integer, nullable=False, default=-1)
+	platform = Column(Unicode(50), nullable=False, default=u'Andorid')
 	create_date = Column(DateTime, nullable=False, default=datetime.now())#创建时间
 	last_update = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间
