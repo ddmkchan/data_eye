@@ -1984,5 +1984,4 @@ def main():
 	get_oppo_kc(0)
 
 if __name__ == '__main__':
-	#main()
-	get_xiaomi_rpg_kc(1)
+	main()
