@@ -956,7 +956,7 @@ def get_kuaiyong_detail_by_id(URL):
 		if detail_content is not None:
 			mydict['description'] = detail_content.text
 	except Exception,e:
-		#sleep(3.21)
+		sleep(1.21)
 		mylogger.error("%s\t%s" % (URL.encode('utf-8'), traceback.format_exc()))
 		return EX()
 	return mydict
@@ -1693,7 +1693,6 @@ def step1():
 	get_dangle_detail()
 	get_muzhiwan_detail()
 	get_meizu_detail()
-	get_9game_detail()
 
 def step2():
 	get_wandoujia_detail()
@@ -1708,8 +1707,11 @@ def step2():
 	get_mmstore_detail()
 	get_vivo_store_detail()
 	get_oppo_kc_detail()
-	get_huawei_detail()
+
+def setp3():
 	get_kuaiyong_detail()
+	get_9game_detail()
+	get_huawei_detail()
 
 if __name__ == '__main__':
 	step1()
