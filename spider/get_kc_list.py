@@ -257,6 +257,7 @@ def get_appicsh_kc():
 					pkg_name = game.get('pkgname', u'')
 					url = u"http://m5.qq.com/app/getappdetail.htm?pkgName=%s&sceneId=0" % pkg_name if pkg_name else u''
 					publish_date = unicode(datetime.date.fromtimestamp(publishtime)) if publishtime else u""
+					print title, img, publish_date
 					if pkg_name and publish_date:
 						ins = db_conn.query(KC_LIST).filter(KC_LIST.pkg_name==pkg_name).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('appicsh')).first()
 						#ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('appicsh')).first()
@@ -301,7 +302,7 @@ def get_360zhushou_kc():
 					img = u""
 					if logo is not None:
 						if logo.find('img') is not None:
-							img = logo.find('img').get('src')
+							img = logo.find('img').get('data-icon')
 					title_h3 = item.find('h3')
 					if title is not None:
 						title = title_h3.text
@@ -337,8 +338,7 @@ def get_360zhushou_kc():
 											})
 							db_conn.merge(item)
 						else:
-							ins.game_id = pkg_id
-							ins.pkg_name = pkg_name
+							ins.img = img
 	except Exception,e:
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
 	mylogger.info("get %s records from 360 zhushou app" % count)
