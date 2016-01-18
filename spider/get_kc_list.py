@@ -257,7 +257,7 @@ def get_appicsh_kc():
 					pkg_name = game.get('pkgname', u'')
 					url = u"http://m5.qq.com/app/getappdetail.htm?pkgName=%s&sceneId=0" % pkg_name if pkg_name else u''
 					publish_date = unicode(datetime.date.fromtimestamp(publishtime)) if publishtime else u""
-					print title, img, publish_date
+					#print title, img, publish_date
 					if pkg_name and publish_date:
 						ins = db_conn.query(KC_LIST).filter(KC_LIST.pkg_name==pkg_name).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('appicsh')).first()
 						#ins = db_conn.query(KC_LIST).filter(KC_LIST.title==title).filter(KC_LIST.publish_date==publish_date).filter(KC_LIST.source==source_map.get('appicsh')).first()
@@ -1941,7 +1941,6 @@ def get_oppo_kc(start):
 							ins.pkg_name = game_pkg_name
 	except Exception,e:
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
-		print traceback.format_exc()
 	mylogger.info("get %s records from oppo_app " % (count))
 	db_conn.commit()
 
