@@ -138,6 +138,7 @@ def get_9game_today_kc():
 
 
 def get_18183_kc():
+	count = 0
 	URL = "http://xin.18183.com/ceshi/"
 	try:
 		response = s.get(URL, timeout=10)
@@ -145,7 +146,6 @@ def get_18183_kc():
 		soup = BeautifulSoup(r)
 		publish_dates = soup.find("ul", class_="tab_menu").find_all("li")
 		tabs = soup.find_all("div", class_="tab_main")
-		count = 0
 		for j in xrange(len(tabs)):
 			if publish_dates[j].find("a").text == u"今日": 
 				publish_date = u"2015-%s" % publish_dates[j].find("a").text if publish_dates[j].find("a").text!=u"今日" else datetime.date.today().strftime("%Y-%m-%d") 
