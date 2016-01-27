@@ -1149,7 +1149,6 @@ def get_wogame_app_rank(gtype, url):
 			if r.status_code == 200:
 				j = r.json()
 				if j['data'] is not None:
-					print len(r.json()['data'])
 					for app in r.json()['data']:
 						rank += 1
 						game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
@@ -1361,7 +1360,6 @@ def get_myaora_app_rank():
 				if r.status_code == 200:
 					j = r.json()
 					if j['ARRAY'] is not None:
-						print index, len(j['ARRAY'])
 						for app in j['ARRAY']:
 							rank += 1
 							game_name, img, downloads, size, popular, game_type, status, url = [u''] * 8
