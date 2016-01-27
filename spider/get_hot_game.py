@@ -210,7 +210,7 @@ def get_xiaomi_game_rank(page, rank_id):
 
 def get_xiaomi_web_rank(gtype, rank_id):
 	rank = 0
-	for page in xrange(1):
+	for page in xrange(1, 6):
 		detail = get_xiaomi_game_rank(page, rank_id)
 		if detail is not None:
 			for d in detail:
@@ -367,7 +367,7 @@ def get_m5qq_app_rank(gtype):
 						'20': 'm5_qq_webgame',
 						'18': 'm5_qq_new_game',
 					}
-	_url = 'http://m5.qq.com/app/applist.htm?listType=%s&pageSize=50&contextData=' % gtype
+	_url = 'http://m5.qq.com/app/applist.htm?listType=%s&pageSize=100&contextData=' % gtype
 	try:
 		r = requests.get(_url, timeout=10)
 		if r.status_code == 200:
@@ -449,13 +449,13 @@ def get_m_baidu_rank(gtype, _url):
 
 def store_m_baidu_app_rank():
 	prefix_single_url = "http://m.baidu.com/appsrv?uid=YPvuu_PqvfgkiHf30uS88liwHulTiSiQYiHPfgiOB8qLuHf3_PvoigaX2ig5uBiN3dqqC&native_api=1&psize=3&abi=armeabi-v7a&cll=_hv19g8O2NAVA&usertype=0&is_support_webp=true&ver=16786356&from=1011454q&board_id=board_102_736&operator=460015&network=WF&pkname=com.dragon.android.pandaspace&country=CN&cen=cuid_cut_cua_uid&gms=false&platform_version_id=19&firstdoc=&name=game&action=ranklist&pu=cua%40_a-qi4uq-igBNE6lI5me6NIy2I_UC-I4juDpieLqA%2Cosname%40baiduappsearch%2Cctv%401%2Ccfrom%401010680f%2Ccuid%40YPvuu_PqvfgkiHf30uS88liwHulTiSiQYiHPfgiOB86QuviJ0O2lfguGv8_Huv8uja20fqqqB%2Ccut%405fXCirktSh_Uh2IJgNvHtyN6moi5pQqAC&language=zh&apn=&native_api=1&f=gameranklist%40tab%401&bannert=26%4027%4028%4029%4030%4031%4032%4043" 
-	single_url = [prefix_single_url + "&pn=%s"  %p for p in xrange(5)]
+	single_url = [prefix_single_url + "&pn=%s"  %p for p in xrange(10)]
 	prefix_new_games_url = 'http://m.baidu.com/appsrv?uid=YPvuu_PqvfgkiHf30uS88liwHulTiSiQYiHPfgiOB8qLuHf3_PvoigaX2ig5uBiN3dqqC&native_api=1&psize=3&abi=armeabi-v7a&cll=_hv19g8O2NAVA&usertype=0&is_support_webp=true&ver=16786356&from=1011454q&board_id=board_102_737&operator=460015&network=WF&pkname=com.dragon.android.pandaspace&country=CN&cen=cuid_cut_cua_uid&gms=false&platform_version_id=19&firstdoc=&name=game&action=ranklist&pu=cua%40_a-qi4uq-igBNE6lI5me6NIy2I_UC-I4juDpieLqA%2Cosname%40baiduappsearch%2Cctv%401%2Ccfrom%401010680f%2Ccuid%40YPvuu_PqvfgkiHf30uS88liwHulTiSiQYiHPfgiOB86QuviJ0O2lfguGv8_Huv8uja20fqqqB%2Ccut%405fXCirktSh_Uh2IJgNvHtyN6moi5pQqAC&language=zh&apn=&&native_api=1&f=gameranklist%40tab%403&bannert=26%4027%4028%4029%4030%4031%4032%4043'
-	new_games_url = [prefix_new_games_url+ "&pn=%s" %p for p in xrange(5)]
+	new_games_url = [prefix_new_games_url+ "&pn=%s" %p for p in xrange(10)]
 	prefix_web_game_url = 'http://m.baidu.com/appsrv?uid=YPvuu_PqvfgkiHf30uS88liwHulTiSiQYiHPfgiOB8qLuHf3_PvoigaX2ig5uBiN3dqqC&native_api=1&psize=3&abi=armeabi-v7a&cll=_hv19g8O2NAVA&usertype=0&is_support_webp=true&ver=16786356&from=1011454q&board_id=board_102_735&operator=460015&network=WF&pkname=com.dragon.android.pandaspace&country=CN&cen=cuid_cut_cua_uid&gms=false&platform_version_id=19&firstdoc=&name=game&action=ranklist&pu=cua%40_a-qi4uq-igBNE6lI5me6NIy2I_UC-I4juDpieLqA%2Cosname%40baiduappsearch%2Cctv%401%2Ccfrom%401010680f%2Ccuid%40YPvuu_PqvfgkiHf30uS88liwHulTiSiQYiHPfgiOB86QuviJ0O2lfguGv8_Huv8uja20fqqqB%2Ccut%405fXCirktSh_Uh2IJgNvHtyN6moi5pQqAC&language=zh&apn=&&native_api=1&f=gameranklist%40tab%402&bannert=26%4027%4028%4029%4030%4031%4032%4043'
-	web_game_url = [prefix_web_game_url+"&pn=%s" %p for p in xrange(5)]
+	web_game_url = [prefix_web_game_url+"&pn=%s" %p for p in xrange(10)]
 	prefix_top_url = 'http://m.baidu.com/appsrv?uid=YPvuu_PqvfgkiHf30uS88liwHulTiSiQYiHPfgiOB8qLuHf3_PvoigaX2ig5uBiN3dqqC&native_api=1&psize=3&abi=armeabi-v7a&cll=_hv19g8O2NAVA&usertype=0&is_support_webp=true&ver=16786356&from=1011454q&board_id=board_102_139&operator=460015&network=WF&pkname=com.dragon.android.pandaspace&country=CN&cen=cuid_cut_cua_uid&gms=false&platform_version_id=19&firstdoc=&name=game&action=ranklist&pu=cua%40_a-qi4uq-igBNE6lI5me6NIy2I_UC-I4juDpieLqA%2Cosname%40baiduappsearch%2Cctv%401%2Ccfrom%401010680f%2Ccuid%40YPvuu_PqvfgkiHf30uS88liwHulTiSiQYiHPfgiOB86QuviJ0O2lfguGv8_Huv8uja20fqqqB%2Ccut%405fXCirktSh_Uh2IJgNvHtyN6moi5pQqAC&language=zh&apn=&&native_api=1&f=gameranklist%40tab%400&bannert=26%4027%4028%4029%4030%4031%4032%4043'
-	top_game_url = [prefix_top_url+"&pn=%s" %p for p in xrange(5)]
+	top_game_url = [prefix_top_url+"&pn=%s" %p for p in xrange(10)]
 	_dict = {'m_baidu_top': top_game_url, 'm_baidu_single': single_url, 'm_baidu_webgame': web_game_url, 'm_baidu_new_game': new_games_url}
 	for gtype, urls in _dict.iteritems():
 		for _url in urls:
@@ -463,8 +463,8 @@ def store_m_baidu_app_rank():
 				store_data(data)
 		
 def get_dangle_app_rank():
-	_dict = {"dangle_new_game": "http://api2014.digua.d.cn/newdiguaserver/game/rank?pn=1&type=16&ps=50",
-			"dangle_webgame": "http://api2014.digua.d.cn/newdiguaserver/netgame/rank?pn=1&imsi=FFBBF2C3433E688CF21029AF18019E04251E9BD48DA80861850852CA82560C5714CCD4D3D1D31725&se=2D8118F6F152232B6B55EA964A24B0F8&im=882ADF58F29193B2E6F07F6A288D2593&wm=4D0ED9C025B669B25D18F6ECB92DB2A9F05D78CA67BED3B1&ps=20"}
+	_dict = {"dangle_new_game": "http://api2014.digua.d.cn/newdiguaserver/game/rank?pn=1&type=16&ps=100",
+			"dangle_webgame": "http://api2014.digua.d.cn/newdiguaserver/netgame/rank?pn=1&imsi=FFBBF2C3433E688CF21029AF18019E04251E9BD48DA80861850852CA82560C5714CCD4D3D1D31725&se=2D8118F6F152232B6B55EA964A24B0F8&im=882ADF58F29193B2E6F07F6A288D2593&wm=4D0ED9C025B669B25D18F6ECB92DB2A9F05D78CA67BED3B1&ps=100"}
 	#_url = 'http://api2014.digua.d.cn/newdiguaserver/game/rank?pn=1&type=16&ps=50'
 	headers_map = {
 			"dangle_new_game": {'HEAD': {"stamp":1448610575430,"verifyCode":"78492ba9e8569f3b9d9173ac4e4b6cb9","it":2,"resolutionWidth":1080,"imei":"865931027730878","clientChannelId":"100327","versionCode":750,"mac":"34:80:b3:4d:69:87","vender":"Qualcomm","vp":"","version":"7.5","sign":"2ec90f723384b1ec","dd":480,"sswdp":"360","hasRoot":0,"glEsVersion":196608,"device":"MI_4LTE","ss":2,"local":"zh_CN","language":"2","sdk":19,"resolutionHeight":1920,"osName":"4.4.4","gpu":"Adreno (TM) 330"}}, 
@@ -529,7 +529,7 @@ def store_vivo_app_rank():
 def get_gionee_app_rank(gtype, param):
 	rank = 0
 	try:
-		for page in xrange(1, 6):
+		for page in xrange(1, 11):
 			_url = 'http://game.gionee.com/Api/Local_Clientrank/%s/?&page=%s' % (param, page)
 			r = requests.get(_url, timeout=10)
 			if r.status_code == 200:
@@ -587,11 +587,11 @@ def get_coolpad_app_rank(gtype, fd):
 
 
 def store_coolpad_app_rank():
-	webgame_raw_data="""<?xml version="1.0" encoding="utf-8"?><request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064" ><rankorder>0</rankorder><syncflag>0</syncflag><start>1</start><categoryid>1</categoryid><iscoolpad>0</iscoolpad><level>0</level><querytype>5</querytype><max>30</max></request>"""
+	webgame_raw_data="""<?xml version="1.0" encoding="utf-8"?><request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064" ><rankorder>0</rankorder><syncflag>0</syncflag><start>1</start><categoryid>1</categoryid><iscoolpad>0</iscoolpad><level>0</level><querytype>5</querytype><max>100</max></request>"""
 
-	new_game_raw_data="""<?xml version="1.0" encoding="utf-8"?><request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064" ><rankorder>0</rankorder><syncflag>0</syncflag><start>1</start><categoryid>1</categoryid><iscoolpad>0</iscoolpad><level>0</level><querytype>3</querytype><max>30</max></request>"""
+	new_game_raw_data="""<?xml version="1.0" encoding="utf-8"?><request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064" ><rankorder>0</rankorder><syncflag>0</syncflag><start>1</start><categoryid>1</categoryid><iscoolpad>0</iscoolpad><level>0</level><querytype>3</querytype><max>100</max></request>"""
 
-	hot_game_raw_data="""<?xml version="1.0" encoding="utf-8"?><request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064" ><rankorder>0</rankorder><syncflag>0</syncflag><start>1</start><categoryid>1</categoryid><iscoolpad>0</iscoolpad><level>0</level><querytype>6</querytype><max>30</max></request>"""
+	hot_game_raw_data="""<?xml version="1.0" encoding="utf-8"?><request username="" cloudId="" openId="" sn="865931027730878" platform="1" platver="19" density="480" screensize="1080*1920" language="zh" mobiletype="MI4LTE" version="4" seq="0" appversion="3350" currentnet="WIFI" channelid="coolpad" networkoperator="46001" simserianumber="89860115851040101064" ><rankorder>0</rankorder><syncflag>0</syncflag><start>1</start><categoryid>1</categoryid><iscoolpad>0</iscoolpad><level>0</level><querytype>6</querytype><max>100</max></request>"""
 
 	_dict = {'coolpad_hot': hot_game_raw_data, 'coolpad_webgame': webgame_raw_data, 'coolpad_new_game': new_game_raw_data}	
 	for gtype, rd in _dict.iteritems():
@@ -622,10 +622,10 @@ def get_open_play_app_rank(gtype, _url):
 
 
 def store_open_play_app_rank():
-	download_page 	= "http://open.play.cn/api/v2/mobile/channel/content.json?channel_id=911&terminal_id=18166&current_page=0&rows_of_page=50"
-	free_page		= "http://open.play.cn/api/v2/mobile/channel/content.json?channel_id=914&terminal_id=18166&current_page=0&rows_of_page=50"
-	webgame_page 	= "http://open.play.cn/api/v2/mobile/channel/content.json?channel_id=917&terminal_id=18166&current_page=0&rows_of_page=50"
-	rise_page 		= "http://open.play.cn/api/v2/mobile/channel/content.json?channel_id=916&terminal_id=18166&current_page=0&rows_of_page=50"
+	download_page 	= "http://open.play.cn/api/v2/mobile/channel/content.json?channel_id=911&terminal_id=18166&current_page=0&rows_of_page=100"
+	free_page		= "http://open.play.cn/api/v2/mobile/channel/content.json?channel_id=914&terminal_id=18166&current_page=0&rows_of_page=100"
+	webgame_page 	= "http://open.play.cn/api/v2/mobile/channel/content.json?channel_id=917&terminal_id=18166&current_page=0&rows_of_page=100"
+	rise_page 		= "http://open.play.cn/api/v2/mobile/channel/content.json?channel_id=916&terminal_id=18166&current_page=0&rows_of_page=100"
 	_dict = {'open_play_download': download_page, 'open_play_free': free_page, 'open_play_webgame': webgame_page, 'open_play_rise': rise_page}	
 	for gtype, _url in _dict.iteritems():
 		for data in get_open_play_app_rank(gtype, _url):
@@ -645,9 +645,9 @@ def get_wandoujia_app_rank(gtype, _url):
 					img = item.get('icon', u'')
 					source = source_map.get(gtype)
 					if item['action'] is not None:
-						info =  get_wandoujia_detail(item['action']['url'])
-						if info is not None:
-							game_type, downloads = info 
+						#info =  get_wandoujia_detail(item['action']['url'])
+						#if info is not None:
+						#	game_type, downloads = info 
 						url = item['action'].get('url', u'')
 					yield rank, game_name, img, downloads, size, source, popular, game_type, status, url
 					#for k, v in item['detail']['appDetail'].iteritems():
@@ -656,8 +656,8 @@ def get_wandoujia_app_rank(gtype, _url):
 		mylogger.error("%s====>\t%s" % (_url, traceback.format_exc()))
 
 def store_wandoujia_app_rank():
-	single_url 		= "http://apis.wandoujia.com/five/v2/games/tops/TOP_WEEKLY_DOWNLOAD_CONSOLE_GAME?max=20"
-	web_game_url 	= "http://apis.wandoujia.com/five/v2/games/tops/TOP_WEEKLY_DOWNLOAD_ONLINE_GAME?start=0&max=20"
+	single_url 		= "http://apis.wandoujia.com/five/v2/games/tops/TOP_WEEKLY_DOWNLOAD_CONSOLE_GAME?max=100"
+	web_game_url 	= "http://apis.wandoujia.com/five/v2/games/tops/TOP_WEEKLY_DOWNLOAD_ONLINE_GAME?start=0&max=100"
 	_dict = {'wandoujia_single': single_url, 'wandoujia_webgame': web_game_url}	
 	for gtype, _url in _dict.iteritems():
 		for data in get_wandoujia_app_rank(gtype, _url):
@@ -736,7 +736,7 @@ def get_youku_app_rank(gtype, _url):
 
 
 def store_youku_app_rank():
-	_dict = {"youku_single": 'http://api.gamex.mobile.youku.com/app/rank/classified?product_id=1&pz=40&pg=1&type=1', 'youku_webgame': 'http://api.gamex.mobile.youku.com/app/rank/classified?product_id=1&pz=40&pg=1&type=0'}
+	_dict = {"youku_single": 'http://api.gamex.mobile.youku.com/app/rank/classified?product_id=1&pz=100&pg=1&type=1', 'youku_webgame': 'http://api.gamex.mobile.youku.com/app/rank/classified?product_id=1&pz=100&pg=1&type=0'}
 	for gtype, _url in _dict.iteritems():
 		for data in get_youku_app_rank(gtype, _url):
 			store_data(data)
@@ -767,7 +767,7 @@ def get_sogou_app_rank(gtype, _url):
 
 
 def store_sogou_app_rank():
-	_dict = {"sogou_single": 'http://mobile.zhushou.sogou.com/android/rank/toplist.html?id=12&limit=25&group=2&start=0&iv=41&uid=f3c2ed94d7d2272de87a8ef3abab2409&vn=4.1.3&channel=baidu&sogouid=a7f30d60a6b1aed168a8c9d7c46bbac5&stoken==SnxL9KjGT6sBvQ7ZJD4Ghw&cellid=&sc=0', 'sogou_webgame': 'http://mobile.zhushou.sogou.com/android/rank/toplist.html?id=11&limit=25&group=2&start=0&iv=41&uid=f3c2ed94d7d2272de87a8ef3abab2409&vn=4.1.3&channel=baidu&sogouid=a7f30d60a6b1aed168a8c9d7c46bbac5&stoken==SnxL9KjGT6sBvQ7ZJD4Ghw&cellid=&sc=0', 'sogou_download':'http://mobile.zhushou.sogou.com/android/rank/toplist.html?id=10&limit=25&group=2&start=0&iv=41&uid=f3c2ed94d7d2272de87a8ef3abab2409&vn=4.1.3&channel=baidu&sogouid=a7f30d60a6b1aed168a8c9d7c46bbac5&stoken==SnxL9KjGT6sBvQ7ZJD4Ghw&cellid=&sc=0'}
+	_dict = {"sogou_single": 'http://mobile.zhushou.sogou.com/android/rank/toplist.html?id=12&limit=100&group=2&start=0&iv=41&uid=f3c2ed94d7d2272de87a8ef3abab2409&vn=4.1.3&channel=baidu&sogouid=a7f30d60a6b1aed168a8c9d7c46bbac5&stoken==SnxL9KjGT6sBvQ7ZJD4Ghw&cellid=&sc=0', 'sogou_webgame': 'http://mobile.zhushou.sogou.com/android/rank/toplist.html?id=11&limit=100&group=2&start=0&iv=41&uid=f3c2ed94d7d2272de87a8ef3abab2409&vn=4.1.3&channel=baidu&sogouid=a7f30d60a6b1aed168a8c9d7c46bbac5&stoken==SnxL9KjGT6sBvQ7ZJD4Ghw&cellid=&sc=0', 'sogou_download':'http://mobile.zhushou.sogou.com/android/rank/toplist.html?id=10&limit=100&group=2&start=0&iv=41&uid=f3c2ed94d7d2272de87a8ef3abab2409&vn=4.1.3&channel=baidu&sogouid=a7f30d60a6b1aed168a8c9d7c46bbac5&stoken==SnxL9KjGT6sBvQ7ZJD4Ghw&cellid=&sc=0'}
 	for gtype, _url in _dict.iteritems():
 		for data in get_sogou_app_rank(gtype, _url):
 			store_data(data)
@@ -775,7 +775,7 @@ def store_sogou_app_rank():
 
 def get_i4_app_rank():
 	rank = 0
-	_url = 'http://app3.i4.cn/controller/action/online.go?store=3&module=3&rows=50&sort=2&submodule=5&model=101&id=0&reqtype=3&page=1'
+	_url = 'http://app3.i4.cn/controller/action/online.go?store=3&module=3&rows=100&sort=2&submodule=5&model=101&id=0&reqtype=3&page=1'
 	try:
 		r = requests.get(_url, timeout=10)
 		if r.status_code == 200:
@@ -801,27 +801,28 @@ def get_i4_app_rank():
 def get_pp_app_rank():
 	rank = 0
 	headers = {'tunnel-command':4261421088}
-	try:
-		d = {"dcType":0, "resType":2, "listType":5, "catId":0, "clFlag":1, "perCount":50, "page":0}
-		r = requests.post('http://jsondata.25pp.com/index.html', data=json.dumps(d), headers=headers)
-		if r.status_code == 200:
-			content = re.sub(u'\ufeff', u'', r.text)
-			j = json.loads(content)
-			if j['content'] is not None:
-				for app in j['content']:
-					rank += 1
-					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
-					game_name = app.get('title', u'')
-					img = app.get('thumb', u'')
-					downloads = app.get('downloads', u'')
-					size = app.get('fsize', u'')
-					source = source_map.get('pp_hot')
-					url = app.get('id', u'')
-					#url = u"%s\t%s" % (app.get('buid', u''),  app.get('id', u''))
-					out = [rank, game_name, img, downloads, size, source, popular, game_type, status, url]
-					store_data(out)
-	except Exception,e:
-		mylogger.error("get pp app rank\t%s" % (traceback.format_exc()))
+	for page in xrange(2):
+		try:
+			d = {"dcType":0, "resType":2, "listType":5, "catId":0, "clFlag":1, "perCount":50, "page": page}
+			r = requests.post('http://jsondata.25pp.com/index.html', data=json.dumps(d), headers=headers)
+			if r.status_code == 200:
+				content = re.sub(u'\ufeff', u'', r.text)
+				j = json.loads(content)
+				if j['content'] is not None:
+					for app in j['content']:
+						rank += 1
+						game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+						game_name = app.get('title', u'')
+						img = app.get('thumb', u'')
+						downloads = app.get('downloads', u'')
+						size = app.get('fsize', u'')
+						source = source_map.get('pp_hot')
+						url = app.get('id', u'')
+						#url = u"%s\t%s" % (app.get('buid', u''),  app.get('id', u''))
+						out = [rank, game_name, img, downloads, size, source, popular, game_type, status, url]
+						store_data(out)
+		except Exception,e:
+			mylogger.error("get pp app rank\t%s" % (traceback.format_exc()))
 
 
 
@@ -945,26 +946,27 @@ def get_itools_detail(URL):
 
 def get_xyzs_app_rank():
 	rank = 0
-	URL = "http://interface.xyzs.com/v2/ios/c01/rank/game?p=1&ps=20"
-	try:
-		response = s.get(URL, timeout=10)
-		if response.status_code == 200:
-			j = response.json()
-			if j['code'] == 200:
-				for app in j['data']['result']:
-					rank += 1
-					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
-					game_name = app.get('title', u'')
-					img = app.get('icon', u'')
-					size = app.get('size', u'')
-					game_type = app.get('cus_desc', u'')
-					downloads = app.get('downloadnum', u'')
-					source = source_map.get('xyzs_hot')
-					#url = u"%s\t%s" % (app.get('bundleid', u''),  app.get('itunesid', u''))
-					url = app.get('itunesid', u'')
-					store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
-	except Exception,e:
-		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+	for page in xrange(1, 6):
+		URL = "http://interface.xyzs.com/v2/ios/c01/rank/game?p=%s&ps=20" % page
+		try:
+			response = s.get(URL, timeout=10)
+			if response.status_code == 200:
+				j = response.json()
+				if j['code'] == 200:
+					for app in j['data']['result']:
+						rank += 1
+						game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+						game_name = app.get('title', u'')
+						img = app.get('icon', u'')
+						size = app.get('size', u'')
+						game_type = app.get('cus_desc', u'')
+						downloads = app.get('downloadnum', u'')
+						source = source_map.get('xyzs_hot')
+						#url = u"%s\t%s" % (app.get('bundleid', u''),  app.get('itunesid', u''))
+						url = app.get('itunesid', u'')
+						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+		except Exception,e:
+			mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
 
 
 def get_91play_app_rank():
@@ -1020,18 +1022,24 @@ def get_360_gamebox_app_rank(gtype, url):
 
 def store_360_gamebox_app_rank():
 	_dict = {
-			"360_gamebox_single" : "http://next.gamebox.360.cn/7/xgamebox/rank?count=20&start=0&typeid=2&type=download", 	
-			"360_gamebox_webgame": "http://next.gamebox.360.cn/7/xgamebox/rank?count=20&start=0&typeid=1&type=download", 	
+			"360_gamebox_single" : "http://next.gamebox.360.cn/7/xgamebox/rank?count=20&typeid=2&type=download", 	
+			"360_gamebox_webgame": "http://next.gamebox.360.cn/7/xgamebox/rank?count=20&start=%s&typeid=1&type=download", 	
 			}
 	for gtype, url in _dict.iteritems():
-		for data in get_360_gamebox_app_rank(gtype, url):
-			store_data(data)
+		for index in xrange(0, 100, 20):
+			suffix_url = '&start=%s' % index
+			_url = url +  suffix_url
+			for data in get_360_gamebox_app_rank(gtype, _url):
+				store_data(data)
 
 def store_xiaomi_app_rank():
-	_dict = {"xiaomi_app_download": "http://app.migc.xiaomi.com/cms/interface/v5/rankgamelist1.php?uid=20150905_132380697&platform=android&os=V6.7.1.0.KXDCNCH&stampTime=1449557687000&density=480&imei=865931027730878&pageSize=20&versionCode=1822&cid=gamecenter_100_1_android%7C865931027730878&clientId=40b53f3e316bda9f83c2e0c094d5b7f6&vn=MIGAMEAPPSTAND_1.8.22&co=CN&page=1&macWifi=3480B34D6987&la=zh&ua=Xiaomi%257CMI%2B4LTE%257C4.4.4%257CKTU84P%257C19%257Ccancro&carrier=unicom&rankId=17&mnc=46001&fuid=&mid=&imsi=460015776509846&sdk=19&mac3g=&bid=701",
-			"xiaomi_app_hot": "http://app.migc.xiaomi.com/cms/interface/v5/rankgamelist1.php?uid=20150905_132380697&platform=android&os=V6.7.1.0.KXDCNCH&stampTime=1449557980000&density=480&imei=865931027730878&pageSize=20&versionCode=1822&cid=gamecenter_100_1_android%7C865931027730878&clientId=40b53f3e316bda9f83c2e0c094d5b7f6&vn=MIGAMEAPPSTAND_1.8.22&co=CN&page=1&macWifi=3480B34D6987&la=zh&ua=Xiaomi%257CMI%2B4LTE%257C4.4.4%257CKTU84P%257C19%257Ccancro&carrier=unicom&rankId=18&mnc=46001&fuid=&mid=&imsi=460015776509846&sdk=19&mac3g=&bid=701"}
+	_dict = {"xiaomi_app_download": "http://app.migc.xiaomi.com/cms/interface/v5/rankgamelist1.php?uid=20150905_132380697&platform=android&os=V6.7.1.0.KXDCNCH&stampTime=1449557687000&density=480&imei=865931027730878&pageSize=20&versionCode=1822&cid=gamecenter_100_1_android%7C865931027730878&clientId=40b53f3e316bda9f83c2e0c094d5b7f6&vn=MIGAMEAPPSTAND_1.8.22&co=CN&macWifi=3480B34D6987&la=zh&ua=Xiaomi%257CMI%2B4LTE%257C4.4.4%257CKTU84P%257C19%257Ccancro&carrier=unicom&rankId=17&mnc=46001&fuid=&mid=&imsi=460015776509846&sdk=19&mac3g=&bid=701",
+			"xiaomi_app_hot": "http://app.migc.xiaomi.com/cms/interface/v5/rankgamelist1.php?uid=20150905_132380697&platform=android&os=V6.7.1.0.KXDCNCH&stampTime=1449557980000&density=480&imei=865931027730878&pageSize=20&versionCode=1822&cid=gamecenter_100_1_android%7C865931027730878&clientId=40b53f3e316bda9f83c2e0c094d5b7f6&vn=MIGAMEAPPSTAND_1.8.22&co=CN&macWifi=3480B34D6987&la=zh&ua=Xiaomi%257CMI%2B4LTE%257C4.4.4%257CKTU84P%257C19%257Ccancro&carrier=unicom&rankId=18&mnc=46001&fuid=&mid=&imsi=460015776509846&sdk=19&mac3g=&bid=701"}
 	for gtype, url in _dict.iteritems():
-		get_xiaomi_app_rank(gtype, url)
+		for p in xrange(1, 6):
+			suffix_url = '&page=%s' % p
+			_url = url +  suffix_url
+			get_xiaomi_app_rank(gtype, _url)
 		
 
 def get_xiaomi_app_rank(gtype, url):
@@ -1088,35 +1096,38 @@ def get_18183_top_app_rank(gtype, url):
 	except Exception,e:
 		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 
-def get_tbzs_app_rank():
+def get_tbzs_raw_data_map(gtype, page):
 	raw_data_map = {
-			'tbzs_single'	: {"sign":"7c54c6ceded15e80342794c6d13646a4","data":{"flags":193,"count":20,"offset":0,"order":13,"page":1,"positionId":549,"resourceType":1},"id":2472251151577597201,"client":{"caller":"secret.pp.client","versionCode":1393,"ex":{"cityCode":"0755","aid":"gj\/4\/Osm5gwpjlFgnvkVCQ==","ch":"PT_4","osVersion":19,"productId":2002},"VName":"4.7.0","uuid":"bTkwHyimxYyNDQzBWGVG\/kQ5Q9aqRKjrTmkhTksZlxPjWz55Gh0KRgROPDXaQ3T8uOTA\/6onICCEiA=="},"encrypt":"md5"}, 
-			'tbzs_webgame'	: {"sign":"988f075faf00cfe11ab2f5278b08ffb1","data":{"flags":193,"count":20,"offset":0,"order":14,"page":1,"positionId":551,"resourceType":1},"id":3601133516216288053,"client":{"caller":"secret.pp.client","versionCode":1393,"ex":{"cityCode":"0755","aid":"gj\/4\/Osm5gwpjlFgnvkVCQ==","ch":"PT_4","osVersion":19,"productId":2002},"VName":"4.7.0","uuid":"bTkwH8QcSHwR84\/R\/PPDDgxVSfaScKaLeouYfn+7HMNzcyo5qsX+Bgj4q4XWDeVMACA2XwLbEoA8TA=="},"encrypt":"md5"}, 
-			'tbzs_rise'		: {"sign":"d59759061e1a29cd703496864239d7d1","data":{"flags":193,"order":9,"count":20,"page":1,"resourceType":1},"id":-3452676716686130419,"client":{"caller":"secret.pp.client","versionCode":1393,"ex":{"cityCode":"0755","aid":"gj\/4\/Osm5gwpjlFgnvkVCQ==","ch":"PT_4","osVersion":19,"productId":2002},"VName":"4.7.0","uuid":"bTkwH+NbLMg2sLMFg7IvwsrTkV5Q\/t5zn050App46O\/3D5oJLsFuVuPHPwG9yHnI2tpeB8xhukjmtg=="},"encrypt":"md5"}}
+			'tbzs_single'	: {"sign":"7c54c6ceded15e80342794c6d13646a4","data":{"flags":193,"count":20,"offset":0,"order":13,"page": page,"positionId":549,"resourceType":1},"id":2472251151577597201,"client":{"caller":"secret.pp.client","versionCode":1393,"ex":{"cityCode":"0755","aid":"gj\/4\/Osm5gwpjlFgnvkVCQ==","ch":"PT_4","osVersion":19,"productId":2002},"VName":"4.7.0","uuid":"bTkwHyimxYyNDQzBWGVG\/kQ5Q9aqRKjrTmkhTksZlxPjWz55Gh0KRgROPDXaQ3T8uOTA\/6onICCEiA=="},"encrypt":"md5"}, 
+			'tbzs_webgame'	: {"sign":"988f075faf00cfe11ab2f5278b08ffb1","data":{"flags":193,"count":20,"offset":0,"order":14,"page": page,"positionId":551,"resourceType":1},"id":3601133516216288053,"client":{"caller":"secret.pp.client","versionCode":1393,"ex":{"cityCode":"0755","aid":"gj\/4\/Osm5gwpjlFgnvkVCQ==","ch":"PT_4","osVersion":19,"productId":2002},"VName":"4.7.0","uuid":"bTkwH8QcSHwR84\/R\/PPDDgxVSfaScKaLeouYfn+7HMNzcyo5qsX+Bgj4q4XWDeVMACA2XwLbEoA8TA=="},"encrypt":"md5"}, 
+			'tbzs_rise'		: {"sign":"d59759061e1a29cd703496864239d7d1","data":{"flags":193,"order":9,"count":20,"page": page,"resourceType":1},"id":-3452676716686130419,"client":{"caller":"secret.pp.client","versionCode":1393,"ex":{"cityCode":"0755","aid":"gj\/4\/Osm5gwpjlFgnvkVCQ==","ch":"PT_4","osVersion":19,"productId":2002},"VName":"4.7.0","uuid":"bTkwH+NbLMg2sLMFg7IvwsrTkV5Q\/t5zn050App46O\/3D5oJLsFuVuPHPwG9yHnI2tpeB8xhukjmtg=="},"encrypt":"md5"}}
+	return raw_data_map.get(gtype)
 
+def get_tbzs_app_rank():
 	_dict = {'tbzs_rise'	: 'http://sjzs-api.25pp.com/api/resource.app.getList',
 			 'tbzs_single'	: 'http://sjzs-api.25pp.com/api/op.rec.app.list',
 			 'tbzs_webgame'	: 'http://sjzs-api.25pp.com/api/op.rec.app.list'}
-	for gtype, url in _dict.iteritems():
+	for gtype, _url in _dict.iteritems():
 		rank = 0
 		try:
-			raw_data = raw_data_map.get(gtype)
-			r = requests.post(url, data=json.dumps(raw_data))
-			if r.status_code == 200:
-				j = r.json()
-				if j['state']['msg'] == u'Ok':
-					for app in j['data']['content']:
-						rank += 1
-						game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
-						game_name = app.get('name', u'')
-						img = app.get('iconUrl', u'')
-						size = app.get('size', u'')
-						game_type = app.get('categoryName', u'')
-						downloads = app.get('downloads', u'')
-						source = source_map.get(gtype)
-						url = u"%s\t%s" % (app.get('packageName', u''),  app.get('id', u''))
-						#print rank, game_name, downloads
-						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+			for page in xrange(1, 2):
+				raw_data = get_tbzs_raw_data_map(gtype, page)
+				r = requests.post(_url, data=json.dumps(raw_data))
+				if r.status_code == 200:
+					j = r.json()
+					if j['state']['msg'] == u'Ok':
+						for app in j['data']['content']:
+							rank += 1
+							game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+							game_name = app.get('name', u'')
+							img = app.get('iconUrl', u'')
+							size = app.get('size', u'')
+							game_type = app.get('categoryName', u'')
+							downloads = app.get('downloads', u'')
+							source = source_map.get(gtype)
+							url = u"%s\t%s" % (app.get('packageName', u''),  app.get('id', u''))
+							#print rank, game_name, downloads
+							store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 		except Exception,e:
 			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 
@@ -1130,26 +1141,28 @@ def get_tbzs_detail(game_id):
 
 def get_wogame_app_rank(gtype, url):
 	rank = 0
-	try:
-		_j = {"page_size":20,"page_num":1}
-		params = {"jsondata": json.dumps(_j)}
-		r = requests.get(url, timeout=10, params=params)
-		if r.status_code == 200:
-			j = r.json()
-			if j['data'] is not None:
-				for app in r.json()['data']:
-					rank += 1
-					game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
-					game_name = app.get('game_name', u'')
-					img = app.get('icon_url', u'')
-					size = app.get('apk_size', u'')
-					downloads = app.get('download_count', u'')#每周下载次数
-					source = source_map.get(gtype)
-					url = app.get('product_id', u'')
-					#url = u"%s\t%s" % (app.get('package_name', u''),  app.get('product_id', u''))
-					store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
-	except Exception,e:
-		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
+	for page in xrange(1, 6):
+		try:
+			_j = {"page_size":20, "page_num":page}
+			params = {"jsondata": json.dumps(_j)}
+			r = requests.get(url, timeout=10, params=params)
+			if r.status_code == 200:
+				j = r.json()
+				if j['data'] is not None:
+					print len(r.json()['data'])
+					for app in r.json()['data']:
+						rank += 1
+						game_name, img, downloads, size, source, popular, game_type, status, url = [u''] * 9
+						game_name = app.get('game_name', u'')
+						img = app.get('icon_url', u'')
+						size = app.get('apk_size', u'')
+						downloads = app.get('download_count', u'')#每周下载次数
+						source = source_map.get(gtype)
+						url = app.get('product_id', u'')
+						#url = u"%s\t%s" % (app.get('package_name', u''),  app.get('product_id', u''))
+						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+		except Exception,e:
+			mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 
 def store_wogame_app_rank():
 	_dict = {"wogame_hot": "http://wogame4.wostore.cn/wogame/weekHotList.do",
@@ -1287,7 +1300,7 @@ def get_mmstore_app_rank():
 	headers = {
 				"appname": "MM5.3.0.001.01_CTAndroid_JT", 
 				"ua":"android-19-720x1280-CHE2-UL00"}
-	for p in xrange(1, 3):
+	for p in xrange(1, 11):
 		url = "http://odp.mmarket.com/t.do?requestid=json_game_total_ranking_library&currentPage=%s&totalRows=824" % p
 		try:
 			r = requests.get(url, timeout=20, headers=headers)
@@ -1309,25 +1322,28 @@ def get_mmstore_app_rank():
 
 def get_vivo_store_app_rank():
 	_dict = {
-			"vivo_store_single": "http://main.appstore.vivo.com.cn/port/packages_top/?apps_per_page=20&e=150100523832314d4200cf98e451625f&elapsedtime=2564215904&screensize=1080_1920&density=3.0&pictype=webp&cs=0&req_id=7&av=22&an=5.1&app_version=612&imei=867570026068423&nt=WIFI&id=2&page_index=1&cfrom=4&type=9&model=m2+note&s=2%7C0",
-			"vivo_store_webgame": "http://main.appstore.vivo.com.cn/port/packages_top/?apps_per_page=20&e=150100523832314d4200cf98e451625f&elapsedtime=2564218581&screensize=1080_1920&density=3.0&pictype=webp&cs=0&req_id=8&av=22&an=5.1&app_version=612&imei=867570026068423&nt=WIFI&id=2&page_index=1&cfrom=4&type=10&model=m2+note&s=2%7C0",
+			"vivo_store_single": "http://main.appstore.vivo.com.cn/port/packages_top/?apps_per_page=20&e=150100523832314d4200cf98e451625f&elapsedtime=2564215904&screensize=1080_1920&density=3.0&pictype=webp&cs=0&req_id=7&av=22&an=5.1&app_version=612&imei=867570026068423&nt=WIFI&id=2&cfrom=4&type=9&model=m2+note&s=2%7C0",
+			"vivo_store_webgame": "http://main.appstore.vivo.com.cn/port/packages_top/?apps_per_page=20&e=150100523832314d4200cf98e451625f&elapsedtime=2564218581&screensize=1080_1920&density=3.0&pictype=webp&cs=0&req_id=8&av=22&an=5.1&app_version=612&imei=867570026068423&nt=WIFI&id=2&cfrom=4&type=10&model=m2+note&s=2%7C0",
 			}
-	for gtype, url in _dict.iteritems():
+	for gtype, _url in _dict.iteritems():
 		rank = 0
 		try:
-			r = requests.get(url, timeout=20)
-			if r.status_code == 200:
-				j = r.json()
-				if j['value'] is not None:
-					for app in j['value']:
-						rank += 1
-						game_name, img, downloads, size, popular, game_type, status, url = [u''] * 8
-						game_name = app.get('title_zh', u'')
-						img = app.get('icon_url', u'')
-						downloads = app.get('download_count', u'')
-						url = app.get('id', u'')
-						source = source_map.get(gtype)
-						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+			for page in xrange(1, 6):
+				suffix_url = '&page_index=%s' % page
+				__url = _url + suffix_url
+				r = requests.get(__url, timeout=20)
+				if r.status_code == 200:
+					j = r.json()
+					if j['value'] is not None:
+						for app in j['value']:
+							rank += 1
+							game_name, img, downloads, size, popular, game_type, status, url = [u''] * 8
+							game_name = app.get('title_zh', u'')
+							img = app.get('icon_url', u'')
+							downloads = app.get('download_count', u'')
+							url = app.get('id', u'')
+							source = source_map.get(gtype)
+							store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 		except Exception, e:
 			mylogger.error("get vivo store app rank \t%s" % (traceback.format_exc()))
 
@@ -1339,22 +1355,25 @@ def get_myaora_app_rank():
 	for gtype, raw_data in _dict.iteritems():
 		rank = 0
 		try:
-			r = requests.post("http://adres.myaora.net:81/api.php", timeout=20, data=json.dumps(raw_data))
-			if r.status_code == 200:
-				j = r.json()
-				if j['ARRAY'] is not None:
-					for app in j['ARRAY']:
-						rank += 1
-						game_name, img, downloads, size, popular, game_type, status, url = [u''] * 8
-						game_name = app.get('NAME', u'')
-						img = app.get('ICON_URL', u'')
-						downloads = app.get('DOWNLOAD_COUNT', u'')
-						game_type = app.get('CATALOG_NAME', u'')
-						url = app.get('ID', u'')
-						size = app.get('SIZE', u'')
-						source = source_map.get(gtype)
-						#print rank, game_name, source
-						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+			for index in xrange(0, 100, 20):
+				raw_data['INDEX_START'] = index
+				r = requests.post("http://adres.myaora.net:81/api.php", timeout=20, data=json.dumps(raw_data))
+				if r.status_code == 200:
+					j = r.json()
+					if j['ARRAY'] is not None:
+						print index, len(j['ARRAY'])
+						for app in j['ARRAY']:
+							rank += 1
+							game_name, img, downloads, size, popular, game_type, status, url = [u''] * 8
+							game_name = app.get('NAME', u'')
+							img = app.get('ICON_URL', u'')
+							downloads = app.get('DOWNLOAD_COUNT', u'')
+							game_type = app.get('CATALOG_NAME', u'')
+							url = app.get('ID', u'')
+							size = app.get('SIZE', u'')
+							source = source_map.get(gtype)
+							#print rank, game_name, source
+							store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 		except Exception, e:
 			mylogger.error("get myaora  app rank \t%s" % (traceback.format_exc()))
 
@@ -1432,13 +1451,16 @@ def get_app12345_app_rank():
 		mylogger.error("app12345 ex %s" % traceback.format_exc())
 
 def store_oppo_top_app_rank():
-	_dict = {'oppo_app_download': 'https://igame.oppomobile.com/gameapp/game/downloadRank?start=0&size=20', 
-			'oppo_app_newGame' : 'https://igame.oppomobile.com/gameapp/game/newGameRank?start=0&size=20',
-			'oppo_app_active' : 'https://igame.oppomobile.com/gameapp/game/activeRank?start=0&size=20'}
+	_dict = {'oppo_app_download': 'https://igame.oppomobile.com/gameapp/game/downloadRank?size=20', 
+			'oppo_app_newGame' : 'https://igame.oppomobile.com/gameapp/game/newGameRank?size=20',
+			'oppo_app_active' : 'https://igame.oppomobile.com/gameapp/game/activeRank?size=20'}
 	_header = {'param':'imei=868008021943653&model=Che2-UL00&osversion=19', 'sign': '053919f5ede78f8190c290017004ee54'}
 
 	for gtype, url in _dict.iteritems():
-		get_oppo_app_rank(gtype, url, _header)
+		for index in xrange(0, 100, 20):
+			suffix_url = '&start=%s' % index
+			_url = url + suffix_url
+			get_oppo_app_rank(gtype, _url, _header)
 
 #oppo下载榜
 def get_oppo_app_rank(gtype, url, headers):
