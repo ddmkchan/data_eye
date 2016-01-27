@@ -195,7 +195,7 @@ def get_xiaomi_game_rank(page, rank_id):
 	payload = {
 				"page"			:page,
 				"category_id"	:"",
-				"total_page"	:60,
+				"total_page"	:20,
 				"rank_id"		:rank_id,
 				"type"			:"rank"
 				}
@@ -210,7 +210,7 @@ def get_xiaomi_game_rank(page, rank_id):
 
 def get_xiaomi_web_rank(gtype, rank_id):
 	rank = 0
-	for page in xrange(1, 6):
+	for page in xrange(10):
 		detail = get_xiaomi_game_rank(page, rank_id)
 		if detail is not None:
 			for d in detail:
