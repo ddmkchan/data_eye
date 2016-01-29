@@ -1072,7 +1072,7 @@ def store_18183_top_app_rank():
 def get_18183_top_app_rank(gtype, url):
 	rank = 0
 	try:
-		response = requests.get(url, timeout=10)
+		response = requests.get(url, timeout=30)
 		if response.status_code == 200:
 			soup = BeautifulSoup(response.text)
 			ranking_mod = soup.find('div', class_='ranking-mod')
@@ -1139,13 +1139,13 @@ def get_tbzs_detail(game_id):
 		print j['state']['msg']
 
 
-def get_wogame_app_rank(gtype, url):
+def get_wogame_app_rank(gtype, _url):
 	rank = 0
 	for page in xrange(1, 6):
 		try:
 			_j = {"page_size":20, "page_num":page}
 			params = {"jsondata": json.dumps(_j)}
-			r = requests.get(url, timeout=10, params=params)
+			r = requests.get(_url, timeout=30, params=params)
 			if r.status_code == 200:
 				j = r.json()
 				if j['data'] is not None:
@@ -1179,7 +1179,7 @@ def get_lenovo_gamecenter_app_rank():
 	for gtype, url in _dict.iteritems():
 		rank = 0
 		try:
-			r = requests.get(url, timeout=10)
+			r = requests.get(url, timeout=30)
 			if r.status_code == 200:
 				j = r.json()
 				if j['datalist'] is not None:
@@ -1214,7 +1214,7 @@ def get_lenovo_shop_rank():
 	for gtype,url in _dict.iteritems():
 		rank = 0
 		try:
-			r = requests.get(url, timeout=10, headers=headers)
+			r = requests.get(url, timeout=30, headers=headers)
 			if r.status_code == 200:
 				j = r.json()
 				if j['datalist'] is not None:
@@ -1242,7 +1242,7 @@ def get_meizu_app_rank():
 	for gtype,url in _dict.iteritems():
 		rank = 0
 		try:
-			r = requests.get(url, timeout=10)
+			r = requests.get(url, timeout=30)
 			if r.status_code == 200:
 				j = r.json()
 				if j['value'] is not None and len(j['value']['blocks'])>=1 and j['value']['blocks'][0]['data']:
@@ -1267,7 +1267,7 @@ def get_wostore_app_rank():
 			"version": "android_v5.0.3",
 			"handphone": "00000000000"}
 	try:
-		r = requests.get("http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=rankingList&channel=2", headers=headers, timeout=10)	
+		r = requests.get("http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=rankingList&channel=2", headers=headers, timeout=30)	
 		if r.status_code == 200:
 			j = r.json()
 			for ranklist in j['RANKINGLIST']:
