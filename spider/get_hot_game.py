@@ -1449,14 +1449,20 @@ def get_app12345_app_rank():
 		mylogger.error("app12345 ex %s" % traceback.format_exc())
 
 def store_oppo_top_app_rank():
-	_dict = {'oppo_app_download': 'https://igame.oppomobile.com/gameapp/game/downloadRank?size=20', 
-			'oppo_app_newGame' : 'https://igame.oppomobile.com/gameapp/game/newGameRank?size=20',
-			'oppo_app_active' : 'https://igame.oppomobile.com/gameapp/game/activeRank?size=20'}
+	import md5
+	_dict = {'oppo_app_download': 'https://igame.oppomobile.com/gameapp/game/downloadRank', 
+			'oppo_app_newGame' : 'https://igame.oppomobile.com/gameapp/game/newGameRank',
+			'oppo_app_active' : 'https://igame.oppomobile.com/gameapp/game/activeRank'}
 	_header = {'param':'imei=868008021943653&model=Che2-UL00&osversion=19', 'sign': '053919f5ede78f8190c290017004ee54'}
+	md5_suffix = 'MIICeAIBADANBgkqhkiG9w0BAQEFAASCAmIwggJeAgEAAoGBANYFY/UJGSzhIhpx6YM5KJ9yRHc7YeURxzb9tDvJvMfENHlnP3DtVkOIjERbpsSd76fjtZnMWY60TpGLGyrNkvuV40L15JQhHAo9yURpPQoI0eg3SLFmTEI/MUiPRCwfwYf2deqKKlsmMSysYYHX9JiGzQuWiYZaawxprSuiqDGvAgMBAAECgYEAtQ0QV00gGABISljNMy5aeDBBTSBWG2OjxJhxLRbndZM81OsMFysgC7dq+bUS6ke1YrDWgsoFhRxxTtx/2gDYciGp/c/h0Td5pGw7T9W6zo2xWI5oh1WyTnn0Xj17O9CmOk4fFDpJ6bapL+fyDy7gkEUChJ9+p66WSAlsfUhJ2TECQQD5sFWMGE2IiEuz4fIPaDrNSTHeFQQr/ZpZ7VzB2tcG7GyZRx5YORbZmX1jR7l3H4F98MgqCGs88w6FKnCpxDK3AkEA225CphAcfyiH0ShlZxEXBgIYt3V8nQuc/g2KJtiV6eeFkxmOMHbVTPGkARvt5VoPYEjwPTg43oqTDJVtlWagyQJBAOvEeJLno9aHNExvznyD4/pR4hec6qqLNgMyIYMfHCl6d3UodVvC1HO1/nMPl+4GvuRnxuoBtxj/PTe7AlUbYPMCQQDOkf4sVv58tqslO+I6JNyHy3F5RCELtuMUR6rG5x46FLqqwGQbO8ORq+m5IZHTV/Uhr4h6GXNwDQRh1EpVW0gBAkAp/v3tPI1riz6UuG0I6uf5er26yl5evPyPrjrD299L4Qy/1EIunayC7JYcSGlR01+EDYYgwUkec+QgrRC/NstV'
 
 	for gtype, url in _dict.iteritems():
 		for index in xrange(0, 100, 20):
-			suffix_url = '&start=%s' % index
+			suffix_url = '?start=%s&size=20' % index
+			md5_str = _header.get('param') + '&' + suffix_url[1:] + md5_suffix
+			hash = md5.new()
+			hash.update(md5_str)
+			_header['sign'] =  hash.hexdigest()
 			_url = url + suffix_url
 			get_oppo_app_rank(gtype, _url, _header)
 
