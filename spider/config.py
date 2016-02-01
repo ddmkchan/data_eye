@@ -8,6 +8,7 @@ localIP = socket.gethostbyname(socket.gethostname())#这个得到本地ip
 
 if localIP == u'192.168.1.215':
 	sys.path.append('/root/yanpengchen/data_eye/common')
+	sys.path.append('/data2/yanpengchen/data_eye/common')
 else:
 	sys.path.append('/home/cyp/data_eye/common')
 
