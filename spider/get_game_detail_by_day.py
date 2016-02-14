@@ -1684,7 +1684,7 @@ def get_360zhushou_web_detail():
 	error_times = 0
 	sess = requests.session()
 	mylogger.info("get 360zhushou web detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.source==22).filter(KC_LIST.publish_date>=u'2016-01-01').limit(1):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.source==22).filter(KC_LIST.publish_date>=u'2016-01-01'):
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:

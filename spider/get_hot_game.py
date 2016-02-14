@@ -1553,7 +1553,7 @@ def main():
 	get_mmstore_app_rank()
 	get_vivo_store_app_rank()
 	get_myaora_app_rank()
-	get_huawei_app_rank()
+	#get_huawei_app_rank()
 	get_app12345_app_rank()
 	store_oppo_top_app_rank()
 
