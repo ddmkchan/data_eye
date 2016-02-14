@@ -1800,7 +1800,7 @@ def get_ipaddown_detail():
 					if center_stack is not None:
 						product_review = center_stack.find('div','product-review')
 						if product_review is not None and product_review.find('p') is not None:
-							summary = re.sub('\s+', u'', product_review.text)
+							summary = re.sub(u'\s+|内容提要', u'', product_review.text)
 						toggle = center_stack.find('div', 'toggle')
 						if toggle is not None:
 							for lockup in toggle.find_all('div', class_='lockup'):
