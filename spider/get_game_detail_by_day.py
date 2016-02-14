@@ -1750,12 +1750,84 @@ def get_360zhushou_web_detail():
 												})
 					db_conn.merge(item)
 					if count % 100 == 0:
-						mylogger.info("360 detail %s commit" % count)
+						mylogger.info("360zhushou web detail %s commit" % count)
 						db_conn.commit()
 			except Exception,e:
 				error_times += 1
 				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get 360zhushou web detail %s" % count)
+	db_conn.commit()
+
+
+def get_ipaddown_detail():
+	count = 0
+	error_times = 0
+	sess = requests.session()
+	mylogger.info("get ipaddown detail start ...")
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.source==35):
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+		if not ins:
+			try:
+				headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'}
+				p = proxies[random.randrange(len(proxies))]
+				r = sess.get(ret.url, timeout=50, headers=headers, proxies=p)
+				if r.status_code == 200:
+					soup = BeautifulSoup(r.text)
+					name = u''
+					imgs = u''
+					rating = u''
+					summary = u''
+					comment_num = u''
+					download_num = u''
+					pkg_size = u''
+					content = soup.find('div', id='content')
+					if content is not None:
+						if content.find('div', id='title') is not None and content.find('div', id='title').find('div', class_='left') is not None:
+							name = content.find('div', id='title').find('div',class_='left').find('h1').text
+					left_stack = soup.find('div', id='left-stack')
+					mydict = {}
+					if left_stack is not None and left_stack.find('ul', class_='list') is not None:
+						for li in left_stack.find('ul', class_='list').find_all('li'):
+							segs = re.split(u':|： ', li.text)
+							if len(segs) == 2:
+								mydict[segs[0]] = re.sub('\s+', u'', segs[1])
+					author = mydict.get(u'开发商', u'')
+					version = mydict.get(u'版本', u'')
+					pkg_size = mydict.get(u'大小', u'')
+					center_stack = soup.find('div', class_='center-stack')
+					icons = []
+					if center_stack is not None:
+						product_review = center_stack.find('div','product-review')
+						if product_review is not None and product_review.find('p') is not None:
+							summary = re.sub('\s+', u'', product_review.text)
+						toggle = center_stack.find('div', 'toggle')
+						if toggle is not None:
+							for lockup in toggle.find_all('div', class_='lockup'):
+								if lockup.find('img') is not None:
+									icons.append(lockup.find('img').get('src'))
+					count += 1
+					item = GameDetailByDay(**{
+												'kc_id' : ret.id,
+												'name' : name,
+												'version' : version,
+												'dt' : dt,
+												'imgs' : u','.join(icons),
+												'summary' : summary,
+												'pkg_size' : pkg_size,
+												'rating' : rating,
+												'author' : author,
+												'comment_num' : comment_num,
+												'download_num' : download_num,
+												})
+					db_conn.merge(item)
+					if count % 100 == 0:
+						mylogger.info("ipaddown detail %s commit" % count)
+						db_conn.commit()
+			except Exception,e:
+				error_times += 1
+				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
+	mylogger.info("get ipaddown detail %s" % count)
 	db_conn.commit()
 
 
@@ -1796,4 +1868,5 @@ def step3():
 	get_360zhushou_web_detail()
 
 if __name__ == '__main__':
-	step1()
+	get_ipaddown_detail()
+	#step1()

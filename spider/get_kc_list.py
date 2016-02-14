@@ -52,6 +52,7 @@ source_map = {
 			"mmstore": 32,
 			"vivo_store": 33,
 			"huawei_app": 34,
+			"ipaddown": 35,
 			"oppo_app": 50,
 			"wogame": 998,
 			"myaora": 997,#易用汇
@@ -1944,6 +1945,50 @@ def get_oppo_kc(start):
 	mylogger.info("get %s records from oppo_app " % (count))
 	db_conn.commit()
 
+def get_ipaddown_kc():
+	count = 0
+	URL = "http://www.ipadown.com/new/"
+	try:
+		response = s.get(URL, timeout=10)
+		if response.status_code == 200:
+			soup = BeautifulSoup(response.text)
+			iconList = soup.find('div', id='content')
+			if iconList is not None:
+				for li in iconList.find_all('div',class_='app_block'):
+					title = u''
+					img = u''
+					_url = u''
+					app_icon = li.find('div', class_='app_icon')
+					if app_icon is not None and app_icon.find('img') is not None:
+						img = app_icon.find('img').get('src')
+						title = app_icon.find('img').get('alt')
+					app_info = li.find('div', class_='app_info')
+					mydict = {}
+					if app_info is not None:
+						for info in app_info.find_all('p'):
+							segs = info.text.split(u'：')
+							if len(segs) == 2:
+								mydict[segs[0]] = segs[1]
+						if app_info.find('h4') is not None and app_info.find('h4').find('a') is not None:
+							_url = app_info.find('h4').find('a').get('href')
+					publish_date = mydict.get(u'上架时间', u'')
+					if title and publish_date and mydict.get(u'分类', u'') == u'Games':
+						ins = db_conn.query(KC_LIST).filter(KC_LIST.url==_url).filter(KC_LIST.source==source_map.get('ipaddown')).filter(KC_LIST.publish_date==publish_date).first()
+						if not ins:
+							count += 1
+							item = KC_LIST(**{
+											'publish_date':publish_date,
+											'title':title,
+											'img':img,
+											'url':_url,
+											'source':source_map.get('ipaddown'),
+												})
+							db_conn.merge(item)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+	mylogger.info("get %s records from ipaddown page" % count)
+	db_conn.commit()
+				
 
 def main():
 	mylogger.info("gogo")
@@ -1982,6 +2027,7 @@ def main():
 	get_vivo_store_kc()
 	get_huawei_app_kc()
 	get_oppo_kc(0)
+	get_ipaddown_kc()
 
 if __name__ == '__main__':
 	main()
