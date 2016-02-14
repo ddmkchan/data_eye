@@ -91,7 +91,6 @@ def get_360zhushou_web_detail(channel_id):
 						db_conn.commit()
 			except Exception,e:
 				error_times += 1
-				sleep(3.21)
 				mylogger.error("%s\t%s" % (url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get 360zhushou web detail %s" % count)
 	db_conn.commit()

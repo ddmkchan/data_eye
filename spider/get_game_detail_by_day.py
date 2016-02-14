@@ -605,7 +605,7 @@ def get_iqiyi_detail():
 def get_iqiyi_detail_by_id(qipu_id):
 	url = "http://store.iqiyi.com/gc/game/detail?callback=rs&id=%s" % qipu_id
 	try:
-		r = requests.get(url)
+		r = requests.get(url, timeout=30)
 		if r.status_code == 200:
 			m = re.search(u'rs\\(([\s\S]*)\\)\\;', r.text)
 			if m is not None:
@@ -1679,6 +1679,86 @@ def get_oppo_kc_detail():
 	mylogger.info("get oppo app detail %s" % count)
 	db_conn.commit()
 
+def get_360zhushou_web_detail():
+	count = 0
+	error_times = 0
+	sess = requests.session()
+	mylogger.info("get 360zhushou web detail start ...")
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.source==22).filter(KC_LIST.publish_date>=u'2016-01-01').limit(1):
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+		if not ins:
+			try:
+				headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'}
+				p = proxies[random.randrange(len(proxies))]
+				r = sess.get(ret.url, timeout=20, headers=headers, proxies=p)
+				if r.status_code == 200:
+					soup = BeautifulSoup(r.text)
+					name = u''
+					imgs = u''
+					rating = u''
+					summary = u''
+					comment_num = u''
+					download_num = u''
+					pkg_size = u''
+					app_name = soup.find('h2', id='app-name')
+					if app_name is not None and app_name.find('span') is not None:
+						name = app_name.find('span').text
+					pf = soup.find('div', class_='pf')
+					if pf is not None:
+						print pf
+						for li in pf.find_all('span'):
+							if u'分' in li.text:
+								if re.search('\d+\.*\d+', li.text) is not None:
+									rating = re.search('\d+\.*\d+', li.text).group()
+							#elif u'评价' in li.text:
+							#	if re.search('\d+', li.text) is not None:
+							#		comment_num = re.search('\d+', li.text).group()
+							elif u'下载' in li.text:
+								#if re.search('\d+', li.text) is not None:
+								download_num = li.text
+							elif u'M' in li.text:
+								pkg_size = li.text
+					brief = soup.find('div', class_='breif')
+					overview = soup.find('div', class_='overview')
+					icons = []
+					if brief is not None:
+						summary = re.sub('\s+', u'', brief.text)
+					if overview is not None:
+						icons = [img.get('src') for img in overview.find_all('img')]
+					if icons:
+						imgs = u','.join(icons)
+					mydict = {}
+					base_info = soup.find('div', class_="base-info")
+					if base_info is not None:
+						for td in base_info.find_all('td'):
+							segs = td.text.split(u'：')
+							if len(segs) == 2:
+								mydict[segs[0]] = segs[1]
+					count += 1
+					item = GameDetailByDay(**{
+												'kc_id' : ret.id,
+												'name' : name,
+												'version' : mydict.get(u'版本', u''),
+												'dt' : dt,
+												'imgs' : imgs,
+												'summary' : summary,
+												'pkg_size' : pkg_size,
+												'rating' : rating,
+												'author' : mydict.get(u'作者', u''),
+												'comment_num' : comment_num,
+												'download_num' : download_num,
+												})
+					db_conn.merge(item)
+					if count % 100 == 0:
+						mylogger.info("360 detail %s commit" % count)
+						db_conn.commit()
+			except Exception,e:
+				error_times += 1
+				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
+	mylogger.info("get 360zhushou web detail %s" % count)
+	db_conn.commit()
+
 
 def step1():
 	get_xiaomi_new_detail()
@@ -1714,6 +1794,7 @@ def step3():
 	get_kuaiyong_detail()
 	get_9game_detail()
 	get_huawei_detail()
+	get_360zhushou_web_detail()
 
 if __name__ == '__main__':
 	step1()

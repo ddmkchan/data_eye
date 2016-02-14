@@ -282,7 +282,7 @@ def get_360zhushou_kc():
 	count = 0
 	URL = "http://openbox.mobilem.360.cn/gamestart/list?type=2"
 	try:
-		r = s.get(URL)
+		r = requests.get(URL, timeout=10)
 		if r.status_code == 200:
 			soup = BeautifulSoup(r.text)
 			item_list = soup.find_all("div", class_="app-item-list")[0]
@@ -348,7 +348,7 @@ def get_xiaomi_new_kc(page):
 	count = 0
 	url = "http://app.migc.xiaomi.com/cms/interface/v5/subjectgamelist1.php?pageSize=20&page=%s&subId=138" % page
 	try:
-		r = requests.get(url)
+		r = requests.get(url, timeout=10)
 		if r.status_code == 200:
 			d = r.json()
 			if d['errCode'] == 200:
@@ -391,7 +391,7 @@ def get_xiaomi_rpg_kc(page):
 	count = 0
 	url = "http://app.migc.xiaomi.com/cms/interface/v5/subjectgamelist1.php?subId=203&pageSize=20&page=%s" % page
 	try:
-		r = requests.get(url)
+		r = requests.get(url, timeout=10)
 		if r.status_code == 200:
 			d = r.json()
 			if d['errCode'] == 200:
@@ -440,7 +440,7 @@ def get_open_play_kc():
 	count = 0
 	url = "http://open.play.cn/api/v2/mobile/channel/content.json?channel_id=702&terminal_id=18166&current_page=0&rows_of_page=20"
 	try:
-		r = requests.get(url)
+		r = requests.get(url, timeout=10)
 		if r.status_code == 200:
 			d = r.json()
 			if d['code'] == 0:
@@ -484,7 +484,7 @@ def get_vivo_kc(page):
 	#url = "http://gamecenter.vivo.com.cn/clientRequest/topicGame?id=214&page_index=1"
 	url = "http://main.gamecenter.vivo.com.cn/clientRequest/startingGame?page_index=%s" % page
 	try:
-		r = requests.get(url)
+		r = requests.get(url, timeout=10)
 		if r.status_code == 200:
 			d = r.json()
 			for ret in d['msg']:
@@ -947,7 +947,7 @@ def get_i4_kc(page):
 	count = 0
 	url = "http://app3.i4.cn/controller/action/online.go?store=3&module=3&rows=20&sort=2&submodule=6&model=101&id=0&reqtype=3&page=%s" % page
 	try:
-		r = requests.get(url)
+		r = requests.get(url, timeout=20)
 		if r.status_code == 200:
 			d = r.json()
 			for ret in d['result']['list']:
@@ -1395,7 +1395,7 @@ def get_pp_kc(page):
 	headers = {'tunnel-command':4261421088}
 	try:
 		j = {"dcType":0, "resType":2, "listType":0, "catId":0, "clFlag":1, "perCount":32, "page": page}
-		r = requests.post('http://jsondata.25pp.com/index.html', data=json.dumps(j), headers=headers)
+		r = requests.post('http://jsondata.25pp.com/index.html', timeout=20, data=json.dumps(j), headers=headers)
 		if r.status_code == 200:
 			content = re.sub(u'\ufeff', u'', r.text)
 			d = json.loads(content)
@@ -1965,6 +1965,7 @@ def main():
 	get_huawei_kc(1)
 	get_kuaiyong_kc(1)
 	get_360_web_kc(1)
+	get_360_web_kc(2)
 	get_wandoujia_kc()
 	get_9game_today_kc()
 	get_pp_kc(1)

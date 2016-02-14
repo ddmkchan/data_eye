@@ -27,6 +27,7 @@ class EX:
 	
 	msg = ""
 
+
 def get_pp_detail():
 	count = 0
 	mylogger.info("get pp detail start ...")
@@ -89,5 +90,6 @@ def get_pp_comments_by_id(gid):
 	return {}
 
 if __name__ == '__main__':
-	get_pp_detail()
-	step2()
+	#get_pp_detail()
+	get_360zhushou_web_detail()
+	#step2()
