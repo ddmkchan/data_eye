@@ -1846,6 +1846,7 @@ def step1():
 	get_dangle_detail()
 	get_muzhiwan_detail()
 	get_meizu_detail()
+	get_ipaddown_detail()
 
 def step2():
 	get_wandoujia_detail()
@@ -1868,5 +1869,4 @@ def step3():
 	get_360zhushou_web_detail()
 
 if __name__ == '__main__':
-	get_ipaddown_detail()
-	#step1()
+	step1()
