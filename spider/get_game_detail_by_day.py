@@ -1706,7 +1706,6 @@ def get_360zhushou_web_detail():
 						name = app_name.find('span').text
 					pf = soup.find('div', class_='pf')
 					if pf is not None:
-						print pf
 						for li in pf.find_all('span'):
 							if u'分' in li.text:
 								if re.search('\d+\.*\d+', li.text) is not None:
