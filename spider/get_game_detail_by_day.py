@@ -1722,14 +1722,15 @@ def get_360zhushou_web_detail():
 							elif u'M' in li.text:
 								pkg_size = li.text
 					brief = soup.find('div', class_='breif')
+					scrollbar = soup.find('div', id='scrollbar')
 					overview = soup.find('div', class_='overview')
 					icons = []
 					if brief is not None:
 						summary = re.sub('\s+', u'', brief.text)
-					if overview is not None:
-						icons = [img.get('src') for img in overview.find_all('img')]
-					if icons:
-						imgs = u','.join(icons)
+					if scrollbar is not None:
+					#	icons = [img.get('src') for img in overview.find_all('img')]
+					#if icons:
+						imgs = scrollbar.get('data-snaps') 
 					mydict = {}
 					base_info = soup.find('div', class_="base-info")
 					if base_info is not None:
