@@ -136,10 +136,13 @@ def get_game_detail(ids):
 			if not rating or rating == u'0':
 				rating = ins.rating
 			if not pkg_size:
-				size = ins.pkg_size
-				if ins.pkg_size and u'M' not in ins.pkg_size.upper() and u'G' not in ins.pkg_size.upper():
-					size = "%sM" % round(int(ins.pkg_size)/1024.0/1024.0, 2)
-				pkg_size = size
+				pkg_size = ins.pkg_size
+				try:
+					if ins.pkg_size and re.search('[a-zA-Z]', ins.pkg_size) is None:
+					# and u'M' not in ins.pkg_size.upper() and u'G' not in ins.pkg_size.upper():
+						pkg_size = "%sM" % round(int(ins.pkg_size)/1024.0/1024.0, 2)
+				except Exception,e:
+					mylogger.error("#### %s ####" % ins.pkg_size)
 			if not author:
 				author = ins.author
 			if not version:
