@@ -119,8 +119,8 @@ def get_publish_status(ids):
 def get_game_detail(ids):
 	imgs, game_type, summary, download_num, comment_num, rating, pkg_size, author, version, topic_num_total = [u''] * 10
 	_sql =  "select max(dt) as dt, kc_id from game_detail_by_day where kc_id in (%s) group by kc_id" % (",".join(ids))
-	for re in db_conn.execute(_sql):
-		dt, kc_id = re
+	for rt in db_conn.execute(_sql):
+		dt, kc_id = rt
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.dt==dt).filter(GameDetailByDay.kc_id==kc_id).first()
 		if ins is not None:
 			if not imgs:
