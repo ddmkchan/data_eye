@@ -50,13 +50,20 @@ def func3():
 	#driver.get("http://ka.9game.cn/")
 	#driver.get("http://m.taoche.com/buycar/carconfig.aspx?sid=2046&carid=10946")
 	#driver.get('http://openbox.mobilem.360.cn/html/standalone/index.html?webpg=shilian1&showTitleBar=0&fm=gm004_shilian1&m=13389b498494c1230fab6b4c04572848&s_stream_app=1&m2=1680ae9efad81fb51224ec048d296b6a&v=3.5.15&re=1&nt=1&ch=100130&os=22&model=m2+note&sn=4.589389937671455&cu=mt6753&ca1=armeabi-v7a&ca2=armeabi&ppi=1080x1920&cpc=1&ui_version=v2')
-	driver.get('http://openbox.mobilem.360.cn/qcms/view/t/first_release?type=game&webpg=shoufanew')
-	sleep(4)
+	#driver.get('http://openbox.mobilem.360.cn/qcms/view/t/first_release?type=game&webpg=shoufanew')
+	driver.get('http://zhushou.360.cn/list/index/cid/2/order/newest/?page=1')
+	#driver.get('http://zhushou.360.cn/detail/index/soft_id/3220961')
+	sleep(0.3)
 	#driver.get('http://openbox.mobilem.360.cn/qcms/view/t/first_release?type=game&webpg=shoufanew')
 	#print driver.current_url
 	print driver.page_source.encode('utf-8')
 	#print driver.find_element_by_id('result').text.split('\n')[0].split('来自：')[1]
 	driver.quit
+
+def fun4():
+	import requests
+	r = requests.get('http://zhushou.360.cn/detail/index/soft_id/3220961')
+	print r.text.encode('utf-8')
 
 if __name__ == '__main__':
 	#print func2()

@@ -1359,6 +1359,9 @@ def get_360_web_kc(page):
 	try:
 		response = s.get(URL, timeout=10)
 		if response.status_code == 200:
+		#pg = get_page_source_by_phantomjs(URL)
+		#if pg:
+			#soup = BeautifulSoup(pg)
 			soup = BeautifulSoup(response.text)
 			iconList = soup.find('ul', 'iconList')
 			if iconList is not None:
@@ -1371,7 +1374,7 @@ def get_360_web_kc(page):
 							title = li.find('h3').find('a').text
 					if title and publish_date:
 						if li.find('a') is not None:
-							img  = li.find('a').find('img').get('src')
+							img  = li.find('a').find('img').get('_src')
 							if li.find('a').get('href') is not None:
 								_url = u"http://zhushou.360.cn%s" % li.find('a').get('href')
 								ins = db_conn.query(KC_LIST).filter(KC_LIST.url==_url).filter(KC_LIST.source==source_map.get('360zhushou_web')).filter(KC_LIST.publish_date==publish_date).first()
@@ -1385,6 +1388,9 @@ def get_360_web_kc(page):
 													'source':source_map.get('360zhushou_web'),
 														})
 									db_conn.merge(item)
+								else:
+									ins.img = img
+									ins.last_update = datetime.datetime.now()
 	except Exception,e:
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
 	mylogger.info("get %s records from 360 zhushou web page %s" % (count, page))
@@ -2009,8 +2015,6 @@ def main():
 	get_dangle_kc()
 	get_huawei_kc(1)
 	get_kuaiyong_kc(1)
-	get_360_web_kc(1)
-	get_360_web_kc(2)
 	get_wandoujia_kc()
 	get_9game_today_kc()
 	get_pp_kc(1)
@@ -2028,6 +2032,8 @@ def main():
 	get_huawei_app_kc()
 	get_oppo_kc(0)
 	get_ipaddown_kc()
+	get_360_web_kc(1)
+	get_360_web_kc(2)
 
 if __name__ == '__main__':
 	main()
