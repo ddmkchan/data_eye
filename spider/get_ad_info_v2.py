@@ -1159,8 +1159,9 @@ def get_coolpad_ad():
 	try:	
 		r = requests.post(url, data=raw_data, headers={'Content-Type': 'application/xml'}, timeout=10)
 		if r.status_code == 200:
-			t = re.sub(u'<briefdescription>[\S\s]*</briefdescription>', u'', r.text)
-			t = re.sub(u'\r|\n', u'', t)
+			t = re.sub(u'\r|\n|\t', u'', r.text)
+			#t = re.sub(u'<briefdescription>[\S\s]*</briefdescription>', u'', r.text)
+			#t = re.sub(u'\r|\n', u'', t)
 			doc = xmltodict.parse(t)
 			for ad in doc['response']['ads']['ad']:
 				channel, position_type_id, position_name, picUrl, game_name, identifying = [u''] * 6
@@ -1495,4 +1496,5 @@ def main():
 	get_coolpad_ad()
 
 if __name__ == "__main__":
-	main()
+	#main()
+	get_coolpad_ad()

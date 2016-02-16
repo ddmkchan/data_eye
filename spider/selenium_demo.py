@@ -37,7 +37,7 @@ def func2():
 
 def func3():
 	from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
-
+	from config import EXECUTABLE_PATH
 	user_agent = (
 	    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) " +
 	    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/29.0.1547.57 Safari/537.36"
@@ -46,13 +46,13 @@ def func3():
 	dcap = dict(DesiredCapabilities.PHANTOMJS)
 	dcap["phantomjs.page.settings.userAgent"] = user_agent
 
-	driver = webdriver.PhantomJS(desired_capabilities=dcap, executable_path='/home/cyp/phantomjs-2.0.0/bin/phantomjs')  #这要可能需要制定phatomjs可执行文件的位置
+	driver = webdriver.PhantomJS(desired_capabilities=dcap, executable_path=EXECUTABLE_PATH)  #这要可能需要制定phatomjs可执行文件的位置
 	#driver.get("http://ka.9game.cn/")
 	#driver.get("http://m.taoche.com/buycar/carconfig.aspx?sid=2046&carid=10946")
 	#driver.get('http://openbox.mobilem.360.cn/html/standalone/index.html?webpg=shilian1&showTitleBar=0&fm=gm004_shilian1&m=13389b498494c1230fab6b4c04572848&s_stream_app=1&m2=1680ae9efad81fb51224ec048d296b6a&v=3.5.15&re=1&nt=1&ch=100130&os=22&model=m2+note&sn=4.589389937671455&cu=mt6753&ca1=armeabi-v7a&ca2=armeabi&ppi=1080x1920&cpc=1&ui_version=v2')
 	#driver.get('http://openbox.mobilem.360.cn/qcms/view/t/first_release?type=game&webpg=shoufanew')
-	driver.get('http://zhushou.360.cn/list/index/cid/2/order/newest/?page=1')
-	#driver.get('http://zhushou.360.cn/detail/index/soft_id/3220961')
+	#driver.get('http://zhushou.360.cn/list/index/cid/2/order/newest/?page=1')
+	driver.get('http://zhushou.360.cn/detail/index/soft_id/3220961')
 	sleep(0.3)
 	#driver.get('http://openbox.mobilem.360.cn/qcms/view/t/first_release?type=game&webpg=shoufanew')
 	#print driver.current_url
