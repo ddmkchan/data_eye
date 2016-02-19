@@ -11,6 +11,7 @@ import re
 from bs4 import BeautifulSoup
 import time
 import datetime
+from email_client import send_email
 
 db_conn = new_session()
 
@@ -95,6 +96,8 @@ def main():
 				db_conn.commit()
 				mylogger.info("update data %s commit ..." % count)	
 	db_conn.commit()
+	new_game_num = get_new_games_num()
+	send_email(TEXT='get new publish games %s \n merge data done!!! total : %s' % (new_game_num, count))
 	mylogger.info("merge data done !!!")	
 
 def get_publish_status(ids):
@@ -155,6 +158,13 @@ def get_game_detail(ids):
 	#ids = (int(id) for id in ids)
 	#for ret in db_conn.query(GameDetailByDay).filter(GameDetailByDay.dt==unicode(datetime.date.today()+datetime.timedelta(-1))).filter(GameDetailByDay.kc_id.in_(ids)):
 	#	print ret.kc_id, ret.dt
+def get_new_games_num():
+	count = -1
+	try:
+		count = db_conn.query(KC_LIST).filter(KC_LIST.publish_date==unicode(datetime.date.today())).count()
+	except Exception,e:
+		pass
+	return count
 
 if __name__ == '__main__':
 	main()
