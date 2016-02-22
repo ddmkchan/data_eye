@@ -161,7 +161,7 @@ def get_game_detail(ids):
 def get_new_games_num():
 	count = -1
 	try:
-		count = db_conn.query(KC_LIST).filter(KC_LIST.publish_date==unicode(datetime.date.today())).count()
+		count = db_conn.query(KC_LIST).filter(KC_LIST.publish_date==unicode(datetime.date.today()+datetime.timedelta(-1))).count()
 	except Exception,e:
 		pass
 	return count
