@@ -66,9 +66,12 @@ def get_page_source_by_phantomjs(url, delay=0.5, proxy={}):
 	return pg
 
 def get_log_info(log_file, rows=-300):
+	import os
 	from email_client import send_email
 	try:
-		with open("%s/%s" % (LOG_PATH, log_file)) as f:
+		logfile = "%s/%s" % (LOG_PATH, log_file)
+		os.system("sed -i /InsecurePlatformWarning/d %s" % logfile)
+		with open(logfile) as f:
 			send_email(TEXT="".join(f.readlines()[rows:]))
 	except Exception,e:
 		pass
