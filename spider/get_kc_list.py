@@ -1994,7 +1994,7 @@ def get_ipaddown_kc():
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
 	mylogger.info("get %s records from ipaddown page" % count)
 	db_conn.commit()
-				
+	
 
 def main():
 	mylogger.info("gogo")
@@ -2034,6 +2034,7 @@ def main():
 	get_ipaddown_kc()
 	get_360_web_kc(1)
 	get_360_web_kc(2)
+	get_log_info('kc.log')
 
 if __name__ == '__main__':
 	main()

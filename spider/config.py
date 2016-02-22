@@ -10,9 +10,11 @@ if localIP == u'192.168.1.215':
 	sys.path.append('/root/yanpengchen/data_eye/common')
 	sys.path.append('/data2/yanpengchen/data_eye/common')
 	EXECUTABLE_PATH = '/data2/yanpengchen/phantomjs-2.0.0/bin/phantomjs'
+	LOG_PATH = '/data2/yanpengchen/logs'
 else:
 	sys.path.append('/home/cyp/data_eye/common')
 	EXECUTABLE_PATH = '/home/cyp/phantomjs-2.0.0/bin/phantomjs'
+	LOG_PATH = '/home/cyp/logs'
 
 from get_logger import *
 from define import *
@@ -62,3 +64,11 @@ def get_page_source_by_phantomjs(url, delay=0.5, proxy={}):
 	pg = driver.page_source
 	driver.quit
 	return pg
+
+def get_log_info(log_file, rows=-300):
+	from email_client import send_email
+	try:
+		with open("%s/%s" % (LOG_PATH, log_file)) as f:
+			send_email(TEXT="".join(f.readlines()[rows:]))
+	except Exception,e:
+		pass
