@@ -72,7 +72,8 @@ def get_log_info(log_file, rows=-150, subject='监控'):
 		logfile = "%s/%s" % (LOG_PATH, log_file)
 		os.system("sed -i /InsecurePlatformWarning/d %s" % logfile)
 		os.system("sed -i /SAWarning/d %s" % logfile)
+		os.system("sed -i /util.ellipses_string/d %s" % logfile)
 		with open(logfile) as f:
 			send_email(SUBJECT=subject, TEXT="".join(f.readlines()[rows:]))
 	except Exception,e:
-		print e
+		pass
