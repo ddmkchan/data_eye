@@ -1556,6 +1556,7 @@ def main():
 	#get_huawei_app_rank()
 	get_app12345_app_rank()
 	store_oppo_top_app_rank()
+	get_log_info('hot_game.log', subject='榜单监控')
 
 if __name__ == '__main__':
 	main()

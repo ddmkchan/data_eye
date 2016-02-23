@@ -1851,7 +1851,7 @@ def step1():
 	get_muzhiwan_detail()
 	get_meizu_detail()
 	get_ipaddown_detail()
-	get_log_info('get_game_detail.log', rows=-500)
+	get_log_info('get_game_detail.log', rows=-500, subject='游戏详情监控1')
 
 def step2():
 	get_wandoujia_detail()
@@ -1866,14 +1866,14 @@ def step2():
 	get_mmstore_detail()
 	get_vivo_store_detail()
 	get_oppo_kc_detail()
-	get_log_info('get_game_detail.log', rows=-500)
+	get_log_info('get_game_detail.log', rows=-500, subject='游戏详情监控2')
 
 def step3():
 	get_kuaiyong_detail()
 	get_9game_detail()
 	get_huawei_detail()
 	get_360zhushou_web_detail()
-	get_log_info('get_game_detail.log', rows=-500)
+	get_log_info('get_game_detail.log', rows=-300, subject='游戏详情监控3')
 
 if __name__ == '__main__':
 	step1()

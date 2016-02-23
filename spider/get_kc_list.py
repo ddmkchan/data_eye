@@ -2034,7 +2034,7 @@ def main():
 	get_ipaddown_kc()
 	get_360_web_kc(1)
 	get_360_web_kc(2)
-	get_log_info('kc.log')
+	get_log_info('kc.log', subject='新品监控')
 
 if __name__ == '__main__':
 	main()

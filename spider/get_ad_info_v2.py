@@ -1494,6 +1494,8 @@ def main():
 	get_jinshan_pc_ad()
 	get_360gamebox_raw_data()
 	get_coolpad_ad()
+	get_log_info('ad_raw_data.log', subject='市场推荐位监控')
+
 
 if __name__ == "__main__":
 	main()

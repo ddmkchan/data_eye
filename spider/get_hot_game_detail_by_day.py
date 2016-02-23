@@ -2079,6 +2079,7 @@ def main():
 	get_myaora_detail(997)
 	get_oppo_hot_game_detail(50)
 	get_kuaiyong_detail(19)
+	get_log_info('get_hot_game_detail.log', subject='榜单详情监控')
 
 def step2():
 	get_iqiyi_detail(12)
@@ -2097,6 +2098,7 @@ def step2():
 	get_meizu_detail(25)
 	get_wostore_detail(31)
 	get_xiaomi_web_detail(999)
+	get_log_info('get_hot_game_detail.log', subject='榜单详情监控')
 
 def get_muzhiwan_detail():
 	pass	
