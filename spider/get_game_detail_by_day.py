@@ -1866,7 +1866,7 @@ def step2():
 	get_mmstore_detail()
 	get_vivo_store_detail()
 	get_oppo_kc_detail()
-	get_log_info('get_game_detail.log', rows=-500, subject='游戏详情监控2')
+
 
 def step3():
 	get_kuaiyong_detail()
