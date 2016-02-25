@@ -1673,7 +1673,7 @@ def get_lenovo_shop_kc(page):
 	mylogger.info("get %s records from lenovo" % count)
 	db_conn.commit()
 
-def get_wostroe_detail_by_id(product_id):
+def get_wostore_detail_by_id(product_id):
 	try:
 		headers = {"phoneAccessMode": "3",
 				"mac" : "50:a7:2b:33:57:56",
@@ -1687,7 +1687,9 @@ def get_wostroe_detail_by_id(product_id):
 		if r.status_code == 200:
 			return r.json()
 	except Exception, e:
-		mylogger.error("wostore detail \t%s" % (traceback.format_exc()))
+		if isinstance(product_id, unicode):
+			product_id = product_id.encode('utf-8')
+		mylogger.error("=== %s ==== wostore detail \t%s" % (product_id, traceback.format_exc()))
 	return None
 
 def get_wostore_kc():
@@ -1709,8 +1711,9 @@ def get_wostore_kc():
 					#for k, v in app.iteritems():
 					#	print k, v
 					product_id = app.get('productIndex', u'')
+					print product_id
 					if product_id:
-						info = get_wostroe_detail_by_id(product_id)
+						info = get_wostore_detail_by_id(product_id)
 						if info is not None:
 							updatetime = info.get('updatetime', u'')
 							if updatetime:
@@ -2037,4 +2040,5 @@ def main():
 	get_log_info('kc.log', subject='新品监控')
 
 if __name__ == '__main__':
-	main()
+	get_wostore_kc()
+	#main()

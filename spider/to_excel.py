@@ -17,58 +17,32 @@ db_conn = new_session()
 import xlsxwriter
 
 
+def write_to_sheet_from_file(titles, sheet, _file):
+	for i in xrange(len(titles.split(','))):
+		sheet.write(0, i, titles.split(u',')[i])
+	with open(_file) as f:
+		lines = f.readlines()
+		for j in xrange(len(lines)):
+			segs = lines[j].rstrip().decode('utf-8').split(u'\t')
+			for k in xrange(len(segs)):
+				sheet.write(j+1, k, segs[k])
+
 def to_excel():
-	workbook = xlsxwriter.Workbook('demo.xlsx')
-	#worksheet = workbook.add_worksheet(u"百度游戏")
-	#bold = workbook.add_format({'bold': True})
-	#worksheet.write(0, 0, u'排名', bold)
-	#worksheet.write(0, 1, u'游戏名', bold)
-	#worksheet.set_column(0, 1, 20)
-	#worksheet.write(0, 2, u'ICON', bold)
-	#_row = 1
-	mydict = {}
-	id2source = {
-				"0": u"百度游戏",
-				"1": u"小米游戏",
-				"2": u"360游戏",
-				"3": u"9游游戏",
-				"4": u"appannie游戏",
-				}
-	for ret in db_conn.query(HotGames).filter(HotGames.create_date=="2015-09-02").filter(HotGames.source==3):
-	#for ret in db_conn.query(HotGames).filter(HotGames.create_date=="2015-09-02"):
-		source = id2source.get(str(ret.source))
-		if source in mydict:
-			mydict[source].append((ret.rank, ret.name, ret.source))
-		else:
-			mydict[source] = [(ret.rank, ret.name, ret.source)]
-	for source_name, d in mydict.iteritems():
-		print source_name, len(d)
-		worksheet = workbook.add_worksheet(source_name)
-		bold = workbook.add_format({'bold': True})
-		worksheet.write(0, 0, u'排名', bold)
-		worksheet.write(0, 1, u'游戏名', bold)
-		worksheet.set_column(0, 1, 20)
-		worksheet.write(0, 2, u'ICON', bold)
-		_row = 1
-	#for ret in db_conn.query(HotGames).filter(HotGames.create_date=="2015-09-02").filter(HotGames.source==0):
-		#worksheet.set_row(_row, 50)
-		for ret in d:
-			try:
-				rank, name, source = ret
-				worksheet.write(_row, 0, rank)
-				worksheet.write(_row, 1, name)
-				pic_name = u"/home/cyp/data_eye/spider/pics/%s_%s" % (name, source)
-				#pic_name = u"/home/cyp/data_eye/spider/pics/%s_%s" % (name.encode('utf-8'), str(source))
-				if source_name == u"360游戏":
-					worksheet.insert_image('C%s' % str(_row+1),  pic_name, {'x_scale': 1, 'y_scale': 1})
-				else:
-					worksheet.insert_image(_row, 2,  pic_name, {'x_offset': 40, 'y_offset': 40})
-					#worksheet.insert_image('C%s' % str(_row+1),  pic_name, {'x_scale': 0.4, 'y_scale': 0.3})
-				worksheet.set_row(_row, 80)
-				_row += 6
-			except Exception,e:
-				print name, "\n",traceback.format_exc()
+	import xlsxwriter
+	workbook = xlsxwriter.Workbook('game_value.xlsx')
+	bold = workbook.add_format({'bold': True})
+	worksheet = workbook.add_worksheet(u"新品游戏榜单概况")
+	worksheet2 = workbook.add_worksheet(u"1月新游概况")
+	worksheet3 = workbook.add_worksheet(u"1月新游价值")
+	worksheet4 = workbook.add_worksheet(u"top300游戏价值")
+	titles = u"开测时间,游戏名称,榜单名称,上榜时间,排名,榜单游戏名称,flag"
+	titles2 = u"开测时间,游戏名称,渠道名称,日期,下载量,是否上榜（1为上过榜单， 0未上榜）"
+	write_to_sheet_from_file(titles, worksheet, 'new_game_to_ranklist')	
+	write_to_sheet_from_file(titles2, worksheet2, 'new_game_detail')	
+	write_to_sheet_from_file(u"游戏名称,评分,上榜数", worksheet3, 'game_value_new')	
+	write_to_sheet_from_file(u"falg,游戏名称,评分,上榜数", worksheet4, 'game_value_top300')	
 	workbook.close()
+
 
 def check_and_convert():
 	from PIL import Image
