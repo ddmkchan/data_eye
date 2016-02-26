@@ -1540,7 +1540,7 @@ def get_wogame_detail(channel_id):
 				if r.status_code == 200:
 					count += 1 
 					j = r.json()
-					if j['data'] is not None:
+					if 'data' in j and j['data'] is not None:
 						g = j['data']
 						item = HotGameDetailByDay(**{
 													'identifying': pkg_id,
@@ -1559,7 +1559,7 @@ def get_wogame_detail(channel_id):
 							mylogger.info("wogame detail commit %s" % count)
 							db_conn.commit()
 			except Exception,e:
-				mylogger.error("get wogame detail %s \t%s" % (pkg_id.encode('utf-8'), traceback.format_exc()))
+				mylogger.error("get wogame detail ==== %s ==== \n%s" % (pkg_id.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get wogame detail %s" % count)
 	db_conn.commit()
 
