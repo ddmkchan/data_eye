@@ -1711,7 +1711,6 @@ def get_wostore_kc():
 					#for k, v in app.iteritems():
 					#	print k, v
 					product_id = app.get('productIndex', u'')
-					print product_id
 					if product_id:
 						info = get_wostore_detail_by_id(product_id)
 						if info is not None:
@@ -2040,5 +2039,4 @@ def main():
 	get_log_info('kc.log', subject='新品监控')
 
 if __name__ == '__main__':
-	get_wostore_kc()
-	#main()
+	main()
