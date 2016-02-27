@@ -2,7 +2,7 @@
 
 clusters <- 8
 #tt <- read.delim("/home/cyp/data_eye/r_project/test_set", header=TRUE)
-tt <- read.delim("/home/cyp/data_eye/r_project/uid_payment_d30", header=TRUE)
+tt <- read.delim("/home/cyp/data_eye.bak/r_project/uid_payment_demo", header=TRUE)
 #is_new <- tt$duration_d30==tt$duation
 #first_pay <- tt$payamount_d30==tt$payamount
 d <- data.frame(tt[, c(4,5,6)], row.names=tt$uid)
@@ -16,9 +16,9 @@ d <- cbind(d, tt[,2:3])
 d$duration_d30 <- round(d$duration_d30/60, digits = 2)
 d <- cbind(d, rs)
 #聚类结果可视化 
-#plot(scale(d)[,2:3], col = kc$cluster, pch = as.integer(d$kc.cluster))
+plot(scale(d)[,2:3], col = kc$cluster, pch = as.integer(d$kc.cluster))
 #不同的颜色代表不同的聚类结果，不同的形状代表训练数据集的原始分类情况。
-#points(kc$centers[,2:3], col = 1:10, pch = 8, cex=2)
+points(kc$centers[,2:3], col = 1:10, pch = 8, cex=2)
 paytimes_d30 <- c()
 payamount_d30 <- c()
 date_diff <- c()
