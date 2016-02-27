@@ -22,7 +22,7 @@ def send_email(FROM=FROM, TO=TO, SUBJECT=SUBJECT, TEXT=TEXT):
 		msg['From'] = FROM
 		msg['Subject'] = Header(SUBJECT, "UTF-8")
 		server = smtplib.SMTP('smtp.exmail.qq.com')
-		server.login('chenyanpeng@dataeye.com', 'dc@2013')
+		server.login('chenyanpeng@dataeye.com', '****')
 		server.sendmail(msg['From'], msg['To'], msg.as_string())
 		server.quit()
 	except Exception, e:
