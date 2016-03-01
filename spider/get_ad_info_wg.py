@@ -91,7 +91,7 @@ url_map = {
 		'baidu_android_game_pos12' : [29, 2, '火热新品', u'http://m.baidu.com/appsrv?psize=3&usertype=0&ver=16786356&from=1011454q&network=WF&gms=true&action=newgame&apn=&&native_api=1&pn=0&f=newgameentrance%40url', {}, 'get', 'json', 'Android'],
 		'baidu_android_game_pos13' : [29, 1, '今日必玩单机', u'http://m.baidu.com/appsrv?psize=3&usertype=1&is_support_webp=true&ver=16786881&from=1011080v&cen=cuid_cut_cua_uid&action=gamepage&native_api=1&pn=0', {}, 'get', 'json', 'Android'],		
 		
-		'aisi_ios_zhushou_pos1' : [35, 1, '大屏轮播图',  u'http://ios3.app.i4.cn/getAppList.xhtml?osversion=9.0.2&pageno=1', {}, 'get', 'xml', 'IOS'],
+		'aisi_ios_zhushou_pos1' : [36, 1, '大屏轮播图',  u'http://ios3.app.i4.cn/getAppList.xhtml?osversion=9.0.2&pageno=1', {}, 'get', 'xml', 'IOS'],
 
 		'xy_ios_zhushou_pos1'   : [26, 1, '热门推荐大屏轮播图', u'http://interface.xyzs.com/v2/ios/c01/homepage?p=1&certId=0&ipatype=2', {}, 'get', 'json', 'IOS'],
 		'xy_ios_zhushou_pos2'   : [26, 2, '首发网游推荐大图', u'http://interface.xyzs.com/v2/ios/c01/webgame/alreadytested?p=1&page=1&size=20&certId=10006&ipatype=4', {}, 'get', 'json', 'IOS'],

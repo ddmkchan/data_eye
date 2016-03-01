@@ -285,3 +285,26 @@ class ADVGameDetail(Base):
 	platform = Column(Unicode(50), nullable=False, default=u'Andorid')
 	create_date = Column(DateTime, nullable=False, default=datetime.now())#创建时间
 	last_update = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间
+
+
+class ADVGameSummary(Base):
+
+	__tablename__ = 'adv_game_summary'
+
+	id = Column(Integer, primary_key=True, autoincrement=True)
+	name = Column(Unicode(200), nullable=False, default=u'')
+	company = Column(Unicode(200), nullable=False, default=u'')
+	network_type = Column(Unicode(200), nullable=False, default=u'')
+	screen_type = Column(Unicode(200), nullable=False, default=u'')
+	gameplay = Column(Unicode(200), nullable=False, default=u'')
+	theme = Column(Unicode(200), nullable=False, default=u'')
+	last_update_time = Column(DateTime, nullable=False, default=datetime.now())#最后更新时间
+
+
+class ADVGameMap(Base):
+
+	__tablename__ = 'adv_game_map'
+
+	adv_game_detail_id = Column(Integer, nullable=False, primary_key=True)
+	adv_game_summary_id = Column(Integer, nullable=False, primary_key=True)
+
