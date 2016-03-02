@@ -32,6 +32,7 @@ def get_channel_map():
 	for ret in db_conn.execute("select * from channel"):
 		id, name = ret
 		d[name.encode('utf-8')] = id
+	d['AppStore'] = 35
 	return d
 
 def get_adv_game_detail_id(dt, channel_id, position_type_id, position_name):
@@ -87,29 +88,110 @@ def get_adv_summary_id(game_name):
 		return ins.id
 	return None
 
+def add_adv_game_map(adv_id, adv_game_summary_id):
+	ins = db_conn.query(ADVGameMap).filter(ADVGameMap.adv_game_summary_id==adv_game_summary_id).filter(ADVGameMap.adv_game_detail_id==adv_id).first()
+	if ins is None:
+		item = ADVGameMap(**{"adv_game_summary_id": adv_game_summary_id,
+							"adv_game_detail_id": adv_id})
+		db_conn.merge(item)
+		db_conn.commit()
+
 def main():
+	db_conn.rollback()
 	channel_map = get_channel_map()
 	position_map = get_position_type_map()
 	with open('adv_games') as f:
-		for line in f.readlines():
+		for line in f.readlines()[:]:
 			try:
 				dt,channel_name, position_type, position_name,game_name,author, network, screen, gameplay, theme = line.rstrip().split('\t')
 				channel_id = channel_map.get(channel_name)
 				position_type_id = position_map.get(position_type)
+				#print '=====', dt, channel_id, position_type_id, position_name
 				adv_game_detail_ids = get_adv_game_detail_id(dt, channel_id, position_type_id, position_name)
+				#print adv_game_detail_ids
 				adv_id, source_game_name = get_similarity_name(game_name, adv_game_detail_ids)
 				adv_game_summary_id = get_adv_summary_id(game_name)
 				#print '****', adv_id,  adv_game_summary_id
 				if adv_id != -1 and adv_game_summary_id is not None:
-					ins = db_conn.query(ADVGameMap).filter(ADVGameMap.adv_game_summary_id==adv_game_summary_id).filter(ADVGameMap.adv_game_detail_id==adv_id).first()
-					if ins is None:
-						item = ADVGameMap(**{"adv_game_summary_id": adv_game_summary_id,
-											"adv_game_detail_id": adv_id})
-						db_conn.merge(item)
-						db_conn.commit()
+					add_adv_game_map(adv_id, adv_game_summary_id)
 			except Exception,e:
 				print traceback.format_exc()
+	db_conn.commit()
+
+def add_adv_game_summary():
+	with open('adv_record_without_name.txt') as f:
+		for line in f.readlines():
+			if len(line.rstrip().split('\t')) == 8:
+				gid, game_name, network,img_url, author, screen, gameplay, theme = line.rstrip().split('\t')
+				ins = db_conn.query(ADVGameSummary).filter(ADVGameSummary.name==game_name).first()
+				if ins is None:
+					item = ADVGameSummary(**{
+											"name": 	game_name,
+											"company": 	author,
+											"network_type": network,
+											"screen_type": screen,
+											"gameplay": gameplay,
+											"theme": theme,
+											})
+					db_conn.merge(item)
+					db_conn.commit()
+	db_conn.commit()
+
+
+def update_adv_record_without_name():
+	#根据人工录入的数据，补充市场推荐位对应的game_name
+	with open('adv_record_without_name.txt') as f:
+		for line in f.readlines():
+			if len(line.rstrip().split('\t')) == 8:
+				gid, game_name, network, img_url, author, screen, gameplay, theme = line.rstrip().split('\t')
+				sql = "update adv_game_detail set game_name=\'%s\' where img_url=\'%s\'" % (game_name, img_url)
+				db_conn.execute(sql.decode('utf-8'))
+	db_conn.commit()
+
+
+def get_adv_game_img_map():
+	d = {}
+	for ret in db_conn.execute("select a.id, a.img_url, b.adv_game_summary_id from (select * from adv_game_detail where img_url!='') a join adv_game_map b on a.id=b.adv_game_detail_id"):
+		aid, img_url, adv_game_summary_id = ret
+		d[img_url] = adv_game_summary_id
+	return d
+		
+
+def get_adv_record_map_by_img_url():
+	img_map = get_adv_game_img_map()
+	for ret in db_conn.execute("select a.id, a.img_url from adv_game_detail a left join adv_game_map b on a.id=b.adv_game_detail_id where b.adv_game_detail_id is null;"):
+		adv_id, img_url = ret
+		adv_game_summary_id = img_map.get(img_url)
+		if adv_game_summary_id is not None:
+			print adv_id, img_url, img_map.get(img_url), '***'
+			add_adv_game_map(adv_id, adv_game_summary_id)
+
+
+def get_adv_record_map_by_game_name():
+	for ret in db_conn.execute("select a.id, a.name from adv_game_detail a left join adv_game_map b on a.id=b.adv_game_detail_id where b.adv_game_detail_id is null;"):
+		adv_id, img_url = ret
+		adv_game_summary_id = img_map.get(img_url)
+		if adv_game_summary_id is not None:
+			print adv_id, img_url, img_map.get(img_url), '***'
+			add_adv_game_map(adv_id, adv_game_summary_id)
+
+def tt():
+	with open('dc_game_theme') as f:
+		lines = f.readlines()
+		for i in xrange(0, len(lines), 2):
+			title, code = lines[i:i+2]
+			m = re.search('\d+', code)
+			if m is not None:
+				title = title.rstrip()
+				tid = m.group()
+				sql = "insert into dc_game_theme (id, theme) values (\'%s\', \'%s\')" % (tid, title)
+				db_conn.execute(sql.decode('utf-8'))
+			
+	db_conn.commit()
 
 if __name__=="__main__":
 	#get_adv_game_summary()
-	main()
+	#main()
+	#update_adv_record_without_name()
+	#get_adv_record_map_by_img_url()
+	#get_adv_game_img_map()

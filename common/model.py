@@ -306,5 +306,5 @@ class ADVGameMap(Base):
 	__tablename__ = 'adv_game_map'
 
 	adv_game_detail_id = Column(Integer, nullable=False, primary_key=True)
-	adv_game_summary_id = Column(Integer, nullable=False, primary_key=True)
+	adv_game_summary_id = Column(Integer, nullable=False)
 
