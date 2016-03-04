@@ -11,14 +11,17 @@
 #        for r in rows:
 #            print "\t".join(r)
 import re
+import json
 import traceback
 from config import *
 import Levenshtein
+import redis
 
 db_conn = new_session()
 
 mylogger = get_logger('adv_game_name_match')
 
+rc = redis.StrictRedis(host='127.0.0.1', port=6679)  
 
 def get_position_type_map():
 	d = {}
@@ -91,29 +94,30 @@ def get_adv_summary_id(game_name):
 def add_adv_game_map(adv_id, adv_game_summary_id):
 	ins = db_conn.query(ADVGameMap).filter(ADVGameMap.adv_game_summary_id==adv_game_summary_id).filter(ADVGameMap.adv_game_detail_id==adv_id).first()
 	if ins is None:
+		mylogger.info("add map \t %s====>%s" % (adv_id, adv_game_summary_id))
 		item = ADVGameMap(**{"adv_game_summary_id": adv_game_summary_id,
 							"adv_game_detail_id": adv_id})
 		db_conn.merge(item)
 		db_conn.commit()
 
 def main():
-	db_conn.rollback()
 	channel_map = get_channel_map()
 	position_map = get_position_type_map()
 	with open('adv_games') as f:
-		for line in f.readlines()[:]:
+		for line in f.readlines()[:10]:
 			try:
 				dt,channel_name, position_type, position_name,game_name,author, network, screen, gameplay, theme = line.rstrip().split('\t')
 				channel_id = channel_map.get(channel_name)
 				position_type_id = position_map.get(position_type)
-				#print '=====', dt, channel_id, position_type_id, position_name
+				print line
+				print '=====', dt, channel_id, position_type_id, position_name
 				adv_game_detail_ids = get_adv_game_detail_id(dt, channel_id, position_type_id, position_name)
-				#print adv_game_detail_ids
+				print adv_game_detail_ids
 				adv_id, source_game_name = get_similarity_name(game_name, adv_game_detail_ids)
 				adv_game_summary_id = get_adv_summary_id(game_name)
 				#print '****', adv_id,  adv_game_summary_id
-				if adv_id != -1 and adv_game_summary_id is not None:
-					add_adv_game_map(adv_id, adv_game_summary_id)
+				#if adv_id != -1 and adv_game_summary_id is not None:
+				#	add_adv_game_map(adv_id, adv_game_summary_id)
 			except Exception,e:
 				print traceback.format_exc()
 	db_conn.commit()
@@ -140,11 +144,11 @@ def add_adv_game_summary():
 
 def update_adv_record_without_name():
 	#根据人工录入的数据，补充市场推荐位对应的game_name
-	with open('adv_record_without_name.txt') as f:
+	with open('/data2/yanpengchen/data_eye/spider/adv_record_without_name.txt') as f:
 		for line in f.readlines():
 			if len(line.rstrip().split('\t')) == 8:
 				gid, game_name, network, img_url, author, screen, gameplay, theme = line.rstrip().split('\t')
-				sql = "update adv_game_detail set game_name=\'%s\' where img_url=\'%s\'" % (game_name, img_url)
+				sql = "update adv_game_detail set game_name=\'%s\' where img_url=\'%s\' and game_name=''" % (game_name, img_url)
 				db_conn.execute(sql.decode('utf-8'))
 	db_conn.commit()
 
@@ -157,23 +161,63 @@ def get_adv_game_img_map():
 	return d
 		
 
-def get_adv_record_map_by_img_url():
+def get_adv_game_name_map():
+	#别名映射
+	d = {}
+	for ret in db_conn.execute("select a.game_name, b.adv_game_summary_id from (select * from adv_game_detail where img_url!='') a join adv_game_map b on a.id=b.adv_game_detail_id"):
+		game_name, adv_game_summary_id = ret
+		d[game_name] = adv_game_summary_id
+	return d
+		
+
+def add_adv_record_map_by_img_url():
 	img_map = get_adv_game_img_map()
 	for ret in db_conn.execute("select a.id, a.img_url from adv_game_detail a left join adv_game_map b on a.id=b.adv_game_detail_id where b.adv_game_detail_id is null;"):
 		adv_id, img_url = ret
 		adv_game_summary_id = img_map.get(img_url)
 		if adv_game_summary_id is not None:
-			print adv_id, img_url, img_map.get(img_url), '***'
+			#print adv_id, img_url, img_map.get(img_url), '***'
+			mylogger.info("ADD BY img_url : %s\t %s" % (adv_id, adv_game_summary_id))
 			add_adv_game_map(adv_id, adv_game_summary_id)
 
+sys.path.append('/data2/yanpengchen/winterfall/eleme_search')
+from dataeye_search import _search
 
-def get_adv_record_map_by_game_name():
-	for ret in db_conn.execute("select a.id, a.name from adv_game_detail a left join adv_game_map b on a.id=b.adv_game_detail_id where b.adv_game_detail_id is null;"):
-		adv_id, img_url = ret
-		adv_game_summary_id = img_map.get(img_url)
-		if adv_game_summary_id is not None:
-			print adv_id, img_url, img_map.get(img_url), '***'
+
+def add_adv_record_map_by_game_name():
+	#join 关联名称相同的adv_record
+	count = 0
+	for ret in db_conn.execute("select a.id, b.id as adv_game_summary_id from adv_game_detail a join adv_game_summary b on a.game_name=b.name;"):
+		adv_id, adv_game_summary_id = ret
+		add_adv_game_map(adv_id, adv_game_summary_id)
+		count += 1
+	mylogger.info("ADD BY join : totle\t %s" % (count))
+
+def add_adv_record_map_by_alias():
+	alias_map = get_adv_game_name_map()
+	for ret in db_conn.execute("select a.id, a.game_name from (select * from adv_game_detail where game_name!='') a left join adv_game_map b on a.id=b.adv_game_detail_id where b.adv_game_detail_id is null;"):
+		adv_id, game_name = ret
+		if alias_map.get(game_name) is not None:
+			#print adv_id, game_name
+			adv_game_summary_id = alias_map.get(game_name)
+			mylogger.info("ADD BY alias : %s\t %s" % (adv_id, adv_game_summary_id))
 			add_adv_game_map(adv_id, adv_game_summary_id)
+
+def add_adv_record_map_by_es():
+	#通过es，搜索相似
+	uncheck_adv_game = json.loads(rc.get("uncheck_adv_game"))
+	for rd in uncheck_adv_game:
+		keyword = rd['game_name']
+		for rs in _search(keyword=keyword, length=5)['data']:
+			if rs['ratio'] >= 0.66:
+				print rd['game_name'], "=====>", rs['name'], rs['ratio']
+
+def get_uncheck_to_rc():
+	target = []
+	for ret in db_conn.execute("select a.id, a.game_name from (select * from adv_game_detail where game_name!='') a left join adv_game_map b on a.id=b.adv_game_detail_id where b.adv_game_detail_id is null;"):
+		adv_id, name = ret
+		target.append({"adv_id": adv_id, "game_name": name})
+	rc.set("uncheck_adv_game", json.dumps(target))
 
 def tt():
 	with open('dc_game_theme') as f:
@@ -190,8 +234,6 @@ def tt():
 	db_conn.commit()
 
 if __name__=="__main__":
-	#get_adv_game_summary()
-	#main()
-	#update_adv_record_without_name()
-	#get_adv_record_map_by_img_url()
-	#get_adv_game_img_map()
+	#get_uncheck_to_rc()
+	#add_adv_record_map_by_es()
+	pass
