@@ -1684,7 +1684,7 @@ def get_wostore_detail_by_id(product_id):
 				"handphone": "00000000000"}
 		url = "http://clientnew.wostore.cn:6106/appstore_agent/unistore/servicedata.do?serviceid=productDetail&productIndex=%s&resource=null&referer=null" % product_id
 		r = requests.get(url, timeout=30, headers=headers)
-		if r.status_code == 200:
+		if r.status_code == 200 and r.text:
 			return r.json()
 	except Exception, e:
 		if isinstance(product_id, unicode):
@@ -2033,7 +2033,7 @@ def main():
 	get_vivo_store_kc()
 	get_huawei_app_kc()
 	get_oppo_kc(0)
-	get_ipaddown_kc()
+	#get_ipaddown_kc()
 	get_360_web_kc(1)
 	get_360_web_kc(2)
 	get_log_info('kc.log', subject='新品监控')
