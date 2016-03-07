@@ -1466,7 +1466,7 @@ def insert_ad_game(game_name, img):
 	if ins is None:
 		item = ADVGameDetail(**{
 						"img_url"			: img,
-						"game_name"			: game_name,
+						"game_name"			: game_name.rstrip(),
 						})
 		db_conn.add(item)
 		db_conn.commit()
