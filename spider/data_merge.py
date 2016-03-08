@@ -143,7 +143,7 @@ def get_game_detail(ids):
 				try:
 					if ins.pkg_size and re.search('[a-zA-Z]', ins.pkg_size) is None:
 					# and u'M' not in ins.pkg_size.upper() and u'G' not in ins.pkg_size.upper():
-						pkg_size = "%sM" % round(int(ins.pkg_size)/1024.0/1024.0, 2)
+						pkg_size = "%sM" % round(int(ins.pkg_size)/1024.0/1024.0, 4)
 				except Exception,e:
 					mylogger.error("#### %s ####" % ins.pkg_size)
 			if not author:
