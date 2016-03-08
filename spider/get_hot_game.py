@@ -109,7 +109,9 @@ source_map = {
 			"huawei_webgame_weekly" : 85,
 			"huawei_newgame" : 86,
 			"huawei_hot" : 87,
-			"app12345" : 88,
+			"app12345_free" : 88,
+			"app12345_pay" : 89,
+			"app12345_hot" : 90,
 			"oppo_app_download" : "102",
 			"oppo_app_newGame" : "101",
 			"oppo_app_active" : "100",
@@ -1426,8 +1428,11 @@ def get_huawei_app_rank():
 		except Exception, e:
 			mylogger.error("get huawei game center app rank \t%s" % (traceback.format_exc()))
 
-def get_app12345_app_rank():
-	url = "http://www.app12345.com/?area=cn&store=Apple%20Store&device=iPhone&pop_id=27&showdate=2015-12-18&showtime=12&genre_id=6014"
+def get_app12345_app_rank(pop_id):
+	_map = {"27":88, "30":89, "38":90}
+	dt = str(datetime.date.today())
+	#dt = str(datetime.date.today() + datetime.timedelta(-1))
+	url = "http://www.app12345.com/?area=cn&store=Apple Store&device=iPhone&pop_id=%s&showdate=%s&showtime=12&genre_id=6014" % (pop_id, dt)
 	try:
 		r = requests.get(url, timeout=10)
 		rank = 0
@@ -1443,7 +1448,7 @@ def get_app12345_app_rank():
 						game_name = img_class.get('title')
 						img = img_class.get('src')
 						url = dvimg.find('a').get('href') if dvimg.find('a') is not None else u''
-						source = source_map.get('app12345')
+						source = _map.get(str(pop_id))
 						store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
 	except Exception, e:
 		mylogger.error("app12345 ex %s" % traceback.format_exc())
@@ -1554,8 +1559,9 @@ def main():
 	get_vivo_store_app_rank()
 	get_myaora_app_rank()
 	#get_huawei_app_rank()
-	get_app12345_app_rank()
 	store_oppo_top_app_rank()
+	for p in [27,30,38]:
+		get_app12345_app_rank(p)
 	get_log_info('hot_game.log', subject='榜单监控')
 
 if __name__ == '__main__':
