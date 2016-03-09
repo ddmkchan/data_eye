@@ -53,6 +53,8 @@ source_map = {
 			"vivo_store": 33,
 			"huawei_app": 34,
 			"ipaddown": 35,
+			"i4_app": 36,
+			"tgbus": 37,
 			"oppo_app": 50,
 			"wogame": 998,
 			"myaora": 997,#易用汇
@@ -1996,7 +1998,49 @@ def get_ipaddown_kc():
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
 	mylogger.info("get %s records from ipaddown page" % count)
 	db_conn.commit()
-	
+
+def get_tgbus_kc():
+	count = 0
+	URL = "http://iphone.tgbus.com/newgame/"
+	try:
+		r = requests.get(URL, timeout=20)		
+		if r.status_code == 200:
+			soup = BeautifulSoup(r.text)
+			applist = soup.find('div', class_='clist_2 fz14')
+			if applist is not None:
+				for dl in applist.find_all('dl'):
+					img = u''
+					_url = u''
+					publish_date = u''
+					title = u''
+					dt = dl.find('dt')
+					dd = dl.find('dd')
+					if dt is not None:
+						img = dt.find('img').get('src')
+						_url = dt.find('a').get('href')
+					if dd is not None:
+						ss = dd.find_all('strong')
+						if len(ss) == 2:
+							title = ss[1].text
+						_date = dd.find('span', class_='txt_ccc fr1').text
+						_date = re.sub('/', '-', _date)
+						publish_date = datetime.datetime.strptime(_date, '%Y-%m-%d')
+					if title and publish_date:
+						ins = db_conn.query(KC_LIST).filter(KC_LIST.url==_url).filter(KC_LIST.source==source_map.get('tgbus')).filter(KC_LIST.publish_date==publish_date).first()
+						if not ins:
+							count += 1
+							item = KC_LIST(**{
+											'publish_date':publish_date,
+											'title':title,
+											'img':img,
+											'url':_url,
+											'source':source_map.get('tgbus'),
+												})
+							db_conn.merge(item)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+	mylogger.info("get %s records from tgbus page" % count)
+	db_conn.commit()
 
 def main():
 	mylogger.info("gogo")
@@ -2033,6 +2077,7 @@ def main():
 	get_vivo_store_kc()
 	get_huawei_app_kc()
 	get_oppo_kc(0)
+	get_tgbus_kc()
 	#get_ipaddown_kc()
 	get_360_web_kc(1)
 	get_360_web_kc(2)

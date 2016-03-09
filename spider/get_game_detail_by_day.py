@@ -1834,6 +1834,84 @@ def get_ipaddown_detail():
 	mylogger.info("get ipaddown detail %s" % count)
 	db_conn.commit()
 
+def version_check(version):
+	try:
+		segs = version.split('.')
+		if int(segs[0]) >= 2:
+			return False
+		for v in segs[1:]:
+			if int(v) > 5:
+				return False
+		return True
+	except Exception,e:
+		mylogger.error("%s\t%s" % (version.encode('utf-8'), traceback.format_exc()))
+	return None
+
+def get_tgbus_detail():
+	count = 0
+	error_times = 0
+	mylogger.info("get tgbus detail start ...")
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.source==37).filter(KC_LIST.status==0):
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
+		if not ins:
+			try:
+				#headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'}
+				#p = proxies[random.randrange(len(proxies))]
+				#r = requests.get(ret.url, timeout=50, headers=headers, proxies=p)
+				r = requests.get(ret.url, timeout=50)
+				if r.status_code == 200:
+					soup = BeautifulSoup(r.text)
+					name = u''
+					imgs = []
+					rating = u''
+					summary = u''
+					comment_num = u''
+					download_num = u''
+					pkg_size = u''
+					text = soup.find('div', class_='text')
+					ps = text.find_all('p')
+					summary = text.find('p').text.strip()
+					_dict = {}
+					for _c in ps[1:]:
+						if u'版本' in _c.text and u'开发商' in _c.text:
+							content = re.sub('<p>|</p>', '', unicode(_c))
+							for cc in content.split('<br/>'):
+								segs = re.split(u'：|:', cc) 
+								#print cc, len(segs)
+								if len(segs) == 2:
+									_dict[segs[0]] = segs[1].strip()
+					imgs_p = text.find_all('p', align='center')
+					if len(imgs_p)==2:
+						imgs = [_img.get('src') for _img in imgs_p[1].find_all('img')]
+					count += 1
+					version = _dict.get(u'版本', u'')
+					is_new = version_check(version)
+					if is_new is not None and not is_new:
+						ret.status = -1
+					item = GameDetailByDay(**{
+												'kc_id' : ret.id,
+												'name' : ret.title,
+												'version' : _dict.get(u'版本', u''),
+												'dt' : dt,
+												'imgs' : u','.join(imgs),
+												'summary' : summary,
+												'pkg_size' : _dict.get(u'大小', u''),
+												'rating' : rating,
+												'author' : _dict.get(u'开发商', u''),
+												'comment_num' : comment_num,
+												'download_num' : download_num,
+												})
+					db_conn.merge(item)
+					if count % 100 == 0:
+						mylogger.info("tgbus detail %s commit" % count)
+						db_conn.commit()
+			except Exception,e:
+				error_times += 1
+				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
+	mylogger.info("get tgbus detail %s" % count)
+	db_conn.commit()
+
 
 def step1():
 	get_xiaomi_new_detail()
@@ -1850,7 +1928,8 @@ def step1():
 	get_dangle_detail()
 	get_muzhiwan_detail()
 	get_meizu_detail()
-	get_ipaddown_detail()
+	#get_ipaddown_detail()
+	get_tgbus_detail()
 	get_log_info('get_game_detail.log', rows=-500, subject='游戏详情监控1')
 
 def step2():
