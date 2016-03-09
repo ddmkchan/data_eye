@@ -2024,8 +2024,8 @@ def get_tgbus_kc():
 							title = ss[1].text
 						_date = dd.find('span', class_='txt_ccc fr1').text
 						_date = re.sub('/', '-', _date)
-						publish_date = datetime.datetime.strptime(_date, '%Y-%m-%d')
-					if title and publish_date:
+						publish_date = unicode(datetime.datetime.strptime(_date, '%Y-%m-%d').date())
+					if title and publish_date and publish_date >= u'2016-03-01':
 						ins = db_conn.query(KC_LIST).filter(KC_LIST.url==_url).filter(KC_LIST.source==source_map.get('tgbus')).filter(KC_LIST.publish_date==publish_date).first()
 						if not ins:
 							count += 1
