@@ -1957,5 +1957,4 @@ def step3():
 	get_log_info('get_game_detail.log', rows=-300, subject='游戏详情监控3')
 
 if __name__ == '__main__':
-	#step1()
-	get_tgbus_detail()
+	step1()
