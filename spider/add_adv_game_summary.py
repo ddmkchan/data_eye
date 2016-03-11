@@ -70,6 +70,43 @@ def add_adv_record_summary():
 	mylogger.info("%s commit!" % count)
 	db_conn.commit()
 
+def add_new_adv_game_summary():
+	_dict = {}
+	for ret in db_conn.execute("select * from games_advgamesummary"):
+		gid, name, prefix, company, network_type, screen_type, gameplay, theme = ret
+		if gid >= 1333:
+			ins = db_conn.execute(u"select * from adv_game_summary where name=\'%s\'" % name).first()
+			if ins is None:
+				#print gid, name, prefix, company, network_type, screen_type, gameplay, theme
+				item = ADVGameSummary(**{
+										"name" 			: name,
+										"company"		: company,
+										"network_type"	: network_type,
+										"screen_type"	: screen_type,
+										"gameplay"		: gameplay,
+										"theme"			: theme,
+										})
+				#print gid, name
+				db_conn.add(item)
+				db_conn.commit()
+				_dict[str(gid)] = item.id
+				print gid, item.id
+			else:
+				_dict[str(gid)] = ins.id
+				print gid, name, '****', ins.id
+	rc.set("id_map", json.dumps(_dict))
+
+def get_adv_to_game():
+	id_map = json.loads(rc.get('id_map'))
+	for ret in db_conn.execute("select adv_game_id, game_summary_id from games_advtogame"):
+		adv_id, game_summary_id = ret
+		if game_summary_id > 1333:
+			adv_game_summary_id = id_map.get(str(game_summary_id))
+			print adv_id, game_summary_id, '----->',  adv_game_summary_id
+			add_adv_game_map(adv_id, adv_game_summary_id)
+		elif game_summary_id < 1333:
+			print adv_id, game_summary_id
+			add_adv_game_map(adv_id, game_summary_id)
 
 if __name__=="__main__":
 	update_adv_record_without_name()
@@ -77,3 +114,5 @@ if __name__=="__main__":
 	add_adv_record_map_by_alias()
 	add_adv_record_map_by_img_url()
 	add_adv_record_summary()
+	#add_new_adv_game_summary()
+	#get_adv_to_game()
