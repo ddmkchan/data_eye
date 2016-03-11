@@ -113,6 +113,7 @@ if __name__=="__main__":
 	add_adv_record_map_by_game_name()
 	add_adv_record_map_by_alias()
 	add_adv_record_map_by_img_url()
+	add_adv_record_map_by_es()
 	add_adv_record_summary()
 	#add_new_adv_game_summary()
 	#get_adv_to_game()

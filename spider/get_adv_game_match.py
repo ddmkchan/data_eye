@@ -205,12 +205,21 @@ def add_adv_record_map_by_alias():
 
 def add_adv_record_map_by_es():
 	#通过es，搜索相似
-	uncheck_adv_game = json.loads(rc.get("uncheck_adv_game"))
-	for rd in uncheck_adv_game:
-		keyword = rd['game_name']
-		for rs in _search(keyword=keyword, length=5)['data']:
-			if rs['ratio'] >= 0.66:
-				print rd['game_name'], "=====>", rs['name'], rs['ratio']
+	for ret in db_conn.execute("select a.id, a.game_name from (select * from adv_game_detail where game_name!='') a left join adv_game_map b on a.id=b.adv_game_detail_id where b.adv_game_detail_id is null;"):
+		adv_id, keyword = ret
+		m = re.search(u"《([\u4e00-\u9fa5]+)》", keyword)
+		if m is not None:
+			q = m.group(1)
+		elif len(re.split(u"\S*-\S*|（|\(", keyword)) >= 2:
+			q = re.split(u"\s*-\s*", keyword)[0]
+		else:
+			q = keyword
+		for rs in _search(keyword=q, length=5)['data']:
+			if rs['ratio'] >= 1:
+				adv_game_summary_id = rs['id']
+				mylogger.info("ADD BY es : %s\t %s" % (adv_id, adv_game_summary_id))
+				add_adv_game_map(adv_id, adv_game_summary_id)
+				break
 
 def get_uncheck_to_rc():
 	target = []
