@@ -1880,15 +1880,17 @@ def get_tgbus_detail():
 								segs = re.split(u'：|:', cc) 
 								#print cc, len(segs)
 								if len(segs) == 2:
-									_dict[segs[0]] = segs[1].strip()
+									_dict[segs[0].strip()] = segs[1].strip()
 					imgs_p = text.find_all('p', align='center')
 					if len(imgs_p)==2:
 						imgs = [_img.get('src') for _img in imgs_p[1].find_all('img')]
 					count += 1
 					version = _dict.get(u'版本', u'')
-					is_new = version_check(version)
-					if is_new is not None and not is_new:
-						ret.status = -1
+					#print ret.url, ret.title
+					if version:
+						is_new = version_check(version)
+						if is_new is not None and not is_new:
+							ret.status = -1
 					item = GameDetailByDay(**{
 												'kc_id' : ret.id,
 												'name' : ret.title,
@@ -1955,4 +1957,5 @@ def step3():
 	get_log_info('get_game_detail.log', rows=-300, subject='游戏详情监控3')
 
 if __name__ == '__main__':
-	step1()
+	#step1()
+	get_tgbus_detail()
