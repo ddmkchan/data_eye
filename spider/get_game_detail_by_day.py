@@ -1851,7 +1851,7 @@ def get_tgbus_detail():
 	count = 0
 	error_times = 0
 	mylogger.info("get tgbus detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.source==37).filter(KC_LIST.status==0):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.source==37).filter(KC_LIST.id==23316):
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:
@@ -1871,7 +1871,8 @@ def get_tgbus_detail():
 					pkg_size = u''
 					text = soup.find('div', class_='text')
 					ps = text.find_all('p')
-					summary = text.find('p').text.strip()
+					for p in ps[:2]:
+						summary += p.text.strip()
 					_dict = {}
 					for _c in ps[1:]:
 						if u'版本' in _c.text and u'开发商' in _c.text:
@@ -1882,8 +1883,11 @@ def get_tgbus_detail():
 								if len(segs) == 2:
 									_dict[segs[0].strip()] = segs[1].strip()
 					imgs_p = text.find_all('p', align='center')
-					if len(imgs_p)==2:
-						imgs = [_img.get('src') for _img in imgs_p[1].find_all('img')]
+					for c in imgs_p:
+						for _img in c.find_all('img'):
+							imgs.append(_img.get('src'))
+					#if len(imgs_p)==2:
+					#	imgs = [_img.get('src') for _img in imgs_p[1].find_all('img')]
 					count += 1
 					version = _dict.get(u'版本', u'')
 					#print ret.url, ret.title
