@@ -207,7 +207,7 @@ def add_adv_record_map_by_es():
 	#通过es，搜索相似
 	for ret in db_conn.execute("select a.id, a.game_name from (select * from adv_game_detail where game_name!='') a left join adv_game_map b on a.id=b.adv_game_detail_id where b.adv_game_detail_id is null;"):
 		adv_id, keyword = ret
-		m = re.search(u"《([\u4e00-\u9fa5]+)》", keyword)
+		m = re.search(u"《([\u4e00-\u9fa5]*[0-9]*[a-zA-Z]*)》", keyword)
 		if m is not None:
 			q = m.group(1)
 		elif len(re.split(u"\s*-\s*|（|\(|\:|：| ", keyword)) >= 2:
