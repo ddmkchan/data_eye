@@ -1851,7 +1851,7 @@ def get_tgbus_detail():
 	count = 0
 	error_times = 0
 	mylogger.info("get tgbus detail start ...")
-	for ret in db_conn.query(KC_LIST).filter(KC_LIST.source==37).filter(KC_LIST.id==23316):
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.source==37):
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).filter(GameDetailByDay.dt==dt).first()
 		if not ins:

@@ -210,8 +210,8 @@ def add_adv_record_map_by_es():
 		m = re.search(u"《([\u4e00-\u9fa5]+)》", keyword)
 		if m is not None:
 			q = m.group(1)
-		elif len(re.split(u"\S*-\S*|（|\(", keyword)) >= 2:
-			q = re.split(u"\s*-\s*", keyword)[0]
+		elif len(re.split(u"\s*-\s*|（|\(|\:|：| ", keyword)) >= 2:
+			q = re.split(u"\s*-\s*|（|\(|\:|：| ", keyword)[0]
 		else:
 			q = keyword
 		for rs in _search(keyword=q, length=5)['data']:
