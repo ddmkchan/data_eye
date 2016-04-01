@@ -1500,7 +1500,29 @@ def get_oppo_app_rank(gtype, url, headers):
 	except Exception,e:
 		mylogger.error("%s\t%s" % (url, traceback.format_exc()))
 
-
+def get_aso100_app_rank():
+	dt = str(datetime.date.today())
+	url = "http://aso100.com/rank/index/brand/grossing/date/%s/genre/6014" % dt
+	try:
+		p = proxies[random.randrange(len(proxies))]
+		r = requests.get(url, timeout=120, proxies=p)
+		if r.status_code == 200:
+			soup = BeautifulSoup(r.text)
+			tb = soup.find('div', class_='rank-list')
+			rank = 0
+			if tb is not None:
+				for col  in tb.find_all('div', class_='col-md-2'):
+					img = col.find('img')
+					if img is not None:
+						title = img.get('alt')
+						m = re.search(u'[0-9]+\.', title)
+						game_name, img, downloads, size, popular, game_type, status, url = [u''] * 8
+						if m is not None:
+							rank += 1
+							game_name = title[m.end():]
+							store_data((rank, game_name, img, downloads, size, "91", popular, game_type, status, url))
+	except Exception, e:
+		mylogger.error("aso100 ex %s" % traceback.format_exc())
 
 def store_data(ret):
 	rank, game_name, img, downloads, size, source, popular, game_type, status, url = ret
@@ -1561,20 +1583,24 @@ def main():
 	get_myaora_app_rank()
 	#get_huawei_app_rank()
 	store_oppo_top_app_rank()
-	for p in [27,30,38]:
-		get_app12345_app_rank(p)
+	#for p in [27,30,38]:
+	#	get_app12345_app_rank(p)
+	get_aso100_app_rank()
 	get_log_info('hot_game.log', subject='榜单监控')
 
-def get_aso100_app_rank():
-	headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'}
-	for i in xrange(1, 2):
+def add_aso100_app_rank():
+	for i in xrange(30, 32):
 		dt = str(datetime.date.today()-datetime.timedelta(i))
 		url = "http://aso100.com/rank/index/brand/grossing/date/%s/genre/6014" % dt
 		try:
-			r = requests.get(url, timeout=120, headers=headers)
+			p = proxies[random.randrange(len(proxies))]
+			print p
+			r = requests.get(url, timeout=120, proxies=p)
 			if r.status_code == 200:
 				soup = BeautifulSoup(r.text)
 				tb = soup.find('div', class_='rank-list')
+				print tb is not None
+				rank = 0
 				if tb is not None:
 					for col  in tb.find_all('div', class_='col-md-2'):
 						img = col.find('img')
@@ -1583,12 +1609,14 @@ def get_aso100_app_rank():
 							m = re.search(u'[0-9]+\.', title)
 							game_name, img, downloads, size, popular, game_type, status, url = [u''] * 8
 							if m is not None:
-								rank = title[:m.end()-1]
+								#rank = title[:m.end()-1]
+								rank += 1
 								game_name = title[m.end():]
-								store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+								store_data_v2((rank, game_name, img, downloads, size, "91", popular, game_type, status, url, dt))
+			from time import sleep
+			sleep(20)		
 		except Exception, e:
 			mylogger.error("aso100 ex %s" % traceback.format_exc())
-
 
 if __name__ == '__main__':
 	main()
