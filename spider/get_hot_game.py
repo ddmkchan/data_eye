@@ -112,6 +112,7 @@ source_map = {
 			"app12345_free" : 88,
 			"app12345_pay" : 89,
 			"app12345_hot" : 90,
+			"aso100" : 91,
 			"oppo_app_download" : "102",
 			"oppo_app_newGame" : "101",
 			"oppo_app_active" : "100",
@@ -1564,5 +1565,31 @@ def main():
 		get_app12345_app_rank(p)
 	get_log_info('hot_game.log', subject='榜单监控')
 
+def get_aso100_app_rank():
+	headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'}
+	for i in xrange(1, 2):
+		dt = str(datetime.date.today()-datetime.timedelta(i))
+		url = "http://aso100.com/rank/index/brand/grossing/date/%s/genre/6014" % dt
+		try:
+			r = requests.get(url, timeout=120, headers=headers)
+			if r.status_code == 200:
+				soup = BeautifulSoup(r.text)
+				tb = soup.find('div', class_='rank-list')
+				if tb is not None:
+					for col  in tb.find_all('div', class_='col-md-2'):
+						img = col.find('img')
+						if img is not None:
+							title = img.get('alt')
+							m = re.search(u'[0-9]+\.', title)
+							game_name, img, downloads, size, popular, game_type, status, url = [u''] * 8
+							if m is not None:
+								rank = title[:m.end()-1]
+								game_name = title[m.end():]
+								store_data((rank, game_name, img, downloads, size, source, popular, game_type, status, url))
+		except Exception, e:
+			mylogger.error("aso100 ex %s" % traceback.format_exc())
+
+
 if __name__ == '__main__':
-	main()
+	#main()
+	get_aso100_app_rank()

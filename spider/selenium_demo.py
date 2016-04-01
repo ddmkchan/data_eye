@@ -28,7 +28,7 @@ def func2():
 	driver = webdriver.Firefox()
 	#driver.get("http://openbox.mobilem.360.cn/qcms/view/t/first_release?type=game&webpg=shoufanew")
 	#driver.get("http://car.auto.ifeng.com/series/2382/spec/37691/")
-	driver.get("http://ka.9game.cn/")
+	driver.get("https://www.appannie.com/apps/ios/top-chart/china/games/?date=2016-03-30")
 	#driver.get("http://m.taoche.com/buycar/carconfig.aspx?sid=2046&carid=10946")
 	return driver.page_source.encode('utf-8')
 	#soup = BeautifulSoup(driver.page_source)
@@ -66,5 +66,5 @@ def fun4():
 	print r.text.encode('utf-8')
 
 if __name__ == '__main__':
-	#print func2()
-	func3()
+	print func2()
+	#func3()
