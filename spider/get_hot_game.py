@@ -1591,5 +1591,4 @@ def get_aso100_app_rank():
 
 
 if __name__ == '__main__':
-	#main()
-	get_aso100_app_rank()
+	main()
