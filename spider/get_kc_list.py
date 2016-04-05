@@ -1442,7 +1442,9 @@ def get_pp_detail_by_id(game_id):
 		if r.status_code == 200:
 			return r.json()
 	except Exception,e:
-		mylogger.error("get %s detail \t%s" % (game_id.encode('utf-8'), traceback.format_exc()))
+		if isinstance(game_id, unicode):
+			game_id = game_id.encode('utf-8')
+		mylogger.error("get %s detail \t%s" % (game_id, traceback.format_exc()))
 	return {}
 
 def get_meizu_kc():

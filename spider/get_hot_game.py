@@ -1586,6 +1586,7 @@ def main():
 	#for p in [27,30,38]:
 	#	get_app12345_app_rank(p)
 	get_aso100_app_rank()
+	get_appstore_rank()
 	get_log_info('hot_game.log', subject='榜单监控')
 
 def add_aso100_app_rank():
@@ -1594,7 +1595,6 @@ def add_aso100_app_rank():
 		url = "http://aso100.com/rank/index/brand/grossing/date/%s/genre/6014" % dt
 		try:
 			p = proxies[random.randrange(len(proxies))]
-			print p
 			r = requests.get(url, timeout=120, proxies=p)
 			if r.status_code == 200:
 				soup = BeautifulSoup(r.text)
@@ -1617,6 +1617,28 @@ def add_aso100_app_rank():
 			sleep(20)		
 		except Exception, e:
 			mylogger.error("aso100 ex %s" % traceback.format_exc())
+
+
+def get_appstore_rank():
+	url = "https://itunes.apple.com/cn/rss/topgrossingapplications/limit=200/genre=6014/json"
+	try:
+		r = requests.get(url, timeout=60)
+		if r.status_code == 200:
+			j = r.json()
+			entries = j['feed']['entry']
+			for i in xrange(len(entries)):
+				game_name, img, downloads, size, popular, game_type, status, url = [u''] * 8
+				rank = i+1
+				entry = entries[i]
+				title = entry.get('im:name')
+				id = entry.get('id')
+				if title is not None:
+					game_name = title.get('label', u'')
+				if id is not None:
+					url = id.get('label', u'')
+				store_data((rank, game_name, img, downloads, size, "92", popular, game_type, status, url))
+	except Exception, e:
+		mylogger.error("appstore ex %s" % traceback.format_exc())
 
 if __name__ == '__main__':
 	main()
