@@ -2087,7 +2087,6 @@ def get_4399_kc():
 						game_detail = get_4399_detail_by_id(href)
 						publish_date = game_detail.get(u'更新', u'')
 						version = game_detail.get(u'版本', u'')
-						print publish_date, title, version
 						if publish_date and title and version_check(version) and href:
 							ins = db_conn.query(KC_LIST).filter(KC_LIST.url==href).filter(KC_LIST.source==source_map.get('4399')).filter(KC_LIST.publish_date==publish_date).first()
 							if not ins:
@@ -2142,12 +2141,11 @@ def main():
 	get_huawei_app_kc()
 	get_oppo_kc(0)
 	get_tgbus_kc()
+	get_4399_kc()
 	#get_ipaddown_kc()
 	get_360_web_kc(1)
 	get_360_web_kc(2)
 	get_log_info('kc.log', subject='新品监控')
 
 if __name__ == '__main__':
-	#main()
-	get_4399_kc()
-	#get_4399_detail_by_id('/game-id-93766.html')
+	main()
