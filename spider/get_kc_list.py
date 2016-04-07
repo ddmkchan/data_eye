@@ -55,6 +55,7 @@ source_map = {
 			"ipaddown": 35,
 			"i4_app": 36,
 			"tgbus": 37,
+			"4399": 38,
 			"oppo_app": 50,
 			"wogame": 998,
 			"myaora": 997,#易用汇
@@ -2044,6 +2045,67 @@ def get_tgbus_kc():
 	mylogger.info("get %s records from tgbus page" % count)
 	db_conn.commit()
 
+
+def get_4399_detail_by_id(gid):
+	url = "http://a.4399.cn/%s" % gid
+	mydict= {}
+	try:
+		r = requests.get(url, timeout=20)		
+		if r.status_code == 200:
+			soup = BeautifulSoup(r.text)
+			m_prop_list = soup.find('ul', class_='m_prop_list')
+			if m_prop_list is not None:
+				for li in m_prop_list.find_all('li'):
+					segs = li.text.split(u'：')
+					if len(segs) == 2:
+						mydict[segs[0]] = segs[1]
+	except Exception,e:
+		mylogger.error("%s\t%s" % (gid.encode('utf-8'), traceback.format_exc()))
+	return mydict
+
+from get_game_detail_by_day import version_check
+
+def get_4399_kc():
+	count = 0
+	URL = "http://a.4399.cn/game-new.html"
+	try:
+		r = requests.get(URL, timeout=20)		
+		if r.status_code == 200:
+			soup = BeautifulSoup(r.text)
+			game_new = soup.find('div', mark='game_new')
+			if game_new is not None:
+				for li in game_new.find_all('li'):
+					title = u''
+					img = u''
+					img = li.find('img')
+					if img is not None:
+						title = img.get('alt')
+						img = img.get('src')
+					m_game = li.find('a', class_='m_game')
+					if m_game is not None:
+						href = m_game.get('href')
+						game_detail = get_4399_detail_by_id(href)
+						publish_date = game_detail.get(u'更新', u'')
+						version = game_detail.get(u'版本', u'')
+						print publish_date, title, version
+						if publish_date and title and version_check(version) and href:
+							ins = db_conn.query(KC_LIST).filter(KC_LIST.url==href).filter(KC_LIST.source==source_map.get('4399')).filter(KC_LIST.publish_date==publish_date).first()
+							if not ins:
+								count += 1
+								item = KC_LIST(**{
+												'publish_date' 	: publish_date,
+												'title'			: title,
+												'img'			: img,
+												'url'			: href,
+												'source':source_map.get('4399'),
+													})
+								db_conn.merge(item)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+	mylogger.info("get %s records from 4399" % count)
+	db_conn.commit()
+
+
 def main():
 	mylogger.info("gogo")
 	get_18183_kc()
@@ -2086,4 +2148,6 @@ def main():
 	get_log_info('kc.log', subject='新品监控')
 
 if __name__ == '__main__':
-	main()
+	#main()
+	get_4399_kc()
+	#get_4399_detail_by_id('/game-id-93766.html')

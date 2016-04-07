@@ -1836,13 +1836,14 @@ def get_ipaddown_detail():
 
 def version_check(version):
 	try:
-		segs = version.split('.')
-		if int(segs[0]) >= 2:
-			return False
-		for v in segs[1:]:
-			if int(v) > 5:
+		if version:
+			segs = version.split('.')
+			if int(segs[0]) >= 2:
 				return False
-		return True
+			for v in segs[1:]:
+				if int(v) > 5:
+					return False
+			return True
 	except Exception,e:
 		mylogger.error("%s\t%s" % (version.encode('utf-8'), traceback.format_exc()))
 	return None
@@ -1918,6 +1919,55 @@ def get_tgbus_detail():
 	mylogger.info("get tgbus detail %s" % count)
 	db_conn.commit()
 
+def get_4399_detail():
+	count = 0
+	mylogger.info("get 4399 detail start ...")
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.source==38):
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).first()
+		if not ins:
+			url = "http://a.4399.cn/%s" % ret.url
+			try:
+				pg = get_page_source_by_phantomjs(url)
+				#r = requests.get(url, timeout=20)		
+				#if r.status_code == 200:
+				if pg:
+					soup = BeautifulSoup(pg)
+					#soup = BeautifulSoup(r.text)
+					_dict = {}
+					m_prop_list = soup.find('ul', class_='m_prop_list')
+					if m_prop_list is not None:
+						for li in m_prop_list.find_all('li'):
+							segs = li.text.split(u'：')
+							if len(segs) == 2:
+								_dict[segs[0]] = segs[1]
+					imgs = []
+					summary = u''
+					picthumb = soup.find('ul', id='j-slide-thumb')
+					if picthumb is not None:
+						for li in picthumb.find_all('li'):
+							if li.find('img') is not None:
+								imgs.append(li.find('img').get('src'))
+					game_summary = soup.find('div', id='j-game-summary')
+					if game_summary is not None:
+						summary = game_summary.text.strip()
+					item = GameDetailByDay(**{
+												'kc_id' : ret.id,
+												'name' : ret.title,
+												'version' : _dict.get(u'版本', u''),
+												'dt' : dt,
+												'imgs' : u','.join(imgs),
+												'summary' : summary,
+												'author' : _dict.get(u'开发商', u''),
+												})
+					db_conn.merge(item)
+					if count % 50 == 0:
+						mylogger.info("4399 detail %s commit" % count)
+						db_conn.commit()
+			except Exception,e:
+				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
+	mylogger.info("get tgbus detail %s" % count)
+	db_conn.commit()
 
 def step1():
 	get_xiaomi_new_detail()
@@ -1958,6 +2008,7 @@ def step3():
 	get_9game_detail()
 	get_huawei_detail()
 	get_360zhushou_web_detail()
+	get_4399_detail()
 	get_log_info('get_game_detail.log', rows=-300, subject='游戏详情监控3')
 
 if __name__ == '__main__':
