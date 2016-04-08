@@ -2144,7 +2144,6 @@ def get_yxhi_kc():
 						publish_date = get_yxhi_info(href)
 						if publish_date and _url:
 							title = tr.find('a').text
-							print tr.find('a').text, publish_date
 							img = tr.find('img').get('data-original')
 							ins = db_conn.query(KC_LIST).filter(KC_LIST.url==href).filter(KC_LIST.source==source_map.get('yxhi')).filter(KC_LIST.publish_date==publish_date).first()
 							if not ins:
