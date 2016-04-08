@@ -1928,12 +1928,12 @@ def get_4399_detail():
 		if not ins:
 			url = "http://a.4399.cn/%s" % ret.url
 			try:
-				pg = get_page_source_by_phantomjs(url)
-				#r = requests.get(url, timeout=20)		
-				#if r.status_code == 200:
-				if pg:
-					soup = BeautifulSoup(pg)
-					#soup = BeautifulSoup(r.text)
+				#pg = get_page_source_by_phantomjs(url)
+				r = requests.get(url, timeout=20)		
+				if r.status_code == 200:
+				#if pg:
+			#		soup = BeautifulSoup(pg)
+					soup = BeautifulSoup(r.text)
 					_dict = {}
 					m_prop_list = soup.find('ul', class_='m_prop_list')
 					if m_prop_list is not None:
@@ -1966,8 +1966,55 @@ def get_4399_detail():
 						db_conn.commit()
 			except Exception,e:
 				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
-	mylogger.info("get tgbus detail %s" % count)
+	mylogger.info("get 4399 detail %s" % count)
 	db_conn.commit()
+
+def get_yxhi_detail():
+	count = 0
+	mylogger.info("get yxhi detail start ...")
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.source==39):
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).first()
+		if not ins:
+			try:
+				r = requests.get(ret.url, timeout=20)		
+				if r.status_code == 200:
+					soup = BeautifulSoup(r.text)
+					_dict = {}
+					imgs = []
+					summary = u''
+					lockup = soup.find('div', class_='lockup product application')
+					if lockup is not None and lockup.find('ul', class_='list') is not None:
+						for li in lockup.find('ul', class_='list').find_all('li'):
+							segs = re.split(u':|：', li.text)
+							if len(segs) == 2:
+								_dict[segs[0]] = segs[1].strip()
+					description = soup.find('p', itemprop='description')
+					if description is not None:
+						summary = description.text.strip()	
+					image_wrapper = soup.find('div', class_='content iphone-screen-shots')
+					if image_wrapper is not None:
+						for img in image_wrapper.find_all('img'):
+							imgs.append(img.get('src'))
+					item = GameDetailByDay(**{
+												'kc_id' : ret.id,
+												'name' : ret.title,
+												'version' : _dict.get(u'版本', u''),
+												'pkg_size' : _dict.get(u'大小', u''),
+												'dt' : dt,
+												'imgs' : u','.join(imgs),
+												'summary' : summary,
+												'author' : _dict.get(u'开发商', u''),
+												})
+					db_conn.merge(item)
+					if count % 50 == 0:
+						mylogger.info("yxhi detail %s commit" % count)
+						db_conn.commit()
+			except Exception,e:
+				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
+	mylogger.info("get 4399 detail %s" % count)
+	db_conn.commit()
+			
 
 def step1():
 	get_xiaomi_new_detail()
@@ -1986,6 +2033,7 @@ def step1():
 	get_meizu_detail()
 	#get_ipaddown_detail()
 	get_tgbus_detail()
+	get_yxhi_detail()
 	get_log_info('get_game_detail.log', rows=-500, subject='游戏详情监控1')
 
 def step2():

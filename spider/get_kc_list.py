@@ -56,6 +56,7 @@ source_map = {
 			"i4_app": 36,
 			"tgbus": 37,
 			"4399": 38,
+			"yxhi": 39,
 			"oppo_app": 50,
 			"wogame": 998,
 			"myaora": 997,#易用汇
@@ -2105,6 +2106,62 @@ def get_4399_kc():
 	db_conn.commit()
 
 
+def get_yxhi_info(url):
+	try:
+		response = requests.get(url, timeout=20)		
+		r = response.text.encode('ISO-8859-1').decode('utf-8')
+		if response.status_code == 200:
+			soup = BeautifulSoup(r)
+			for p in soup.find_all('p'):
+				is_game = u'游戏' in p.text
+				if is_game:
+					if u'发布在' in p.text and u'分类' in p.text:
+						m = re.search('\d{4}-\d{2}-\d{2}', p.text)
+						if m is not None:
+							return m.group()
+	except Exception,e:
+		mylogger.error("%s\t%s" % (url.encode('utf-8'), traceback.format_exc()))
+	return None
+
+def get_yxhi_kc():
+	count = 0
+	URL = "http://ranking.yxhi.com/cn/newlist"
+	try:
+		response = requests.get(URL, timeout=20)		
+		r = response.text.encode('ISO-8859-1').decode('utf-8')
+		if response.status_code == 200:
+			soup = BeautifulSoup(r)
+			tb = soup.find('table', class_='table table-striped')
+			if tb is not None:
+				for tr in tb.find_all('tr'):
+					tr = tr.find('td', style='vertical-align:middle;')
+					if tr is not None:
+						_url = u''
+						href = tr.find('a').get('href')
+						game_id = re.search('\d+', href)
+						if game_id is not None:
+							_url = "https://itunes.apple.com/cn/app/id%s?mt=8" % game_id.group()
+						publish_date = get_yxhi_info(href)
+						if publish_date and _url:
+							title = tr.find('a').text
+							print tr.find('a').text, publish_date
+							img = tr.find('img').get('data-original')
+							ins = db_conn.query(KC_LIST).filter(KC_LIST.url==href).filter(KC_LIST.source==source_map.get('yxhi')).filter(KC_LIST.publish_date==publish_date).first()
+							if not ins:
+								count += 1
+								item = KC_LIST(**{
+												'publish_date' 	: publish_date,
+												'title'			: title,
+												'img'			: img,
+												'url'			: _url,
+												'source':source_map.get('yxhi'),
+													})
+								db_conn.merge(item)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+	mylogger.info("get %s records from yxhi" % count)
+	db_conn.commit()
+
 def main():
 	mylogger.info("gogo")
 	get_18183_kc()
@@ -2142,6 +2199,7 @@ def main():
 	get_oppo_kc(0)
 	get_tgbus_kc()
 	get_4399_kc()
+	get_yxhi_kc()
 	#get_ipaddown_kc()
 	get_360_web_kc(1)
 	get_360_web_kc(2)
