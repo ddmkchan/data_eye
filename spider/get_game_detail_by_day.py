@@ -1928,12 +1928,12 @@ def get_4399_detail():
 		if not ins:
 			url = "http://a.4399.cn/%s" % ret.url
 			try:
-				#pg = get_page_source_by_phantomjs(url)
-				r = requests.get(url, timeout=20)		
-				if r.status_code == 200:
-				#if pg:
-			#		soup = BeautifulSoup(pg)
-					soup = BeautifulSoup(r.text)
+				pg = get_page_source_by_phantomjs(url)
+				#r = requests.get(url, timeout=20)		
+				#if r.status_code == 200:
+				if pg:
+					soup = BeautifulSoup(pg)
+					#soup = BeautifulSoup(r.text)
 					_dict = {}
 					m_prop_list = soup.find('ul', class_='m_prop_list')
 					if m_prop_list is not None:
