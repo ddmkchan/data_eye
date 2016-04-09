@@ -9,7 +9,7 @@ localIP = socket.gethostbyname(socket.gethostname())#这个得到本地ip
 if localIP == u'192.168.1.215':
 	sys.path.append('/root/yanpengchen/data_eye/common')
 	sys.path.append('/data2/yanpengchen/data_eye/common')
-	EXECUTABLE_PATH = '/data2/yanpengchen/phantomjs-2.0.0/bin/phantomjs'
+	EXECUTABLE_PATH = '/data2/yanpengchen/phantomjs-2.1.1-linux-x86_64/bin/phantomjs'
 	LOG_PATH = '/data2/yanpengchen/logs'
 else:
 	sys.path.append('/home/cyp/data_eye/common')
