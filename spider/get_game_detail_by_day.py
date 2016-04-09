@@ -1961,6 +1961,7 @@ def get_4399_detail():
 												'author' : _dict.get(u'开发商', u''),
 												})
 					db_conn.merge(item)
+					count += 1
 					if count % 50 == 0:
 						mylogger.info("4399 detail %s commit" % count)
 						db_conn.commit()
