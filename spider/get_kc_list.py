@@ -57,6 +57,7 @@ source_map = {
 			"tgbus": 37,
 			"4399": 38,
 			"yxhi": 39,
+			"aso": 40,
 			"oppo_app": 50,
 			"wogame": 998,
 			"myaora": 997,#易用汇
@@ -2161,6 +2162,47 @@ def get_yxhi_kc():
 	mylogger.info("get %s records from yxhi" % count)
 	db_conn.commit()
 
+def get_aso_kc(index=0):
+	count = 0
+	publish_date = str(datetime.date.today() + datetime.timedelta(index))
+	URL = "http://aso100.com/rank/release/date/%s" % publish_date
+	try:
+		r = requests.get(URL, timeout=20)		
+		if r.status_code == 200:
+			soup = BeautifulSoup(r.text)
+			tb = soup.find('div', class_='rank-list')
+			if tb is not None:
+				for col  in tb.find_all('div', class_='col-md-2'):
+					img = u''
+					_img = col.find('img')
+					if _img is not None:
+						img = _img.get('data-original')
+					h6s = col.find_all('h6')
+					if len(h6s) == 2 and h6s[1].text == u'游戏':
+						h5 = col.find('h5')
+						href = col.find('a')
+						if h5 is not None and href is not None and h5 is not None:
+							title = h5.get('title')
+							if re.search(u'[\u4e00-\u9fa5]+', title) is not None:
+								appid = href.get('href').split('/')[-1]
+								info_url = "http://aso100.com/app/baseinfo/appid/%s" % appid
+								ins = db_conn.query(KC_LIST).filter(KC_LIST.url==info_url).filter(KC_LIST.source==source_map.get('aso')).first()
+								if not ins:
+									count += 1
+									item = KC_LIST(**{
+													'publish_date' 	: publish_date,
+													'title'			: title,
+													'img'			: img,
+													'url'			: info_url,
+													'source':source_map.get('aso'),
+														})
+									db_conn.merge(item)
+	except Exception,e:
+		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
+	mylogger.info("get %s records from aso" % count)
+	db_conn.commit()
+
+
 def main():
 	mylogger.info("gogo")
 	get_18183_kc()
@@ -2198,6 +2240,7 @@ def main():
 	get_oppo_kc(0)
 	get_tgbus_kc()
 	get_4399_kc()
+	get_aso_kc()
 	get_yxhi_kc()
 	#get_ipaddown_kc()
 	get_360_web_kc(1)

@@ -1599,7 +1599,6 @@ def add_aso100_app_rank():
 			if r.status_code == 200:
 				soup = BeautifulSoup(r.text)
 				tb = soup.find('div', class_='rank-list')
-				print tb is not None
 				rank = 0
 				if tb is not None:
 					for col  in tb.find_all('div', class_='col-md-2'):

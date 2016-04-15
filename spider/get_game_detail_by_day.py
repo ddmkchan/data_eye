@@ -2013,7 +2013,51 @@ def get_yxhi_detail():
 						db_conn.commit()
 			except Exception,e:
 				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
-	mylogger.info("get 4399 detail %s" % count)
+	mylogger.info("get yxhi detail %s" % count)
+	db_conn.commit()
+			
+def get_aso_detail():
+	count = 0
+	mylogger.info("get aso detail start ...")
+	for ret in db_conn.query(KC_LIST).filter(KC_LIST.source==40):
+		dt = unicode(datetime.date.today())
+		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).first()
+		if not ins:
+			try:
+				r = requests.get(ret.url, timeout=20)		
+				if r.status_code == 200:
+					soup = BeautifulSoup(r.text)
+					base_info = soup.find('table', class_='base-info')
+					_dict = {}
+					if base_info is not None:
+						for li in base_info.find_all('tr'):
+							segs = li.text.strip().split('\n')
+							if len(segs) == 2:
+								_dict[segs[0]] = segs[1]
+					summary = u''
+					imgs = []
+					desc = soup.find('div', class_='desc')
+					summary = desc.text
+					screenshot = soup.find('div', id='screenshot-box')
+					if screenshot is not None:
+						imgs = [img.get('src') for img in screenshot.find_all('img')]
+					item = GameDetailByDay(**{
+												'kc_id' : ret.id,
+												'name' : ret.title,
+												'version' : _dict.get(u'版本', u''),
+												'pkg_size' : _dict.get(u'大小', u''),
+												'dt' : dt,
+												'imgs' : u','.join(imgs),
+												'summary' : summary,
+												'author' : _dict.get(u'开发商', u''),
+												})
+					db_conn.merge(item)
+					if count % 50 == 0:
+						mylogger.info("aso %s commit" % count)
+						db_conn.commit()
+			except Exception,e:
+				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
+	mylogger.info("get aso detail %s" % count)
 	db_conn.commit()
 			
 
@@ -2058,6 +2102,7 @@ def step3():
 	get_huawei_detail()
 	get_360zhushou_web_detail()
 	get_4399_detail()
+	get_aso_detail()
 	get_log_info('get_game_detail.log', rows=-300, subject='游戏详情监控3')
 
 if __name__ == '__main__':
