@@ -2024,7 +2024,8 @@ def get_aso_detail():
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).first()
 		if not ins:
 			try:
-				r = requests.get(ret.url, timeout=20)		
+				p = proxies[random.randrange(len(proxies))]
+				r = requests.get(ret.url, timeout=20, proxies=p)		
 				if r.status_code == 200:
 					soup = BeautifulSoup(r.text)
 					base_info = soup.find('table', class_='base-info')
@@ -2052,6 +2053,7 @@ def get_aso_detail():
 												'author' : _dict.get(u'开发商', u''),
 												})
 					db_conn.merge(item)
+					count += 1
 					if count % 50 == 0:
 						mylogger.info("aso %s commit" % count)
 						db_conn.commit()
