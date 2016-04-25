@@ -90,5 +90,5 @@ def get_pp_comments_by_id(gid):
 	return {}
 
 if __name__ == '__main__':
-	get_pp_detail()
+	#get_pp_detail()
 	step2()

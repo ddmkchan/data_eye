@@ -2224,7 +2224,7 @@ def main():
 	get_kuaiyong_kc(1)
 	get_wandoujia_kc()
 	get_9game_today_kc()
-	get_pp_kc(1)
+	#get_pp_kc(1)
 	get_meizu_kc()
 	get_i4_kc(1)
 	get_xyzs_kc(1)
