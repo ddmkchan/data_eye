@@ -207,19 +207,32 @@ def add_adv_record_map_by_es():
 	#通过es，搜索相似
 	for ret in db_conn.execute("select a.id, a.game_name from (select * from adv_game_detail where game_name!='') a left join adv_game_map b on a.id=b.adv_game_detail_id where b.adv_game_detail_id is null;"):
 		adv_id, keyword = ret
-		m = re.search(u"《([\u4e00-\u9fa5]*[0-9]*[a-zA-Z]*)》", keyword)
+		m = re.search(u"《([\u4e00-\u9fa5]*[0-9]*[a-zA-Z]*\:*\-：*[\u4e00-\u9fa5]*)》", keyword)
 		if m is not None:
 			q = m.group(1)
-		elif len(re.split(u"\s*-\s*|（|\(|\:|：| ", keyword)) >= 2:
-			q = re.split(u"\s*-\s*|（|\(|\:|：| ", keyword)[0]
 		else:
 			q = keyword
 		for rs in _search(keyword=q, length=5)['data']:
+			#if rs['ratio'] >= 0.8:
+			#	print q, '------', rs['name'], rs['ratio']
 			if rs['ratio'] >= 1:
 				adv_game_summary_id = rs['id']
 				mylogger.info("ADD BY es : %s\t %s" % (adv_id, adv_game_summary_id))
 				add_adv_game_map(adv_id, adv_game_summary_id)
+				is_match = True
 				break
+		if len(re.split(u"\s*-\s*|（|\(|\:|：| ", keyword)) >= 2 and not is_match:
+			q = re.split(u"\s*-\s*|（|\(|\:|：| ", keyword)[0]
+			for rs in _search(keyword=q, length=5)['data']:
+				#print q, '****', rs['name'], rs['ratio']
+				#if rs['ratio'] >= 0.8:
+				#	print q, '------', rs['name'], rs['ratio']
+				if rs['ratio'] >= 1:
+					adv_game_summary_id = rs['id']
+					mylogger.info("ADD BY es : %s\t %s" % (adv_id, adv_game_summary_id))
+					add_adv_game_map(adv_id, adv_game_summary_id)
+					break
+
 
 def get_uncheck_to_rc():
 	target = []
