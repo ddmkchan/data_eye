@@ -2164,12 +2164,14 @@ def get_yxhi_kc():
 
 def get_aso_kc(index=0):
 	count = 0
+	headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36'}
 	publish_date = str(datetime.date.today() + datetime.timedelta(index))
 	URL = "http://aso100.com/rank/release/date/%s" % publish_date
 	try:
-		r = requests.get(URL, timeout=20)		
+		r = requests.get(URL, timeout=20, headers=headers)		
 		if r.status_code == 200:
 			soup = BeautifulSoup(r.text)
+			print soup.title
 			tb = soup.find('div', class_='rank-list')
 			if tb is not None:
 				for col  in tb.find_all('div', class_='col-md-2'):
@@ -2240,7 +2242,7 @@ def main():
 	get_oppo_kc(0)
 	get_tgbus_kc()
 	get_4399_kc()
-	get_aso_kc()
+	#get_aso_kc()
 	get_yxhi_kc()
 	#get_ipaddown_kc()
 	get_360_web_kc(1)

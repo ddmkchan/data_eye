@@ -2019,13 +2019,14 @@ def get_yxhi_detail():
 def get_aso_detail():
 	count = 0
 	mylogger.info("get aso detail start ...")
+	headers = {'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0'}
 	for ret in db_conn.query(KC_LIST).filter(KC_LIST.source==40):
 		dt = unicode(datetime.date.today())
 		ins = db_conn.query(GameDetailByDay).filter(GameDetailByDay.kc_id==ret.id).first()
 		if not ins:
 			try:
 				p = proxies[random.randrange(len(proxies))]
-				r = requests.get(ret.url, timeout=20, proxies=p)		
+				r = requests.get(ret.url, timeout=20, proxies=p, headers=headers)		
 				if r.status_code == 200:
 					soup = BeautifulSoup(r.text)
 					base_info = soup.find('table', class_='base-info')
@@ -2057,6 +2058,7 @@ def get_aso_detail():
 					if count % 50 == 0:
 						mylogger.info("aso %s commit" % count)
 						db_conn.commit()
+				sleep(5)
 			except Exception,e:
 				mylogger.error("%s\t%s" % (ret.url.encode('utf-8'), traceback.format_exc()))
 	mylogger.info("get aso detail %s" % count)
@@ -2109,3 +2111,4 @@ def step3():
 
 if __name__ == '__main__':
 	step1()
+

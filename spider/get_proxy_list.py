@@ -17,11 +17,12 @@ mylogger = get_logger('proxy_list')
 s = requests.session()
 db_conn = new_session()
 
-headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/44.0.2403.125 Safari/537.36'}
+headers = {'User-Agent': 'Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:35.0) Gecko/20100101 Firefox/35.0'}
 
 
 def get_xici_nn_proxy_list(page):
 	URL = "http://www.xicidaili.com/nn/%s" % page
+	count = 0
 	try:
 		response = s.get(URL, timeout=10, headers=headers)
 		if response.status_code == 200:
@@ -44,14 +45,19 @@ def get_xici_nn_proxy_list(page):
 											"check_time": u"20" + check_time,
 										})
 							db_conn.merge(item)
+							count +=1
+		mylogger.info("get ip from xici %s" % count)
 	except Exception,e:
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
 	db_conn.commit()
 
 def get_kd_proxy_list(page):
 	URL = "http://www.kuaidaili.com/free/intr/%s/" % page
+	count = 0
 	try:
+		print URL
 		response = s.get(URL, timeout=10, headers=headers)
+		print response.text
 		if response.status_code == 200:
 			soup = BeautifulSoup(response.text)
 			tb = soup.find('table', class_='table table-bordered table-striped')
@@ -71,6 +77,8 @@ def get_kd_proxy_list(page):
 											"check_time": check_time,
 										})
 							db_conn.merge(item)
+							count += 1
+		mylogger.info("get ip from kd %s" % count)
 	except Exception,e:
 		mylogger.error("%s\t%s" % (URL, traceback.format_exc()))
 	db_conn.commit()

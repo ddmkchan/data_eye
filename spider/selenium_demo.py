@@ -68,3 +68,13 @@ def fun4():
 if __name__ == '__main__':
 	print func2()
 	#func3()
+	#sess = requests.session()
+	#cookies = dict(PHPSESSID='h4pfli36lte3tet1rt2eg7ve00')
+	##cookies = dict(cookies='PHPSESSID=h4pfli36lte3tet1rt2eg7ve00')
+	##cookies = dict(cookies='aliyungf_tc=AQAAAObhmVcgdQMAfeR0cV+erKvYh1RQ; PHPSESSID=h4pfli36lte3tet1rt2eg7ve00; _ga=GA1.2.752348207.1459841670; baidu_qiao_v3_count_8356286=1; Hm_lvt_0d266795d9f60795734646d04334a96c=1459474268; Hm_lpvt_0d266795d9f60795734646d04334a96c=1460709102; activity-itc=1462377599000; activity-itc-0422')
+	#headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.109 Safari/537.36'}
+	#raw_data = {'code':'uNTVXA', 'referrer':'/'}
+	#r = requests.post("http://aso100.com/error/ipLImit", data=raw_data, cookies=cookies)
+	#print r.history
+	#soup = BeautifulSoup(r.text)
+	#print soup.title
