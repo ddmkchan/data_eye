@@ -31,8 +31,8 @@ def get_xici_nn_proxy_list(page):
 			if tb is not None:
 				for tr in tb.find_all('tr')[1:]:
 					tds = [i.text.strip() for i in tr.find_all('td')]
-					if len(tds) == 10:
-						a, b, ip, port, location, is_anonymity, type, c, d, check_time = tds
+					if len(tds) == 9:
+						a, ip, port, location, is_anonymity, type, c, d, check_time = tds
 						#print ip, port
 						ins = db_conn.query(ProxyList).filter(ProxyList.ip==ip).filter(ProxyList.port==port).first()
 						if not ins:
@@ -55,11 +55,14 @@ def get_kd_proxy_list(page):
 	URL = "http://www.kuaidaili.com/free/intr/%s/" % page
 	count = 0
 	try:
-		print URL
-		response = s.get(URL, timeout=10, headers=headers)
-		print response.text
-		if response.status_code == 200:
-			soup = BeautifulSoup(response.text)
+		#print URL
+		#response = s.get(URL, timeout=10, headers=headers)
+		#print response.text
+		p = get_page_source_by_phantomjs(URL)
+		#if response.status_code == 200:
+			#soup = BeautifulSoup(response.text)
+		if p:
+			soup = BeautifulSoup(p)
 			tb = soup.find('table', class_='table table-bordered table-striped')
 			if tb is not None:
 				for tr in tb.find_all('tr')[1:]:
