@@ -2106,7 +2106,7 @@ def step3():
 	get_huawei_detail()
 	get_360zhushou_web_detail()
 	get_4399_detail()
-	get_aso_detail()
+	#get_aso_detail()
 	get_log_info('get_game_detail.log', rows=-300, subject='游戏详情监控3')
 
 if __name__ == '__main__':
