@@ -1639,4 +1639,4 @@ def main():
 
 if __name__ == '__main__':
 	main()
-	#get_anzhi_kc()
+	get_anzhi_kc()
